@@ -1,0 +1,148 @@
+$date
+	Mon Nov  2 17:01:25 2026
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1ps
+$end
+$scope module tb_xn $end
+$var wire 1 ! out_flag $end
+$var wire 8 " out_data [7:0] $end
+$var reg 1 # clk $end
+$var reg 8 $ in_data [7:0] $end
+$var reg 1 % in_valid $end
+$var reg 1 & rst $end
+$scope module dut $end
+$var wire 1 # clk $end
+$var wire 1 ' flag $end
+$var wire 8 ( in_data [7:0] $end
+$var wire 1 % in_valid $end
+$var wire 8 ) out_data [7:0] $end
+$var wire 1 ! out_flag $end
+$var wire 1 & rst $end
+$var wire 8 * scaled [7:0] $end
+$var reg 1 + flag_q $end
+$var reg 4 , mode_q [3:0] $end
+$var reg 8 - out_q [7:0] $end
+$scope module u_scaler $end
+$var wire 8 . bias [7:0] $end
+$var wire 1 # clk $end
+$var wire 8 / in_data [7:0] $end
+$var wire 1 % in_valid $end
+$var wire 1 & rst $end
+$var wire 8 0 scaled [7:0] $end
+$var reg 8 1 stage1_q [7:0] $end
+$var reg 8 2 stage2_q [7:0] $end
+$upscope $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+#0
+$dumpvars
+bx 2
+bx 1
+bx 0
+b0 /
+b11 .
+bx -
+bx ,
+x+
+bx *
+bx )
+b0 (
+0'
+1&
+0%
+b0 $
+0#
+bx "
+x!
+$end
+#5000
+b0 *
+b0 0
+b0 2
+0!
+0+
+b0 "
+b0 )
+b0 -
+1#
+#10000
+0#
+#15000
+1#
+#16000
+0&
+#20000
+0#
+#25000
+bx *
+bx 0
+bx 2
+1#
+#30000
+0#
+#35000
+bx "
+bx )
+bx -
+1#
+#40000
+0#
+#45000
+1#
+#50000
+0#
+#55000
+1#
+#56000
+x'
+b111 $
+b111 (
+b111 /
+1%
+#60000
+0#
+#65000
+b1110 1
+x!
+x+
+1#
+#70000
+0#
+#75000
+b10001 *
+b10001 0
+b10001 2
+1#
+#80000
+0#
+#85000
+b10001 "
+b10001 )
+b10001 -
+1#
+#90000
+0#
+#95000
+1#
+#96000
+0'
+0%
+#100000
+0#
+#105000
+0!
+0+
+1#
+#110000
+0#
+#115000
+1#
+#120000
+0#
+#125000
+1#

@@ -1,0 +1,11 @@
+{
+  "fixture": "xbug_input",
+  "waves": "waves.vcd",
+  "simulator": "iverilog -g2012 (4-state); times are VCD ticks (1ps)",
+  "cases": [
+    {"signal": "tb_xi.result", "time": 35001, "root": "tb_xi.dut.cfg", "cause": "external_input",
+     "only": true, "min_depth": 8, "why": "testbench leaves cfg = 4'bzzzz for the first cycles"},
+    {"signal": "tb_xi.dut.u_mix.mix", "time": 30000, "root": "tb_xi.dut.cfg", "cause": "external_input",
+     "only": true}
+  ]
+}

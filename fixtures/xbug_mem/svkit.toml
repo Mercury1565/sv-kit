@@ -1,0 +1,21 @@
+# xbug_mem — X-trace fixture, class 2 (uninitialized memory read, out-of-range index).
+[project]
+name = "xbug_mem"
+top = "xm_top"
+tb_top = "tb_xm"
+sources = { glob = ["rtl/*.sv"] }
+tb_sources = { glob = ["tb/*.sv"] }
+clock = "clk"
+reset = { name = "rst", active = "high" }
+
+# Verilator is 2-state: it never shows the X. Goldens come from a 4-state simulator.
+[flows.sim.verilator]
+mode = "builtin"
+waves = "waves.vcd"
+tests = { names = ["smoke"] }
+
+[flows.sim.vcs]
+mode = "wrap"
+cmd = "make sim-vcs TEST={test}"
+waves = "waves.vcd"
+tests = { names = ["smoke"] }
