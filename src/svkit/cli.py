@@ -145,7 +145,11 @@ def sweep_clock(tol: float = typer.Option(50.0, help="bracket tolerance (ps)"), 
     from svkit.analysis import sweep
     cfg = _cfg()
     r = _runner(cfg)
-    res = sweep.sweep_clock(r, tol=tol, jobs=jobs, flow=flow, start=start)
+    try:
+        res = sweep.sweep_clock(r, tol=tol, jobs=jobs, flow=flow, start=start)
+    except ConfigError as e:
+        typer.secho(f"config error: {e}", fg="red", err=True)
+        raise typer.Exit(EXIT_CONFIG)
     for p in res.points:
         typer.echo(f"  {p.period:>10.1f} ps  WNS={_n(p.wns):>8}  {'PASS' if p.passed else 'fail'}  {p.run_id}")
     if res.t_min is None:
