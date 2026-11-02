@@ -32,10 +32,10 @@ And the follow-up:
 | 5 | Open-source EDA tools | Author delegated: "use your best judgement". **OSS CAD Suite (2026-11-02 build) installed to `~/tools/oss-cad-suite`** | Done |
 | 6 | Name | `svkit`, working title | Open |
 | 7 | Git hosting (GitHub? public/private) | not answered yet | Open |
-| 8 | Minimum Python | Proposed **3.11** (`/usr/bin/python3.11`) | Proposed, not confirmed |
-| 9 | Frontend build | Proposed: **prebuilt static assets shipped in the Python package**; Node is needed only for development | Proposed, not confirmed |
-| 10 | Synthesis knob mechanics | Proposed: isolated work dir per run; set knobs via env var / file / generated TCL wrapper that sets vars then `source`s the user's unchanged script; text replacement as last resort | Proposed, not confirmed |
-| 11 | Wrap vs. generate build scripts | Proposed: **wrap only** in v1 | Proposed, not confirmed |
+| 8 | Minimum Python | **3.11** (`requires-python >= 3.11`); dev venv uses whatever ≥3.11 the host has (3.12 on the current dev host) | Decided (lead, iter 1) |
+| 9 | Frontend build | **Prebuilt static assets committed under `src/svkit/server/static/`**; Node needed only for development | Decided (lead, iter 1) |
+| 10 | Synthesis knob mechanics | Isolated work dir (full copy) per synth run; knobs via `file` / `env` / `tcl_var` / `tcl_replace` / `tcl_append` / `define`. `tcl_var` is injected at the top of the work-dir copy of the script and the user's own `set var default` is guarded with `info exists` (a pure `source` wrapper would be overridden by that line). See ARCHITECTURE.md §2.3 | Decided (lead, iter 1) |
+| 11 | Wrap vs. generate build scripts | **Wrap is the default** (`mode = "wrap"` runs the user's command). Adapters also have `mode = "builtin"` that invokes the tool directly in an isolated work dir; svkit never writes build files into the user's repo | Decided (lead, iter 1) |
 | 12 | License | can wait until public (MIT is the easy default) | Deferred |
 | 13 | Surfer embed vs. own wave renderer | decide in Phase 2 after prototyping on `pywellen` | Deferred |
 | 14 | Gate-level X tracing with SDF | Phase 3+ | Deferred |
@@ -43,6 +43,8 @@ And the follow-up:
 | 16 | OpenSTA in the MVP | **Yes**, so the open-source flow has timing for sweep, WNS, and the critical path | Confirmed |
 | 17 | Experiments in the MVP | **Yes**, `svkit synth --exp` / `--matrix` | Confirmed |
 | 18 | MVP simulators | **VCS + Verilator**; Icarus after the MVP | Confirmed |
+| 19 | Golden-diff jump: line → sim time | `golden.time_regex` captures a time (or cycle, `time_unit = "cycle"`) from the first mismatching actual line | Decided (lead, iter 1) |
+| 20 | Liberty for the open-source fixtures | An original toy library `fixtures/lib/svkit_tiny.lib` (with `_R`/`_L` Vt variants), so results are deterministic and redistributable | Decided (lead, iter 1) |
 
 ## 3. Development environment findings (CAEN Linux, RHEL 9)
 

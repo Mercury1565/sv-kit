@@ -355,13 +355,13 @@ XTraceNode:  signal, time, value, driver{kind, file, line}, cause?, children[]
 - [x] Repo location: `/home/hermong/svkit`.
 - [ ] Final name (`svkit` is a working title) and git hosting (GitHub? public/private).
 - [ ] License (MIT / Apache-2.0?): deferred until the repo goes public.
-- [ ] Minimum Python version: *proposed* 3.11.
-- [ ] Frontend build: *proposed* prebuilt assets shipped in the Python package (system Node on CAEN is v10).
-- [ ] Should svkit ever *generate* build scripts, or only wrap existing ones? *Proposed:* wrap only in v1.
-- [ ] Experiment knob mechanics for DC. *Proposed:* isolated work dir per run; env var / file / generated TCL wrapper that `source`s the user's unchanged script; text replacement as last resort.
+- [x] Minimum Python version: 3.11 (decided).
+- [x] Frontend build: prebuilt assets shipped in the Python package (decided).
+- [x] Wrap existing builds by default; `builtin` adapter mode for projects without one (decided).
+- [x] Experiment knob mechanics: see decision log and ARCHITECTURE.md §2.3 (decided).
 - [ ] Waveform frontend: embed Surfer vs. build our own renderer (decide in Phase 2).
 - [ ] How to model the gate-level X tracer for sims that use SDF timing (Phase 3+).
-- [ ] How the golden-diff jump maps the first mismatching output line to a sim time (needed by Phase 2). See [`docs/MVP.md`](docs/MVP.md) §9.
+- [x] Golden-diff jump: `golden.time_regex` (decided).
 
 ## 13. Decision log
 
@@ -377,3 +377,8 @@ XTraceNode:  signal, time, value, driver{kind, file, line}, cause?, children[]
 | 2026-11-02 | OpenSTA is in the MVP | Yosys has no timing; sweep, WNS, and the critical path need it for open-source parity |
 | 2026-11-02 | `svkit synth --exp` / `--matrix` are in the MVP | Directly answers the original ask (area effort, mixed Vt, fanout, SS corner); reuses the sweep's knob mechanics |
 | 2026-11-02 | MVP simulators are VCS and Verilator; Icarus after the MVP | Matches Phase 0 exit criteria; keeps adapter count down |
+| 2026-11-02 | Python ≥ 3.11; built web assets committed into the package | Shared servers lack Node/new Python; `pip install` must be enough |
+| 2026-11-02 | Knobs: isolated full-copy work dir; `tcl_var` injected into the work-dir copy with the user's own default guarded | A plain `source` wrapper is defeated by `set corner TT` inside the user's script; the original is never edited |
+| 2026-11-02 | Flows run in `wrap` mode (user's command) by default; adapters also offer `builtin` mode | Projects without a build (and the fixtures) still work; svkit never writes build files into the user's repo |
+| 2026-11-02 | Golden-diff jump uses `golden.time_regex` (time or cycle) on the first mismatching line | Generic; works for any output format that prints a time or cycle |
+| 2026-11-02 | OSS fixtures use an original toy Liberty library | Deterministic T_min, no PDK licensing questions |

@@ -1,0 +1,210 @@
+# svkit architecture and contracts
+
+> Status: v1 contracts, iteration 1 (2026-11-02). The sections marked **contract** are shared between
+> work tracks. Track agents must not change them; propose a change to the lead, who updates this file
+> and the code together.
+
+## 1. Layout
+
+```
+src/svkit/
+  schemas.py          contract: normalized result models (pydantic)           §3
+  config.py           contract: svkit.toml schema + loader                    §2
+  core/
+    rundb.py          contract: Run DB (sqlite) + artifact dirs               §5
+    knobs.py          knob values -> KnobPlan; applies plans in work dirs     §2.3
+    project.py        sources, filelists, git info, source hash, work dirs
+    golden.py         pass/fail: golden diff + log regexes, first divergence
+    runner.py         job runner: cache, isolation, license seats, events
+    events.py         in-process pub/sub feeding the WebSocket
+  adapters/
+    base.py           contract: adapter interface                             §4
+    registry.py       built-ins + entry points
+    sim/  verilator.py vcs.py
+    synth/ yosys.py dc.py           (+ report parsers in synth/dc_reports.py etc.)
+    sta/  opensta.py
+    waves/ wellen.py                VCD/FST access through pywellen
+    perf/ regex.py                  [perf].source = regex_file
+  design/             pyslang -> DesignGraph (hierarchy, types, drivers); netlist reader
+  analysis/           sweep.py compare.py perf.py xtrace.py divergence.py cone.py
+  server/
+    app.py            contract: REST + WebSocket API                          §6
+    static/           built web UI (committed; end users never need Node)
+  cli.py              Typer CLI                                               §7
+  init.py             `svkit init` project scanner
+web/                  React + TS + Vite source; `npm run build` writes into src/svkit/server/static
+fixtures/             original designs, one dir per fixture, each a mini "user project"   §8
+tests/                pytest; markers `oss`, `synopsys`
+```
+
+Data flow: **CLI / server → Runner → Adapter.run() → normalized schema → Run DB → server → UI.**
+The UI never sees tool output, only schemas.
+
+## 2. `svkit.toml` (contract — `src/svkit/config.py`)
+
+The full field reference is the pydantic model; the README carries the user-facing reference.
+Summary:
+
+| Table | Purpose |
+|---|---|
+| `[project]` | `name`, `top`, `tb_top`, `sources`/`tb_sources` (`glob`, `filelist`, `exclude`), `include`, `defines`, `clock`, `reset`, `workdir_exclude` |
+| `[flows.sim.<adapter>]` | `mode = "wrap"` (run `cmd`, the user's build) or `"builtin"` (adapter compiles sources). `waves`, `log`, `golden`, `tests`, `pass_regex`, `fail_regex`, `isolate` |
+| `[flows.synth.<adapter>]` | `mode`, `cmd`, `script` (user's TCL/ys), `reports`, `netlist`, `log`, `license_seats`, `sta` (name of an STA flow) |
+| `[flows.sta.<adapter>]` | `mode`, `sdc`, `max_paths` |
+| `[knobs]` | `name = { <mechanism> = ..., unit?, format?, default?, applies_to? }` |
+| `[experiments]` | `name = { knob = value, ..., tcl_append? = "...", env? = {...} }` |
+| `[perf]` | `source = { regex_file, cycles, instrs, stalls? }` |
+| `[library]` | `vt_suffix = { suffix = class }`, `liberty = [...]`, `corners = { name = [libs] }` |
+| `[tools]` | executable overrides: `sta = "/path/to/sta"` |
+
+**Templates.** String fields like `cmd`, `waves`, `golden.actual` accept `{test}`, `{top}`, `{root}`,
+`{workdir}`, `{run_dir}`; knob mechanisms accept `{value}`. Unknown placeholders are left intact.
+
+### 2.1 Modes
+* **wrap** (preferred): svkit runs the user's own command (`make foo.out`) and reads the files it
+  produces. Never edits the Makefile or scripts.
+* **builtin**: the adapter invokes the tool directly with `[project]` sources in an isolated work dir
+  (useful for projects with no build, and for the fixtures). svkit never writes build scripts into
+  the user's repo (decision #11 interpretation: "wrap only" = never generate *the user's* build files).
+
+### 2.2 Isolation
+Synthesis runs always execute in `.svkit/work/<run_id>/`, a full **copy** (not hard links) of the
+project minus `.git`, `.svkit`, `[project].workdir_exclude`. Sim runs execute in place unless
+`isolate = true` or a `file` knob applies. Artifacts are copied to `.svkit/runs/<id>/` with
+`RunContext.keep()`; work dirs are deleted afterwards.
+
+### 2.3 Knob mechanics (decision #10)
+`knobs.resolve()` merges defaults < experiment < `--set`; `knobs.plan()` turns values into a `KnobPlan`:
+
+| Mechanism | Effect (always inside the work dir) |
+|---|---|
+| `file = "cpu.clock"` | write the rendered value to that file |
+| `env = "CLOCK_PERIOD"` | export the variable |
+| `tcl_var = "corner"` | inject `set corner <v>` at the top of the work-dir copy of `script`; the user's own plain `set corner TT` line is guarded with `if {![info exists corner]}` |
+| `tcl_replace = "<regex>", with = "...{value}..."` | regex replace in the copy (last resort; errors if nothing matches) |
+| `tcl_append = true` (value = TCL) / experiment `tcl_append = "..."` | append to the copy (or before `before` regex anchor) |
+| `define = "NAME"` | Verilog define for sim |
+
+Time knobs: values are always **ps** inside svkit; `unit = "ns"` converts when rendering.
+The knob named **`clock_period`** is special: the sweep drives it, and builtin flows read
+`KnobPlan.period_ps` to constrain the clock.
+
+## 3. Normalized schemas (contract — `src/svkit/schemas.py`)
+
+Units: time/slack/period **ps**, power **mW**, area = library unit (`area_unit`), wave time = ticks of
+the wave file's timescale (reported by the wave API).
+
+* `SynthResult`: tool, top, period, corner, wns, tns, hold_wns, hold_tns, area_total, area_by_hier,
+  cell_count, cells_by_type, vt_mix, power{dynamic,leakage,total}, paths[TimingPath], warnings[Msg],
+  netlist, extra. `.met` = setup WNS ≥ 0 and hold WNS ≥ 0.
+* `TimingPath`: startpoint, endpoint, path_group, path_type (max/min), slack, required, arrival,
+  points[TimingPoint{inst, pin, cell, incr, arrival, rise_fall, net}].
+* `SimResult`: tool, test, passed, reason, sim_time, waves (artifact name), divergence, perf, warnings.
+* `Divergence`: line, expected, actual, time?, cycle?.
+* `PerfResult`: test, cycles, instrs, cpi, stalls, period, period_source, tpi (ps/instr).
+* `XTraceNode`: signal, time, value, driver{kind, file, line, text}, cause (XCause), note, children.
+* `CompareResult` / `MetricDelta`, `SweepResult` / `SweepPoint`.
+
+Vt mix rule: a cell counts as class C if its name ends with a `[library].vt_suffix` key mapping to C
+(longest suffix wins); otherwise `"other"`.
+
+## 4. Adapter interface (contract — `src/svkit/adapters/base.py`)
+
+```python
+class SimAdapter(Adapter):   name, kind="sim",   tools=(...)
+    run(ctx: RunContext, flow: SimFlow, test: str) -> SimResult
+class SynthAdapter(Adapter): name, kind="synth", tools=(...)
+    run(ctx, flow: SynthFlow) -> SynthResult       # runs flow.sta adapter itself if set
+    parse(files: list[Path], *, top) -> SynthResult  # offline, golden-testable
+class StaAdapter(Adapter):   name, kind="sta",   tools=(...)
+    run(ctx, flow: StaFlow, *, netlist, top, liberty, period_ps) -> SynthResult  # timing fields only
+    parse_timing(text) -> list[TimingPath]
+```
+
+`RunContext` gives `cfg, root, workdir, run_dir, run_id, plan (KnobPlan), env, log(), cancel,
+keep(path, name)` and `sh(cmd, ...)` (streams output to the live log, honours cancel/timeout, runs
+`nice`d). Adapters:
+
+* never touch the Run DB or the UI, never write outside `workdir`/`run_dir`;
+* keep() the waveform as artifact `waves.vcd`/`waves.fst`, the log as `sim.log`/`synth.log`,
+  netlist as `netlist.v`/`netlist.json`, reports under their own names;
+* sim adapters use `svkit.core.golden.evaluate()` for pass/fail so behaviour is identical across flows;
+* synth adapters fill `vt_mix` with `svkit.analysis.vt.vt_mix(cells_by_type, cfg.library.vt_suffix)`.
+
+Third-party adapters: `[project.entry-points."svkit.adapters"] myname = "pkg.mod:Class"`.
+
+## 5. Run DB (contract — `src/svkit/core/rundb.py`)
+
+`.svkit/runs.sqlite` (WAL) + `.svkit/runs/<id>/`. Tables: `runs`, `tags`, `groups`, `meta`.
+
+* `runs`: id (`r_0001`), kind (`sim`|`synth`|`sweep-point`), adapter, test, status
+  (`queued|running|passed|failed|done|error|cancelled`), timestamps, duration_s, git_sha, git_dirty,
+  source_hash, knobs (JSON), experiment, cache_key, cached_from, exit_code, metrics (JSON of the
+  normalized result), artifacts (JSON name→path relative to the run dir), group_id, message.
+* `groups`: id (`g_0001`), kind (`sim-all|matrix|sweep`), status, params, result (e.g. SweepResult).
+* Cache key = sha256(kind, adapter, source hash, knob values, test). Source hash covers design + tb
+  sources, include-dir headers, `svkit.toml`, Makefile, and the flow script. A cache hit creates a
+  new Run with `cached_from` and artifacts pointing at the original run.
+
+## 6. Server API (contract — `src/svkit/server/app.py`)
+
+All JSON. Base `/api`. Errors: `{"detail": "..."}` with 4xx/5xx.
+
+| Method & path | Returns |
+|---|---|
+| `GET /api/project` | `{name, root, top, git_sha, git_dirty, flows:{sim:[..], synth:[..], sta:[..]}, knobs:[..], experiments:[..], tests:[..], adapters:{name: available}}` |
+| `GET /api/runs?kind=&group=&status=&test=&tag=&limit=&offset=` | `[RunSummary]` (Run without metrics) |
+| `GET /api/runs/{id}` | `Run` with `metrics` |
+| `GET /api/runs/{id}/artifacts/{name}` | the file (text/binary) |
+| `GET /api/runs/{id}/log?tail=N` | `{lines:[...]}` |
+| `POST /api/runs/{id}/tags` `{tag}` / `DELETE /api/runs/{id}/tags/{tag}` | `Run` |
+| `GET /api/groups?kind=` / `GET /api/groups/{id}` | `[Group]` / `Group` (+ `runs: [RunSummary]`) |
+| `GET /api/compare?ids=r_1,r_2,...` | `CompareResult` (first id = baseline) |
+| `GET /api/sweeps/{group_id}` | `SweepResult` |
+| `POST /api/jobs` `{kind: "sim"\|"sim-all"\|"synth"\|"matrix"\|"sweep", args:{...}}` | `{job_id}`; progress via WS |
+| `GET /api/jobs` | `[{job_id, kind, status, run_ids, group_id}]` |
+| `GET /api/perf?group=` | `[PerfResult]` (TPI from latest sweep T_min, else latest synth period) |
+| `GET /api/waves/{run_id}/meta` | `{file, format, timescale:{factor, unit}, t_start, t_end}` |
+| `GET /api/waves/{run_id}/scope?path=` | `{path, scopes:[{name, path}], vars:[{name, path, width, kind, type?}]}` (`path=""` → top) |
+| `GET /api/waves/{run_id}/search?q=&limit=` | `[{path, width, kind}]` (substring / glob over full paths) |
+| `POST /api/waves/{run_id}/data` `{signals:[path], t0, t1, max_changes?}` | `{signals:{path:{width, init, changes:[[t, value]], truncated}}}`; values are binary strings over `01xz` (or `real`), `init` = value at t0 |
+| `GET /api/waves/{run_id}/next?signal=&t=&what=change\|x&dir=1\|-1` | `{t}` or `{t:null}` |
+| `GET /api/waves/{run_id}/decode?signal=` | `{kind:"enum"\|"struct"\|"plain", enum?:{value:name}, fields?:[{name, msb, lsb, enum?}]}` |
+| `GET /api/runs/{id}/divergence` | `Divergence` (sim runs) with `time` filled if mappable |
+| `GET /api/design/hierarchy` | `{top, modules:{name:{ports:[...], instances:[{name, module}], file, line}}}` |
+| `GET /api/design/block?module=` | `{nodes:[{id, label, module, ports}], edges:[{src, dst, width, net}]}` (ELK-ready) |
+| `GET /api/design/cone?run=&net=&depth=&path=` | `{nodes:[{id, cell, pins, on_path, delay?}], edges:[...], unresolved:[...]}` |
+| `GET /api/xtrace?run=&signal=&time=&depth=` | `XTraceNode` |
+| `GET /api/source?file=&line=&context=` | `{file, start, lines:[...]}` (only files inside the project root) |
+| `WS /ws/events` | stream of events (`run.created`, `run.status`, `run.log`, `group.updated`, `job.updated`) |
+
+Static UI is served from `/` (SPA fallback to `index.html`). The server binds `127.0.0.1` by default;
+use `ssh -L 8470:localhost:8470 host`.
+
+## 7. CLI (Typer — `src/svkit/cli.py`)
+
+```
+svkit init [--force]
+svkit sim <test> | --all [--flow NAME] [--jobs N] [--no-cache]
+svkit synth [--flow NAME] [--set k=v ...] [--exp NAME | --matrix] [--jobs N] [--no-cache]
+svkit sweep clock [--tol 50] [--jobs N] [--start PS]
+svkit xtrace <hier.signal> @<time> [--run ID] [--depth N] [--json]
+svkit runs ls|show <id>|diff <a> <b>|tag <id> <tag>
+svkit serve [--port 8470] [--host 127.0.0.1]
+```
+Exit codes: 0 ok; 1 a test failed / timing not met where it matters; 2 config error; 3 tool error.
+
+## 8. Fixtures
+
+Each `fixtures/<name>/` is a self-contained mini user project with its own `svkit.toml`, RTL,
+testbench, a `Makefile` with targets for both flows, and a DC TCL script (to exercise wrap mode).
+Fixture RTL is original. The open-source flow uses `fixtures/lib/svkit_tiny.lib`, an original toy
+Liberty library with `_R`/`_L` Vt variants, so Yosys + OpenSTA results are deterministic and
+T_min is known. Golden outputs live under `fixtures/golden/<flow>/<fixture>/`. Synopsys goldens
+(`fixtures/golden/synopsys/`) need a redistribution check before the repo goes public.
+
+## 9. Concurrency and resources
+
+* License seats: `license_seats` per synth flow → process-wide semaphore per adapter.
+  Hard cap for this server: ≤ 2 concurrent `dc_shell-t`/`vcs` across everything.
+* All subprocesses run `nice`d in their own session and are killed on cancel/timeout.

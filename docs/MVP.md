@@ -218,16 +218,9 @@ Phase 4 (polish) is after the MVP.
 
 ## 9. Open decisions
 
-**Needed before or early in Phase 0** (see CONTEXT.md §2):
-- Minimum Python: 3.11 proposed (#8).
-- Frontend build: prebuilt assets shipped in the package proposed (#9).
-- Knob mechanics for DC (#10). This now blocks `--matrix`.
-- Wrap existing build scripts only, never generate them (#11).
+**Settled in iteration 1** (see CONTEXT.md §2 #8–11, #19): Python ≥ 3.11, prebuilt web assets, knob mechanics, wrap-by-default, golden-diff time mapping.
 
 **Needed by Phase 2:**
 - Whether to embed Surfer or build our own wave renderer (#13).
-- How the golden-diff jump maps the first mismatching output line to a sim time. Possible answers:
-  - a time or cycle field captured by a regex in the output file
-  - a `[flows.sim.*]` rule naming a commit signal whose Nth assertion matches line N
 
 **Not blocking:** the final name and git hosting (#6, #7), and the license (#12).

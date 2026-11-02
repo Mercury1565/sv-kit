@@ -1,0 +1,278 @@
+"""Run DB: `.svkit/runs.sqlite` + `.svkit/runs/<id>/` artifacts (shared contract).
+
+A Run is one execution of one flow. Runs are grouped (sim --all, synth --matrix,
+sweep) by `group_id`. `metrics` holds the normalized result (SynthResult /
+SimResult JSON). Cache key = sha256(kind, adapter, source_hash, knobs, test).
+"""
+from __future__ import annotations
+
+import json
+import sqlite3
+import threading
+import time
+from contextlib import contextmanager
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any, Iterator, Optional
+
+DB_VERSION = 1
+
+SCHEMA = """
+CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT);
+CREATE TABLE IF NOT EXISTS runs (
+    id          TEXT PRIMARY KEY,          -- 'r_0001'
+    kind        TEXT NOT NULL,             -- 'sim' | 'synth' | 'sweep-point'
+    adapter     TEXT NOT NULL,             -- 'verilator', 'vcs', 'dc', 'yosys', ...
+    test        TEXT,                      -- sim only
+    status      TEXT NOT NULL,             -- queued|running|passed|failed|done|error|cancelled
+    created_at  REAL NOT NULL,
+    started_at  REAL,
+    finished_at REAL,
+    duration_s  REAL,
+    git_sha     TEXT,
+    git_dirty   INTEGER,
+    source_hash TEXT,
+    knobs       TEXT NOT NULL DEFAULT '{}',   -- JSON {knob: value}
+    experiment  TEXT,                          -- experiment name, if any
+    cache_key   TEXT,
+    cached_from TEXT,                          -- run id this result was copied from (cache hit)
+    exit_code   INTEGER,
+    metrics     TEXT,                          -- JSON: normalized SynthResult / SimResult
+    artifacts   TEXT NOT NULL DEFAULT '{}',    -- JSON {name: relative path under runs/<id>/}
+    group_id    TEXT,
+    message     TEXT                           -- short status / error text
+);
+CREATE INDEX IF NOT EXISTS runs_kind ON runs(kind, created_at);
+CREATE INDEX IF NOT EXISTS runs_cache ON runs(cache_key);
+CREATE INDEX IF NOT EXISTS runs_group ON runs(group_id);
+CREATE TABLE IF NOT EXISTS tags (
+    run_id TEXT NOT NULL REFERENCES runs(id) ON DELETE CASCADE,
+    tag    TEXT NOT NULL,
+    PRIMARY KEY (run_id, tag)
+);
+CREATE TABLE IF NOT EXISTS groups (
+    id         TEXT PRIMARY KEY,           -- 'g_0001'
+    kind       TEXT NOT NULL,              -- 'sim-all' | 'matrix' | 'sweep'
+    created_at REAL NOT NULL,
+    status     TEXT NOT NULL,              -- running|done|failed|cancelled
+    params     TEXT NOT NULL DEFAULT '{}', -- JSON
+    result     TEXT                        -- JSON (e.g. SweepResult)
+);
+"""
+
+TERMINAL = {"passed", "failed", "done", "error", "cancelled"}
+
+
+@dataclass
+class Run:
+    id: str
+    kind: str
+    adapter: str
+    status: str
+    created_at: float
+    test: Optional[str] = None
+    started_at: Optional[float] = None
+    finished_at: Optional[float] = None
+    duration_s: Optional[float] = None
+    git_sha: Optional[str] = None
+    git_dirty: Optional[bool] = None
+    source_hash: Optional[str] = None
+    knobs: dict[str, Any] = field(default_factory=dict)
+    experiment: Optional[str] = None
+    cache_key: Optional[str] = None
+    cached_from: Optional[str] = None
+    exit_code: Optional[int] = None
+    metrics: Optional[dict[str, Any]] = None
+    artifacts: dict[str, str] = field(default_factory=dict)
+    group_id: Optional[str] = None
+    message: Optional[str] = None
+    tags: list[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
+        return dict(self.__dict__)
+
+
+@dataclass
+class Group:
+    id: str
+    kind: str
+    created_at: float
+    status: str
+    params: dict[str, Any] = field(default_factory=dict)
+    result: Optional[dict[str, Any]] = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return dict(self.__dict__)
+
+
+_JSON_COLS = {"knobs", "metrics", "artifacts", "params", "result"}
+
+
+class RunDB:
+    """Thread-safe (one connection per thread) access to the Run DB."""
+
+    def __init__(self, state_dir: Path):
+        self.state_dir = Path(state_dir)
+        self.runs_dir = self.state_dir / "runs"
+        self.runs_dir.mkdir(parents=True, exist_ok=True)
+        self.path = self.state_dir / "runs.sqlite"
+        self._local = threading.local()
+        self._id_lock = threading.Lock()
+        with self._conn() as c:
+            c.executescript(SCHEMA)
+            c.execute("INSERT OR IGNORE INTO meta VALUES ('version', ?)", (str(DB_VERSION),))
+
+    @classmethod
+    def for_project(cls, root: Path) -> "RunDB":
+        return cls(Path(root) / ".svkit")
+
+    # -------------------------------------------------------------- plumbing
+    @contextmanager
+    def _conn(self) -> Iterator[sqlite3.Connection]:
+        c = getattr(self._local, "c", None)
+        if c is None:
+            c = sqlite3.connect(self.path, timeout=30, isolation_level=None)
+            c.row_factory = sqlite3.Row
+            c.execute("PRAGMA journal_mode=WAL")
+            c.execute("PRAGMA foreign_keys=ON")
+            self._local.c = c
+        yield c
+
+    def _next_id(self, c: sqlite3.Connection, table: str, prefix: str) -> str:
+        row = c.execute(f"SELECT id FROM {table} ORDER BY CAST(substr(id, 3) AS INTEGER) DESC LIMIT 1").fetchone()
+        n = int(row["id"][2:]) + 1 if row else 1
+        return f"{prefix}_{n:04d}"
+
+    @staticmethod
+    def _row(row: sqlite3.Row) -> dict[str, Any]:
+        d = dict(row)
+        for k in _JSON_COLS & d.keys():
+            if d[k] is not None:
+                d[k] = json.loads(d[k])
+        if "git_dirty" in d and d["git_dirty"] is not None:
+            d["git_dirty"] = bool(d["git_dirty"])
+        return d
+
+    def run_dir(self, run_id: str) -> Path:
+        d = self.runs_dir / run_id
+        d.mkdir(parents=True, exist_ok=True)
+        return d
+
+    # -------------------------------------------------------------- runs
+    def create_run(self, kind: str, adapter: str, *, test: str | None = None,
+                   knobs: dict | None = None, experiment: str | None = None,
+                   group_id: str | None = None, git_sha: str | None = None,
+                   git_dirty: bool | None = None, source_hash: str | None = None,
+                   cache_key: str | None = None, status: str = "queued") -> Run:
+        with self._id_lock, self._conn() as c:
+            c.execute("BEGIN IMMEDIATE")
+            try:
+                rid = self._next_id(c, "runs", "r")
+                c.execute(
+                    "INSERT INTO runs (id, kind, adapter, test, status, created_at, git_sha, git_dirty,"
+                    " source_hash, knobs, experiment, cache_key, group_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    (rid, kind, adapter, test, status, time.time(), git_sha,
+                     None if git_dirty is None else int(git_dirty), source_hash,
+                     json.dumps(knobs or {}, sort_keys=True), experiment, cache_key, group_id))
+                c.execute("COMMIT")
+            except BaseException:
+                c.execute("ROLLBACK")
+                raise
+        self.run_dir(rid)
+        return self.get_run(rid)
+
+    def update_run(self, run_id: str, **fields: Any) -> None:
+        if not fields:
+            return
+        cols, vals = [], []
+        for k, v in fields.items():
+            if k == "tags":
+                raise ValueError("use add_tag")
+            if k in _JSON_COLS and v is not None:
+                v = json.dumps(v, sort_keys=True)
+            if k == "git_dirty" and v is not None:
+                v = int(v)
+            cols.append(f"{k} = ?")
+            vals.append(v)
+        with self._conn() as c:
+            c.execute(f"UPDATE runs SET {', '.join(cols)} WHERE id = ?", (*vals, run_id))
+
+    def get_run(self, run_id: str) -> Run:
+        with self._conn() as c:
+            row = c.execute("SELECT * FROM runs WHERE id = ?", (run_id,)).fetchone()
+            if row is None:
+                raise KeyError(run_id)
+            tags = [r["tag"] for r in c.execute("SELECT tag FROM tags WHERE run_id = ? ORDER BY tag", (run_id,))]
+        return Run(**self._row(row), tags=tags)
+
+    def list_runs(self, *, kind: str | None = None, group_id: str | None = None,
+                  status: str | None = None, test: str | None = None, tag: str | None = None,
+                  limit: int = 200, offset: int = 0) -> list[Run]:
+        q, args = ["SELECT * FROM runs WHERE 1=1"], []
+        for col, val in (("kind", kind), ("group_id", group_id), ("status", status), ("test", test)):
+            if val is not None:
+                q.append(f"AND {col} = ?")
+                args.append(val)
+        if tag is not None:
+            q.append("AND id IN (SELECT run_id FROM tags WHERE tag = ?)")
+            args.append(tag)
+        q.append("ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?")
+        args += [limit, offset]
+        with self._conn() as c:
+            rows = c.execute(" ".join(q), args).fetchall()
+            out = []
+            for row in rows:
+                tags = [r["tag"] for r in c.execute("SELECT tag FROM tags WHERE run_id = ?", (row["id"],))]
+                out.append(Run(**self._row(row), tags=tags))
+        return out
+
+    def find_cached(self, cache_key: str) -> Optional[Run]:
+        """Latest successful run with this cache key, whose result is not itself pending."""
+        with self._conn() as c:
+            row = c.execute(
+                "SELECT id FROM runs WHERE cache_key = ? AND status IN ('passed','failed','done')"
+                " AND metrics IS NOT NULL ORDER BY created_at DESC LIMIT 1", (cache_key,)).fetchone()
+        return self.get_run(row["id"]) if row else None
+
+    def add_tag(self, run_id: str, tag: str) -> None:
+        with self._conn() as c:
+            c.execute("INSERT OR IGNORE INTO tags VALUES (?, ?)", (run_id, tag))
+
+    def remove_tag(self, run_id: str, tag: str) -> None:
+        with self._conn() as c:
+            c.execute("DELETE FROM tags WHERE run_id = ? AND tag = ?", (run_id, tag))
+
+    # -------------------------------------------------------------- groups
+    def create_group(self, kind: str, params: dict | None = None) -> Group:
+        with self._id_lock, self._conn() as c:
+            gid = self._next_id(c, "groups", "g")
+            c.execute("INSERT INTO groups (id, kind, created_at, status, params) VALUES (?,?,?,?,?)",
+                      (gid, kind, time.time(), "running", json.dumps(params or {}, sort_keys=True)))
+        return self.get_group(gid)
+
+    def update_group(self, gid: str, **fields: Any) -> None:
+        cols, vals = [], []
+        for k, v in fields.items():
+            if k in _JSON_COLS and v is not None:
+                v = json.dumps(v, sort_keys=True)
+            cols.append(f"{k} = ?")
+            vals.append(v)
+        with self._conn() as c:
+            c.execute(f"UPDATE groups SET {', '.join(cols)} WHERE id = ?", (*vals, gid))
+
+    def get_group(self, gid: str) -> Group:
+        with self._conn() as c:
+            row = c.execute("SELECT * FROM groups WHERE id = ?", (gid,)).fetchone()
+        if row is None:
+            raise KeyError(gid)
+        return Group(**self._row(row))
+
+    def list_groups(self, kind: str | None = None, limit: int = 100) -> list[Group]:
+        q, args = "SELECT * FROM groups", []
+        if kind:
+            q += " WHERE kind = ?"
+            args.append(kind)
+        q += " ORDER BY created_at DESC, id DESC LIMIT ?"
+        args.append(limit)
+        with self._conn() as c:
+            return [Group(**self._row(r)) for r in c.execute(q, args).fetchall()]

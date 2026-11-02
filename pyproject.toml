@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "svkit"
+version = "0.1.0.dev0"
+description = "Plug-in debug and PPA workbench for SystemVerilog projects"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "pydantic>=2.6",
+  "typer>=0.12",
+  "fastapi>=0.110",
+  "uvicorn>=0.29",
+  "websockets>=12",
+  "pyslang>=8.0",
+  "pywellen>=0.20",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "httpx>=0.27"]
+
+[project.scripts]
+svkit = "svkit.cli:app"
+
+[project.entry-points."svkit.adapters"]
+# third-party adapters register here: name = "module:Class"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+svkit = ["server/static/**/*", "adapters/**/*.tcl", "adapters/**/*.ys"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+  "synopsys: needs VCS / dc_shell-t on PATH (skipped otherwise)",
+  "oss: needs OSS CAD Suite tools: verilator, yosys, sta (skipped otherwise)",
+  "slow: long-running end-to-end test",
+]

@@ -1,1 +1,13 @@
 /.claude
+.claude/settings.local.json
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.svkit/
+web/node_modules/
+web/dist/
+build/
+obj_dir/
+*.vcd
+!fixtures/golden/**/*.vcd
