@@ -7,6 +7,7 @@
   1. **Dev host is not CAEN.** This session runs on host `crab` (user `sitotaem`) with no Synopsys tools and no dogfood repo (`/home/hermong/...` does not exist). Synopsys-marked tests skip here, and the DC/VCS parsers are built against hand-written report samples. Real VCS/DC runs and the dogfood checkpoint need a CAEN session.
   2. Synopsys-generated golden reports (`fixtures/golden/synopsys/`) need a redistribution check before the repo goes public.
   3. Git hosting, remote, and license are still open (#7, #12).
+  4. **X-trace parity on the open-source flow.** Verilator is 2-state, so it never produces X, and the X tracer has nothing to trace on the OSS flow. A 4-state simulator is needed. Recommendation: pull the Icarus sim adapter (small, already in OSS CAD Suite) into the MVP for X-trace runs. That is an MVP scope change (decision #18), so it is waiting for you. Meanwhile the X fixtures' goldens are generated with iverilog as test data only.
 
 ---
 
