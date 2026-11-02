@@ -168,9 +168,10 @@ All JSON. Base `/api`. Errors: `{"detail": "..."}` with 4xx/5xx.
 | `GET /api/waves/{run_id}/scope?path=` | `{path, scopes:[{name, path}], vars:[{name, path, width, kind, type?}]}` (`path=""` → top) |
 | `GET /api/waves/{run_id}/search?q=&limit=` | `[{path, width, kind}]` (substring / glob over full paths) |
 | `POST /api/waves/{run_id}/data` `{signals:[path], t0, t1, max_changes?}` | `{signals:{path:{width, init, changes:[[t, value]], truncated}}}`; values are binary strings over `01xz` (or `real`), `init` = value at t0 |
+| ↳ downsampling | when a signal has more than `max_changes` transitions in `[t0,t1]`: `truncated = true`, entries are ≥ `ceil((t1−t0)/max_changes)` ticks apart, a burst collapses to `[t_first, "*"]` ("many transitions until the next entry") followed by `[t_end, settled value]` (omitted if `t_end > t1`). Changes are strictly after `t0`. Real signals have `width: null`; unknown signals → 404 |
 | `GET /api/waves/{run_id}/next?signal=&t=&what=change\|x&dir=1\|-1` | `{t}` or `{t:null}` |
 | `GET /api/waves/{run_id}/decode?signal=` | `{kind:"enum"\|"struct"\|"plain", enum?:{value:name}, fields?:[{name, msb, lsb, enum?}]}` |
-| `GET /api/runs/{id}/divergence` | `Divergence` (sim runs) with `time` filled if mappable |
+| `GET /api/runs/{id}/divergence` | `Divergence` (sim runs) with `time` filled if mappable; 404 if none. `cycle` N maps to the N-th (0-based) rising edge of `project.clock` strictly after `project.reset` deasserts |
 | `GET /api/design/hierarchy` | `{top, modules:{name:{ports:[...], instances:[{name, module}], file, line}}}` |
 | `GET /api/design/block?module=` | `{nodes:[{id, label, module, ports}], edges:[{src, dst, width, net}]}` (ELK-ready) |
 | `GET /api/design/cone?run=&net=&depth=&path=` | `{nodes:[{id, cell, pins, on_path, delay?}], edges:[...], unresolved:[...]}` |

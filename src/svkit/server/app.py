@@ -155,7 +155,8 @@ def create_app(cfg: Config) -> FastAPI:
             from svkit.analysis import sweep  # provided by the analysis track
             def f():
                 res = sweep.sweep_clock(r, tol=float(args.get("tol", 50)), jobs=int(args.get("jobs", 2)),
-                                        flow=args.get("flow"))
+                                        flow=args.get("flow"),
+                                        start=float(args["start"]) if args.get("start") is not None else None)
                 return {"group_id": res.group_id}
             return f
         raise HTTPException(400, f"unknown job kind {kind!r}")

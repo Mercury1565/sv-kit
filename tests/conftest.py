@@ -11,6 +11,7 @@ FIXTURES = REPO / "fixtures"
 _EXTRA = [Path.home() / "tools" / "bin", Path.home() / "tools" / "oss-cad-suite" / "bin"]
 os.environ["PATH"] = os.pathsep.join([str(p) for p in _EXTRA if p.is_dir()] + [os.environ.get("PATH", "")])
 
+os.environ.pop("VERILATOR_ROOT", None)  # a stale host install breaks the oss-cad-suite verilator
 HAVE_OSS = all(shutil.which(t) for t in ("verilator", "yosys", "sta"))
 HAVE_SYNOPSYS = all(shutil.which(t) for t in ("vcs", "dc_shell-t"))
 

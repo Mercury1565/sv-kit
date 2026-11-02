@@ -78,7 +78,8 @@ class _Sweep:
         m = run.metrics if run.status == "done" else None
         power = ((m or {}).get("power") or {}).get("total")
         p = SweepPoint(period=float(t), run_id=run.id, wns=(m or {}).get("wns"), hold_wns=(m or {}).get("hold_wns"),
-                       area_total=(m or {}).get("area_total"), power_total=power, passed=passed(m))
+                       area_total=(m or {}).get("area_total"), power_total=power, passed=passed(m),
+                       note=None if run.status == "done" else (run.message or run.status))
         with self.lock:
             self.points[float(t)] = p
             self.publish()

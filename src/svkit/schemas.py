@@ -192,6 +192,7 @@ class SweepPoint(_Model):
     area_total: Optional[float] = None
     power_total: Optional[float] = None
     passed: bool
+    note: Optional[str] = None      # why an error point failed (tool error text)
 
 
 class SweepResult(_Model):
