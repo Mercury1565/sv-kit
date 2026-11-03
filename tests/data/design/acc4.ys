@@ -1,0 +1,7 @@
+# Regenerate acc4 gate netlists (run from tests/data/design): yosys -q acc4.ys
+read_verilog acc4.v
+synth -top acc4 -flatten
+abc -g AND,NAND,OR,NOR,XOR,XNOR,MUX
+opt_clean -purge
+write_json acc4.json
+write_verilog -noattr -noexpr acc4.vg

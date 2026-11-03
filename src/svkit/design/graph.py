@@ -862,6 +862,12 @@ class _Extractor:
             rhs = self._expr(e.right)
             for tgt, partial, idx in self._lvalues(e.left):
                 out.append(Assign(tgt, rhs, guards, idx, partial, line, text, in_reset))
+        elif e.kind == EK.Call and str(getattr(e, "subroutineName", "")).startswith("$readmem"):
+            args = list(e.arguments)
+            if len(args) >= 2:      # $readmemh(file, mem): the memory is initialized from a file
+                m = args[1].left if args[1].kind == EK.Assignment else args[1]
+                for tgt, _, _ in self._lvalues(m):
+                    out.append(Assign(tgt, ("x", (), 0), guards, None, False, line, text, in_reset))
         elif e.kind == EK.UnaryOp and e.op.name in ("Preincrement", "Predecrement", "Postincrement",
                                                      "Postdecrement"):
             for tgt, partial, idx in self._lvalues(e.operand):
@@ -1025,7 +1031,7 @@ class _Extractor:
     def _summarize(d: Driver) -> None:
         data, ctrl, index = [], [], []
         for a in d.assigns:
-            data += [s for s in X.signals(a.rhs)]
+            data += list(_data_signals(a.rhs))
             index += [s for s in X.index_signals(a.rhs)]
             if a.index is not None:
                 index += list(X.signals(a.index))
@@ -1052,6 +1058,23 @@ def _collect_mem(e: tuple, out: set) -> None:
         out.add(e[1])
     for c in X.children(e):
         _collect_mem(c, out)
+
+
+def _data_signals(e: tuple):
+    """Signals read as data: like expr.signals() but skipping ternary selects (those are control)."""
+    if e[0] == "?":
+        yield from _data_signals(e[2])
+        yield from _data_signals(e[3])
+        return
+    if e[0] == "s":
+        yield e[1]
+        return
+    if e[0] == "m":
+        yield e[1]
+        yield from X.signals(e[2])
+        return
+    for c in X.children(e):
+        yield from _data_signals(c)
 
 
 def _ternary_selects(e: tuple):
