@@ -123,6 +123,7 @@ svkit serve   # http://127.0.0.1:8470 ; remote: ssh -L 8470:localhost:8470 <host
 - Owner decisions: OpenSTA install on CAEN, Icarus adapter, golden redistribution, remote/license.
 - Web proposal 5 (early `run_ids` on `job.updated`) needs a group-first job API.
 - With Node available: show the sweep note/criterion in the Sweep view, and implement the web API proposals (`/api/design/signal`, `X-Total-Count`, early `run_ids`).
+- Design view: the "Gate cone" tab is disabled until a run is chosen, with only a hover tooltip. Make it open the latest synthesis run's worst path, or show an inline "pick a run" list (owner hit this on lab7, 2026-11-03).
 - Fix the toy Liberty for LC, regenerate OSS goldens, and enable DC option B.
 - Browser click-through of every view on the dogfood.
 **How to see it:**
