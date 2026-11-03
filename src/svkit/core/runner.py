@@ -63,7 +63,8 @@ class Runner:
             self.bus.publish({"type": "run.log", "run_id": _rid, "line": line})
 
         return RunContext(cfg=self.cfg, root=self.cfg.root, workdir=workdir, run_dir=self.db.run_dir(run.id),
-                          run_id=run.id, flow_name=flow_name, plan=plan, env=env, log=log)
+                          run_id=run.id, flow_name=flow_name, plan=plan, env=env, log=log,
+                          cache_dir=self.db.state_dir / "build")
 
     def _cached(self, key: str, kind: str, adapter: str, **create) -> Optional[Run]:
         hit = self.db.find_cached(key)
@@ -96,7 +97,12 @@ class Runner:
         values = {k: v for k, v in (sets or {}).items()}
         plan = K.plan(self.cfg, values, stage="sim")
         sha, dirty = P.git_info(self.cfg.root)
-        src = P.source_hash(self.cfg, P.flow_files(self.cfg))
+        extra = P.flow_files(self.cfg)
+        if fl.tests.glob:   # the per-test input (program) and its golden affect the result
+            extra += [p for p in self.cfg.root.glob(fl.tests.glob) if p.stem == test]
+        if fl.golden:
+            extra.append(self.cfg.root / P.tmpl(fl.golden.expected, self.cfg, test=test))
+        src = P.source_hash(self.cfg, extra)
         key = P.cache_key("sim", name, src, values, test)
         common = dict(test=test, knobs=values, group_id=group_id, git_sha=sha, git_dirty=dirty, source_hash=src)
         if use_cache and (hit := self._cached(key, "sim", name, **common)):
@@ -135,7 +141,20 @@ class Runner:
         tests = tests or self.tests(flow)
         if not tests:
             raise ConfigError("no tests found (set [flows.sim.<x>].tests)")
+        name, fl = self.cfg.sim_flow(flow)
+        if not fl.parallel:
+            jobs = 1
         g = self.db.create_group("sim-all", {"flow": flow, "tests": tests})
+        if fl.build_cmd:
+            from svkit.adapters.base import RunContext
+            ctx = RunContext(cfg=self.cfg, root=self.cfg.root, workdir=self.cfg.root,
+                             run_dir=self.db.state_dir, run_id=g.id, flow_name=name,
+                             env={**os.environ, **fl.env})
+            rc = ctx.sh(P.tmpl(fl.build_cmd, self.cfg), cwd=self.cfg.root / fl.cwd,
+                        log_file=self.db.state_dir / f"build-{g.id}.log")
+            if rc != 0:
+                self.db.update_group(g.id, status="failed", result={"error": f"build_cmd exit {rc}"})
+                raise ConfigError(f"build_cmd failed (exit {rc}); see .svkit/build-{g.id}.log")
         with ThreadPoolExecutor(max_workers=max(1, jobs)) as ex:
             runs = list(ex.map(lambda t: self.sim(t, flow=flow, group_id=g.id, use_cache=use_cache), tests))
         status = "done" if all(r.status in ("passed", "done") for r in runs) else "failed"

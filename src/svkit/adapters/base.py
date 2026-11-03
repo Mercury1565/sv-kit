@@ -64,6 +64,7 @@ class RunContext:
     log: Callable[[str], None] = lambda line: None      # live log line sink (-> WebSocket)
     cancel: threading.Event = field(default_factory=threading.Event)
     artifacts: dict[str, str] = field(default_factory=dict)   # filled by keep()
+    cache_dir: Optional[Path] = None   # svkit-owned build cache (.svkit/build); adapters may write here
 
     def keep(self, src: Path | str, name: str | None = None) -> str:
         """Copy an output file into run_dir and register it as an artifact. Returns artifact name."""

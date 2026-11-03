@@ -257,7 +257,7 @@ class VcsAdapter(SimAdapter):
         vcs = self.cfg.tool("vcs")
         key = hashlib.sha256(json.dumps({"src": P.source_hash(self.cfg), "args": args, "vcs": vcs},
                                         sort_keys=True).encode()).hexdigest()[:16]
-        build_root = ctx.run_dir.parent.parent / "build"     # .svkit/build (runs live in .svkit/runs/<id>)
+        build_root = ctx.cache_dir or ctx.run_dir.parent.parent / "build"     # .svkit/build (runs live in .svkit/runs/<id>)
         build_root.mkdir(parents=True, exist_ok=True)
         bdir = build_root / f"vcs-{key}"
         with _BUILD_LOCKS_GUARD:

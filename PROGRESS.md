@@ -1,14 +1,13 @@
 # svkit progress
 
 ## Owner summary
-- **Phase:** 0 (Foundation). Iteration 1 done: contracts. **~8 % to MVP.**
-- **Demoable:** nothing user-visible yet; `pytest` covers config, knobs, Run DB, golden diff, the API skeleton.
+- **Phase:** Phases 0–3 are implemented and pass on the open-source flow. **~65 % to MVP.** Remaining: real VCS/DC validation, a dogfood run, an X-trace sim path for the OSS flow, hardening and README.
+- **Demoable (OSS flow, any fixture copy):** `svkit sim --all`, `svkit synth --matrix` (compare table), `svkit sweep clock` (T_min), `svkit xtrace`, `svkit serve` (Runs, Tests, Synthesis, Compare, Sweep, Waves, Perf, Design, X-Trace views).
 - **Needs owner:**
-  1. **Dev host is not CAEN.** This session runs on host `crab` (user `sitotaem`) with no Synopsys tools and no dogfood repo (`/home/hermong/...` does not exist). Synopsys-marked tests skip here, and the DC/VCS parsers are built against hand-written report samples. Real VCS/DC runs and the dogfood checkpoint need a CAEN session.
-  2. Synopsys-generated golden reports (`fixtures/golden/synopsys/`) need a redistribution check before the repo goes public.
-  3. Git hosting, remote, and license are still open (#7, #12).
-  4. **X-trace parity on the open-source flow.** Verilator is 2-state, so it never produces X, and the X tracer has nothing to trace on the OSS flow. A 4-state simulator is needed. Recommendation: pull the Icarus sim adapter (small, already in OSS CAD Suite) into the MVP for X-trace runs. That is an MVP scope change (decision #18), so it is waiting for you. Meanwhile the X fixtures' goldens are generated with iverilog as test data only.
-
+  1. **Dev host is not CAEN.** No Synopsys tools or dogfood repo here; the VCS/DC adapters are tested only against hand-written report samples and fake tools. Real VCS/DC runs and the dogfood checkpoint need a CAEN session.
+  2. **X-trace parity on the OSS flow:** Verilator is 2-state, so it never shows X. Recommend pulling an Icarus sim adapter into the MVP (scope change vs decision #18).
+  3. Synopsys-generated goldens (none committed yet) need a redistribution check before the repo goes public.
+  4. Git hosting, remote and license are still open (#7, #12).
 ---
 
 ## Iteration 1 — 2026-11-02 — Contracts and core skeleton
@@ -33,3 +32,42 @@
 - Vertical slice: counter fixture → `svkit sim` on Verilator → Run recorded → listed in a web shell.
 - Then spawn tracks (OSS adapters + fixtures, Synopsys adapters, analysis, web) on worktrees.
 **How to see it:** `.venv/bin/pytest -q`
+
+## Iteration 2 — 2026-11-02 — Five parallel tracks merged: both flows, analysis, design/X, web
+**Status:** partial (the OSS flow is complete; the Synopsys flow is not yet run on real tools)
+**What works now:**
+- OSS flow: Verilator sim (builtin and wrap), Yosys synth with an OpenSTA timing/power merge, an original toy Liberty library (TT/SS, `_R`/`_L`), and the fixtures counter/fifo/pipe5/latch plus xbug_noreset/xbug_mem/xbug_input. Each fixture has goldens and a known T_min.
+- Synopsys flow: DC report parsers (timing/qor/area/constraints/power/reference/resources/design/log, combined `.rep`), the DC adapter (wrap and builtin), the VCS adapter (VPD→VCD conversion), and a host-wide 2-seat cap. Tested with fake tools; real-tool tests skip here.
+- Analysis: N-run compare with deltas, a non-monotonic-aware clock sweep (pipe5: T_min 693 ps at tol 20 vs measured 683 ps), CPI/TPI from the sweep T_min, a pywellen waveform backend (250 MB VCD: 0.46 s first window, ~1 ms pans), and divergence→time mapping.
+- Design + X: the pyslang DesignGraph (hierarchy, types, drivers), an X tracer that pinpoints all planted class 1/2/4 bugs in 4-state waves, a gate cone with the critical path (0 unresolved points), and struct/enum decode for waves.
+- `svkit init` with generic heuristics; tested on the fixtures and on a synthetic dogfood-shaped project.
+- Web: a React/TS dashboard with all MVP views, a canvas wave renderer, ECharts and ELK. Its built assets are committed (entry 58 kB gzip). It went through worst-case data checks.
+- Tests: 196 pytest passed, 4 skipped (Synopsys end-to-end), with the OSS tests run for real; 35 Vitest.
+**Decisions made (and why):**
+- Applied track proposals to the contracts:
+  - `SweepPoint.note`; sweep jobs forward `start`.
+  - The runner applies `flow.env`.
+  - `SynthFlow.append_before` anchors experiment `tcl_append`.
+  - `SimFlow.build_cmd` and `parallel` handle wrap builds that race when run in parallel.
+  - `RunContext.cache_dir` (`.svkit/build`) for adapter build caches.
+  - The sim cache key covers the per-test input and golden files.
+  - Docs: the dense-waveform marker `"*"`, the `/` hierarchy separator, the cycle→time convention, and the host-wide Synopsys seat cap.
+- The fixture DC scripts compile from a proc called after the script body, so an experiment's `tcl_append` needs no anchor there.
+- Liberty paths are resolved against the project root (isolated work dirs don't contain sibling dirs).
+**Known gaps / risks:**
+- No real VCS/DC run yet. The DC report formats are hand-written reproductions and need checking on CAEN.
+- No dogfood checkpoint (repo not on this host).
+- X tracing on the OSS flow needs a 4-state sim (escalated). The X goldens come from iverilog as test data.
+- Open web proposals: `/api/design/signal` for exact source lookup, an `X-Total-Count` header, and earlier `run_ids` on `job.updated`. Interactive browser checks were done from code only.
+- The README still lacks setup, the `svkit.toml` reference and the adapter guide.
+**Next iteration plan:**
+- On CAEN: run the `synopsys`-marked tests, replace the hand-written DC samples with real output, and do the dogfood checkpoint on `~/svkit-work/dogfood/`.
+- If the owner approves: an Icarus adapter for X-trace runs on the OSS flow.
+- Remaining web proposals; README (setup, `svkit.toml` reference, how to add an adapter); `pip install` packaging test.
+**How to see it:**
+```
+cp -r fixtures/pipe5 fixtures/lib /tmp/x/ && cd /tmp/x/pipe5
+export PATH=~/tools/bin:~/tools/oss-cad-suite/bin:$PATH; unset VERILATOR_ROOT
+svkit sim --all --flow verilator; svkit synth --matrix --flow yosys; svkit sweep clock --tol 20 --jobs 4
+svkit serve   # http://127.0.0.1:8470 ; remote: ssh -L 8470:localhost:8470 <host>
+```

@@ -267,7 +267,7 @@ class VerilatorAdapter(SimAdapter):
                     if p.is_file() and p.suffix in (".svh", ".vh", ".sv", ".v"):
                         h.update(p.read_bytes())
         key = h.hexdigest()[:16]
-        bdir = cfg.root / ".svkit" / "build" / f"verilator-{key}"
+        bdir = (ctx.cache_dir or cfg.root / ".svkit" / "build") / f"verilator-{key}"
         binary, blog = bdir / "Vsim", bdir / "build.log"
         with _BUILD_LOCKS_GUARD:
             lock = _BUILD_LOCKS.setdefault(key, threading.Lock())

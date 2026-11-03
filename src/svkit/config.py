@@ -83,6 +83,8 @@ class SimFlow(_M):
     cmd: Optional[str] = None            # template; required for wrap mode
     cwd: str = "."                       # relative to project (or work dir) root
     isolate: bool = False                # run inside an isolated copy of the project
+    build_cmd: Optional[str] = None      # wrap mode: run once, serially, before tests fan out
+    parallel: bool = True                # false = tests share one build; `sim --all` runs serially
     waves: Optional[str] = None          # template: produced waveform (vcd/fst)
     log: Optional[str] = None            # template: sim log to keep
     golden: Optional[Golden] = None
