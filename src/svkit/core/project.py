@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from svkit.config import Config, Sources, expand
-from svkit.core.fsutil import copy_file
+from svkit.core.fsutil import copy_file, is_smb_placeholder
 
 ALWAYS_EXCLUDE = {".git", ".svkit", ".venv", "node_modules", "__pycache__"}
 
@@ -150,7 +150,7 @@ def make_workdir(cfg: Config, dest: Path) -> Path:
         tgt.mkdir(parents=True, exist_ok=True)
         for fn in filenames:
             r = os.path.normpath(os.path.join(rel, fn))
-            if _excluded(r, excl):
+            if _excluded(r, excl) or is_smb_placeholder(fn):
                 continue
             s = Path(dirpath) / fn
             if s.is_symlink():

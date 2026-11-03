@@ -43,3 +43,17 @@ def test_copy_tree_ignore_and_symlinks(tmp_path, cifs_xattrs):
     assert (dst / "rtl" / "top.sv").read_text() == "module top; endmodule\n"
     assert os.readlink(dst / "link.sv") == "rtl/top.sv"
     assert not (dst / ".svkit").exists()
+
+
+def test_smb_placeholders_are_not_copied(tmp_path):
+    # CIFS keeps `.__smbXXXX` listed after a delete-while-open, but opening it fails
+    from svkit import config as C
+    from svkit.core.project import make_workdir
+    src = tmp_path / "proj"
+    src.mkdir()
+    (src / "svkit.toml").write_text('[project]\nname = "p"\ntop = "t"\n')
+    (src / "a.sv").write_text("module t; endmodule\n")
+    os.symlink("gone", src / ".__smbE839")              # listed, but open() -> FileNotFoundError
+    assert not (copy_tree(src, tmp_path / "out") / ".__smbE839").exists()
+    wd = make_workdir(C.load(src), tmp_path / "wd")
+    assert (wd / "a.sv").is_file() and not os.path.lexists(wd / ".__smbE839")

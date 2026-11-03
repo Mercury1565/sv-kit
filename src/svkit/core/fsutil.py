@@ -4,6 +4,9 @@
 fails with EAGAIN (not ENOTSUP, which shutil tolerates) on CIFS mounts such as
 CAEN home directories. These helpers keep contents, permission bits and
 timestamps (make relies on mtimes) and skip xattrs.
+
+CIFS also leaves `.__smbXXXX` placeholders for files deleted while still open. They can stay
+listed while opening them fails, so tree copies skip them.
 """
 from __future__ import annotations
 
@@ -12,6 +15,11 @@ import shutil
 import stat
 from pathlib import Path
 from typing import Callable, Iterable, Optional
+
+
+def is_smb_placeholder(name: str) -> bool:
+    """`.__smbXXXX`: a CIFS stand-in for a file deleted while open; never real project content."""
+    return name.startswith(".__smb")
 
 
 def copy_file(src: Path | str, dst: Path | str) -> Path:
@@ -31,7 +39,7 @@ def copy_tree(src: Path | str, dst: Path | str,
     names = os.listdir(src)
     skip = set(ignore(str(src), names)) if ignore else set()
     for name in names:
-        if name in skip:
+        if name in skip or is_smb_placeholder(name):
             continue
         s, d = src / name, dst / name
         if s.is_symlink():
