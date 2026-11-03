@@ -1,0 +1,44 @@
+{
+  "area_by_hier": {},
+  "area_total": null,
+  "area_unit": "um^2",
+  "cell_count": 82,
+  "cells_by_type": {
+    "AND2x2_T75_L": 20,
+    "DFFHQNx1_T75_R": 20,
+    "FAx1_T75_R": 8,
+    "HAxp5_T75_R": 6,
+    "INVx1_T75_R": 6,
+    "NAND2xp5_T75_R": 18,
+    "NOR2xp33_T75_SL": 4
+  },
+  "corner": null,
+  "extra": {
+    "reports": [
+      "reference"
+    ],
+    "time_unit": "ns",
+    "time_unit_source": "default"
+  },
+  "hold_tns": null,
+  "hold_wns": null,
+  "netlist": null,
+  "paths": [],
+  "period": null,
+  "power": {
+    "dynamic": null,
+    "leakage": null,
+    "total": null
+  },
+  "schema_version": 1,
+  "tns": null,
+  "tool": "dc",
+  "top": "pipe_top",
+  "vt_mix": {
+    "LVT": 20,
+    "RVT": 58,
+    "SLVT": 4
+  },
+  "warnings": [],
+  "wns": null
+}

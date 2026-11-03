@@ -1,0 +1,82 @@
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 2
+        -sort_by group
+Design : core_ctrl
+Version: T-2022.03-SP4
+Date   : Mon Nov  2 11:02:51 2026
+****************************************
+
+ # A fanout number of 1000 was used for high fanout net computations.
+
+Operating Conditions: PVT_0P7V_25C   Library: tiny7_rvt_tt
+Wire Load Model Mode: top
+
+  Startpoint: ctrl_state_reg_1_
+              (rising edge-triggered flip-flop clocked by core_clk)
+  Endpoint: result[15]
+            (output port clocked by core_clk)
+  Path Group: core_clk
+  Path Type: max
+
+  Point                                                   Incr       Path
+  --------------------------------------------------------------------------
+  clock core_clk (rise edge)                              0.00       0.00
+  clock network delay (ideal)                             0.00       0.00
+  ctrl_state_reg_1_/CLK (DFFHQNx1_T75_R)                  0.00       0.00 r
+  ctrl_state_reg_1_/QN (DFFHQNx1_T75_R)                  38.21      38.21 r
+  U231/Y (INVx2_T75_R)                                   12.40      50.61 f
+  u_datapath_with_a_very_long_hierarchical_name/u_alu_stage/U1022/Y
+                                        (NAND2xp5_T75_L) 31.77      82.38 r
+  u_datapath_with_a_very_long_hierarchical_name/u_alu_stage/U1023/Y (NOR2xp33_T75_SL)
+                                                         44.90     127.28 f
+  U300/Y (AOI21xp5_T75_R)                               180.05     307.33 r
+  U301/Y (BUFx4_T75_L)                                  119.79     427.12 r
+  result[15] (out)                                        4.00     431.12 r
+  data arrival time                                                431.12
+
+  clock core_clk (rise edge)                            400.00     400.00
+  clock network delay (ideal)                             0.00     400.00
+  output external delay                                 -20.00     380.00
+  data required time                                               380.00
+  --------------------------------------------------------------------------
+  data required time                                               380.00
+  data arrival time                                               -431.12
+  --------------------------------------------------------------------------
+  slack (VIOLATED)                                                 -51.12
+
+
+  Startpoint: ctrl_state_reg_0_
+              (rising edge-triggered flip-flop clocked by core_clk)
+  Endpoint: acc_reg_31_
+            (rising edge-triggered flip-flop clocked by core_clk)
+  Path Group: core_clk
+  Path Type: max
+
+  Point                                                   Incr       Path
+  --------------------------------------------------------------------------
+  clock core_clk (rise edge)                              0.00       0.00
+  clock network delay (ideal)                             0.00       0.00
+  ctrl_state_reg_0_/CLK (DFFHQNx1_T75_R)                  0.00       0.00 r
+  ctrl_state_reg_0_/QN (DFFHQNx1_T75_R)                  36.80      36.80 f
+  U118/Y (NAND2xp5_T75_R)                                22.15      58.95 r
+  U119/Y (FAx1_T75_R)                                   160.30     219.25 f
+  U120/Y (XOR2xp5_T75_L)                                 96.42     315.67 r
+  acc_reg_31_/D (DFFHQNx1_T75_R)                          0.00     315.67 r
+  data arrival time                                                315.67
+
+  clock core_clk (rise edge)                            400.00     400.00
+  clock network delay (ideal)                             0.00     400.00
+  acc_reg_31_/CLK (DFFHQNx1_T75_R)                        0.00     400.00 r
+  library setup time                                    -24.70     375.30
+  data required time                                               375.30
+  --------------------------------------------------------------------------
+  data required time                                               375.30
+  data arrival time                                               -315.67
+  --------------------------------------------------------------------------
+  slack (MET)                                                       59.63
+
+
+1

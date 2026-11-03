@@ -1,0 +1,298 @@
+{
+  "area_by_hier": {},
+  "area_total": null,
+  "area_unit": "um^2",
+  "cell_count": null,
+  "cells_by_type": {},
+  "corner": "PVT_0P7V_25C",
+  "extra": {
+    "constraint_violations": {
+      "max_fanout": {
+        "count": 1,
+        "worst": "rst_n",
+        "worst_slack": -48.0
+      },
+      "max_transition": {
+        "count": 2,
+        "worst": "n1043",
+        "worst_slack": -32.7
+      }
+    },
+    "hold_violators": 1,
+    "log_counts": {
+      "error": 1,
+      "information": 6,
+      "warning": 9
+    },
+    "removed_registers": [
+      {
+        "code": "OPT-1206",
+        "design": null,
+        "reason": "constant",
+        "register": "u_ctl0/mode_q_reg[1]"
+      },
+      {
+        "code": "OPT-1206",
+        "design": null,
+        "reason": "constant",
+        "register": "u_ctl0/mode_q_reg[0]"
+      },
+      {
+        "code": "OPT-1207",
+        "design": null,
+        "reason": "unloaded",
+        "register": "u_ctl1/spare_q_reg"
+      },
+      {
+        "code": "OPT-1215",
+        "design": "fifo_ctl_DEPTH8_W16_1",
+        "reason": "merged",
+        "register": "wptr_q_reg[3]"
+      }
+    ],
+    "reports": [
+      "constraint",
+      "timing"
+    ],
+    "setup_violators": 3,
+    "time_unit": "ps",
+    "time_unit_source": "heuristic (period >= 100 units)"
+  },
+  "hold_tns": -3.4,
+  "hold_wns": -3.4,
+  "netlist": null,
+  "paths": [
+    {
+      "arrival": 431.12,
+      "endpoint": "result[15]",
+      "path_group": "core_clk",
+      "path_type": "max",
+      "points": [
+        {
+          "arrival": 0.0,
+          "cell": "DFFHQNx1_T75_R",
+          "incr": 0.0,
+          "inst": "ctrl_state_reg_1_",
+          "net": null,
+          "pin": "CLK",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 38.21,
+          "cell": "DFFHQNx1_T75_R",
+          "incr": 38.21,
+          "inst": "ctrl_state_reg_1_",
+          "net": null,
+          "pin": "QN",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 50.61,
+          "cell": "INVx2_T75_R",
+          "incr": 12.4,
+          "inst": "U231",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 82.38,
+          "cell": "NAND2xp5_T75_L",
+          "incr": 31.77,
+          "inst": "u_datapath_with_a_very_long_hierarchical_name/u_alu_stage/U1022",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 127.28,
+          "cell": "NOR2xp33_T75_SL",
+          "incr": 44.9,
+          "inst": "u_datapath_with_a_very_long_hierarchical_name/u_alu_stage/U1023",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 307.33,
+          "cell": "AOI21xp5_T75_R",
+          "incr": 180.05,
+          "inst": "U300",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 427.12,
+          "cell": "BUFx4_T75_L",
+          "incr": 119.79,
+          "inst": "U301",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 431.12,
+          "cell": null,
+          "incr": 4.0,
+          "inst": "",
+          "net": null,
+          "pin": "result[15]",
+          "rise_fall": "r"
+        }
+      ],
+      "required": 380.0,
+      "slack": -51.12,
+      "startpoint": "ctrl_state_reg_1_"
+    },
+    {
+      "arrival": 315.67,
+      "endpoint": "acc_reg_31_",
+      "path_group": "core_clk",
+      "path_type": "max",
+      "points": [
+        {
+          "arrival": 0.0,
+          "cell": "DFFHQNx1_T75_R",
+          "incr": 0.0,
+          "inst": "ctrl_state_reg_0_",
+          "net": null,
+          "pin": "CLK",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 36.8,
+          "cell": "DFFHQNx1_T75_R",
+          "incr": 36.8,
+          "inst": "ctrl_state_reg_0_",
+          "net": null,
+          "pin": "QN",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 58.95,
+          "cell": "NAND2xp5_T75_R",
+          "incr": 22.15,
+          "inst": "U118",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 219.25,
+          "cell": "FAx1_T75_R",
+          "incr": 160.3,
+          "inst": "U119",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 315.67,
+          "cell": "XOR2xp5_T75_L",
+          "incr": 96.42,
+          "inst": "U120",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 315.67,
+          "cell": "DFFHQNx1_T75_R",
+          "incr": 0.0,
+          "inst": "acc_reg_31_",
+          "net": null,
+          "pin": "D",
+          "rise_fall": "r"
+        }
+      ],
+      "required": 375.3,
+      "slack": 59.63,
+      "startpoint": "ctrl_state_reg_0_"
+    }
+  ],
+  "period": 400.0,
+  "power": {
+    "dynamic": null,
+    "leakage": null,
+    "total": null
+  },
+  "schema_version": 1,
+  "tns": -94.23,
+  "tool": "dc",
+  "top": "core_ctrl",
+  "vt_mix": {},
+  "warnings": [
+    {
+      "code": "LINK-3",
+      "file": null,
+      "line": null,
+      "severity": "error",
+      "text": "Width mismatch on port 'data_o' of reference to 'fifo_ram' in 'fifo_top'."
+    },
+    {
+      "code": "VER-936",
+      "file": "rtl/fifo_ctl.sv",
+      "line": 41,
+      "severity": "warning",
+      "text": "rtl/fifo_ctl.sv:41: the undeclared symbol 'rd_ok' assumed to have the default net type, which is 'wire'."
+    },
+    {
+      "code": "ELAB-909",
+      "file": "rtl/fifo_ctl.sv",
+      "line": 57,
+      "severity": "warning",
+      "text": "rtl/fifo_ctl.sv:57: Case statement is not a full case."
+    },
+    {
+      "code": "ELAB-366",
+      "file": "rtl/fifo_ctl.sv",
+      "line": 88,
+      "severity": "warning",
+      "text": "rtl/fifo_ctl.sv:88: Net dbg_q[3] or a directly connected net is driven by more than one source, and not all drivers are three-state."
+    },
+    {
+      "code": "UID-341",
+      "file": null,
+      "line": null,
+      "severity": "warning",
+      "text": "Design 'fifo_top' has '1' unresolved references. For more detailed information, use the \"link\" command."
+    },
+    {
+      "code": "LINT-28",
+      "file": null,
+      "line": null,
+      "severity": "warning",
+      "text": "In design 'fifo_ctl_DEPTH8_W16', port 'dbg_i[7]' is not connected to any nets. (x3)"
+    },
+    {
+      "code": "TIM-164",
+      "file": null,
+      "line": null,
+      "severity": "warning",
+      "text": "The trip points for the library named tiny_std_tt differ from those in the library named tiny_std_tt_lvt."
+    },
+    {
+      "code": "TIM-134",
+      "file": null,
+      "line": null,
+      "severity": "warning",
+      "text": "Design 'fifo_top' contains 1 high-fanout nets. A fanout number of 1000 will be used for delay calculations involving these nets."
+    },
+    {
+      "code": "max_transition",
+      "file": null,
+      "line": null,
+      "severity": "warning",
+      "text": "2 max_transition violation(s); worst n1043 (slack -32.7)"
+    },
+    {
+      "code": "max_fanout",
+      "file": null,
+      "line": null,
+      "severity": "warning",
+      "text": "1 max_fanout violation(s); worst rst_n (slack -48)"
+    }
+  ],
+  "wns": -51.12
+}

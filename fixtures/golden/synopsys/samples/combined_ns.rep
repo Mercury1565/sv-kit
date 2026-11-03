@@ -1,0 +1,350 @@
+Information: Updating design information... (UID-85)
+
+****************************************
+Report : design
+Design : minicore
+Version: S-2021.06-SP5
+Date   : Mon Nov  2 15:01:10 2026
+****************************************
+
+Design allows ideal nets on clock nets.
+
+Library(s) Used:
+
+    tiny_std_ss (File: /path/to/libs/tiny_std_ss.db)
+
+Local Link Library:
+
+    {tiny_std_ss.db}
+
+Flip-Flop Types:
+
+    No flip-flop types specified.
+
+Latch Types:
+
+    No latch types specified.
+
+Operating Conditions:
+
+
+    Operating Condition Name : ss_0p9v_125c
+    Library : tiny_std_ss
+    Process :   1.00
+    Temperature : 125.00
+    Voltage :   0.90
+
+Wire Loading Model:
+
+    Selected manually by the user.
+
+Name           :   wl_medium
+Location       :   tiny_std_ss
+Resistance     :   0.0004
+Capacitance    :   0.0004
+Area           :   0.02
+Slope          :   4.0
+Fanout   Length   Points Average Cap Std Deviation
+--------------------------------------------------------------
+     1     0.80
+
+
+
+Wire Loading Model Mode: top.
+
+Timing Ranges:
+
+    No timing ranges specified.
+
+Pin Input Delays:
+
+    None specified.
+
+Pin Output Delays:
+
+    None specified.
+
+Disabled Timing Arcs:
+
+    No arcs disabled.
+
+Required Licenses:
+
+    None Required
+
+Design Parameters:
+
+    None specified.
+1
+
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 2
+Design : minicore
+Version: S-2021.06-SP5
+Date   : Mon Nov  2 15:01:10 2026
+****************************************
+
+Operating Conditions: ss_0p9v_125c   Library: tiny_std_ss
+Wire Load Model Mode: top
+
+  Startpoint: u_ex/opa_q_reg_12_
+              (rising edge-triggered flip-flop clocked by clock)
+  Endpoint: u_mem/addr_q_reg_31_
+            (rising edge-triggered flip-flop clocked by clock)
+  Path Group: clock
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  minicore           wl_medium             tiny_std_ss
+
+  Point                                    Incr       Path
+  -----------------------------------------------------------
+  clock clock (rise edge)                  0.00       0.00
+  clock network delay (ideal)              0.00       0.00
+  u_ex/opa_q_reg_12_/CLK (DFFARX1_RVT)     0.00       0.00 r
+  u_ex/opa_q_reg_12_/Q (DFFARX1_RVT)       0.31       0.31 r
+  u_ex/U311/Y (NAND2X0_RVT)                0.12       0.43 f
+  u_ex/u_add/U58/CO (FADDX1_RVT)           0.44       0.87 f
+  u_ex/u_add/U59/CO (FADDX1_RVT)           0.41       1.28 f
+  u_ex/u_add/U60/S (FADDX1_RVT)            0.47       1.75 r
+  u_mem/U9/Y (AO22X1_LVT)                  0.21       1.96 r
+  u_mem/addr_q_reg_31_/D (DFFARX1_RVT)     0.00       1.96 r
+  data arrival time                                   1.96
+
+  clock clock (rise edge)                  2.00       2.00
+  clock network delay (ideal)              0.00       2.00
+  clock uncertainty                       -0.05       1.95
+  u_mem/addr_q_reg_31_/CLK (DFFARX1_RVT)   0.00       1.95 r
+  library setup time                      -0.09       1.86
+  data required time                                  1.86
+  -----------------------------------------------------------
+  data required time                                  1.86
+  data arrival time                                  -1.96
+  -----------------------------------------------------------
+  slack (VIOLATED)                                   -0.10
+
+
+  Startpoint: u_ex/opa_q_reg_12_
+              (rising edge-triggered flip-flop clocked by clock)
+  Endpoint: u_mem/addr_q_reg_30_
+            (rising edge-triggered flip-flop clocked by clock)
+  Path Group: clock
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  minicore           wl_medium             tiny_std_ss
+
+  Point                                    Incr       Path
+  -----------------------------------------------------------
+  clock clock (rise edge)                  0.00       0.00
+  clock network delay (ideal)              0.00       0.00
+  u_ex/opa_q_reg_12_/CLK (DFFARX1_RVT)     0.00       0.00 r
+  u_ex/opa_q_reg_12_/Q (DFFARX1_RVT)       0.31       0.31 r
+  u_ex/U311/Y (NAND2X0_RVT)                0.12       0.43 f
+  u_ex/u_add/U58/CO (FADDX1_RVT)           0.44       0.87 f
+  u_ex/u_add/U59/S (FADDX1_RVT)            0.50       1.37 r
+  u_mem/U8/Y (AO22X1_LVT)                  0.21       1.58 r
+  u_mem/addr_q_reg_30_/D (DFFARX1_RVT)     0.00       1.58 r
+  data arrival time                                   1.58
+
+  clock clock (rise edge)                  2.00       2.00
+  clock network delay (ideal)              0.00       2.00
+  clock uncertainty                       -0.05       1.95
+  u_mem/addr_q_reg_30_/CLK (DFFARX1_RVT)   0.00       1.95 r
+  library setup time                      -0.09       1.86
+  data required time                                  1.86
+  -----------------------------------------------------------
+  data required time                                  1.86
+  data arrival time                                  -1.58
+  -----------------------------------------------------------
+  slack (MET)                                         0.28
+
+
+1
+
+****************************************
+Report : constraint
+        -all_violators
+Design : minicore
+Version: S-2021.06-SP5
+Date   : Mon Nov  2 15:01:11 2026
+****************************************
+
+
+   max_delay/setup ('clock' group)
+
+                             Required        Actual
+   Endpoint                  Path Delay      Path Delay        Slack
+   -----------------------------------------------------------------
+   u_mem/addr_q_reg_31_/D         1.86            1.96 r         -0.10  (VIOLATED)
+   u_mem/addr_q_reg_29_/D         1.86            1.91 f         -0.05  (VIOLATED)
+
+
+1
+
+****************************************
+Report : power
+        -analysis_effort low
+Design : minicore
+Version: S-2021.06-SP5
+Date   : Mon Nov  2 15:01:11 2026
+****************************************
+
+
+Library(s) Used:
+
+    tiny_std_ss (File: /path/to/libs/tiny_std_ss.db)
+
+
+Operating Conditions: ss_0p9v_125c   Library: tiny_std_ss
+Wire Load Model Mode: top
+
+
+Global Operating Voltage = 0.9
+Power-specific unit information :
+    Voltage Units = 1V
+    Capacitance Units = 1.000000ff
+    Time Units = 1ns
+    Dynamic Power Units = 1uW    (derived from V,C,T units)
+    Leakage Power Units = 1pW
+
+
+  Cell Internal Power  =   1.2034 mW   (62%)
+  Net Switching Power  = 737.5520 uW   (38%)
+                         ---------
+Total Dynamic Power    =   1.9410 mW  (100%)
+
+Cell Leakage Power     = 152.3300 uW
+
+
+1
+
+****************************************
+Report : resources
+        -hierarchy
+Design : minicore
+Version: S-2021.06-SP5
+Date   : Mon Nov  2 15:01:11 2026
+****************************************
+
+Resource Report for this hierarchy in file
+        rtl/ex_stage.sv
+=============================================================================
+| Cell           | Module         | Parameters | Contained Operations       |
+=============================================================================
+| add_x_1        | DW01_add       | width=32   | add_88 (ex_stage.sv:88)    |
+| sub_x_2        | DW01_sub       | width=32   | sub_89 (ex_stage.sv:89)    |
+=============================================================================
+
+
+Implementation Report
+===============================================================================
+|                    |                  | Current            | Set            |
+| Cell               | Module           | Implementation     | Implementation |
+===============================================================================
+| add_x_1            | DW01_add         | apparch (area)                      |
+| sub_x_2            | DW01_sub         | apparch (area)                      |
+===============================================================================
+
+1
+
+****************************************
+Report : area
+Design : minicore
+Version: S-2021.06-SP5
+Date   : Mon Nov  2 15:01:11 2026
+****************************************
+
+Library(s) Used:
+
+    tiny_std_ss (File: /path/to/libs/tiny_std_ss.db)
+
+Number of ports:                          130
+Number of nets:                           611
+Number of cells:                          524
+Number of combinational cells:            431
+Number of sequential cells:                91
+Number of macros/black boxes:               0
+Number of buf/inv:                         64
+Number of references:                       3
+
+Combinational area:               1504.209600
+Buf/Inv area:                      112.844800
+Noncombinational area:             806.358400
+Macro/Black Box area:                0.000000
+Net Interconnect area:      undefined  (Wire load has zero net area)
+
+Total cell area:                  2310.568000
+Total area:                 undefined
+
+Hierarchical area distribution
+------------------------------
+
+                                  Global cell area          Local cell area
+                                  ------------------  ---------------------------
+Hierarchical cell                 Absolute   Percent  Combi-    Noncombi-  Black-
+                                  Total      Total    national  national   boxes   Design
+--------------------------------  ---------  -------  --------  ---------  ------  ------------
+minicore                          2310.5680    100.0   44.7280     0.0000  0.0000  minicore
+u_ex                              1381.7280     59.8  1104.1600  277.5680  0.0000  ex_stage
+u_mem                              884.1120     38.3   355.3216  528.7904  0.0000  mem_stage
+--------------------------------  ---------  -------  --------  ---------  ------  ------------
+Total                                                 1504.2096  806.3584  0.0000
+
+1
+
+****************************************
+Report : reference
+Design : minicore
+Version: S-2021.06-SP5
+Date   : Mon Nov  2 15:01:11 2026
+****************************************
+
+Attributes:
+    b - black box (unknown)
+   bo - allows boundary optimization
+    d - dont_touch
+   mo - map_only
+    h - hierarchical
+    n - noncombinational
+    r - removable
+    s - synthetic operator
+    u - contains unmapped logic
+
+Reference          Library       Unit Area   Count    Total Area   Attributes
+-----------------------------------------------------------------------------
+INVX1_RVT          tiny_std_ss    1.270720      2      2.541440
+NBUFFX2_RVT        tiny_std_ss    2.033152     21     42.696192
+ex_stage                       1381.728000      1   1381.728000  h, n
+mem_stage                       884.112000      1    884.112000  h, n
+-----------------------------------------------------------------------------
+Total 4 references                                  2311.077632
+
+****************************************
+Design: ex_stage
+****************************************
+Reference          Library       Unit Area   Count    Total Area   Attributes
+-----------------------------------------------------------------------------
+AO22X1_LVT         tiny_std_ss    2.541440     30     76.243200
+DFFARX1_RVT        tiny_std_ss    6.862080     40    274.483200  n
+FADDX1_RVT         tiny_std_ss    6.607936     64    422.907904
+NAND2X0_RVT        tiny_std_ss    1.524864    250    381.216000
+-----------------------------------------------------------------------------
+Total 4 references                                  1154.850304
+
+****************************************
+Design: mem_stage
+****************************************
+Reference          Library       Unit Area   Count    Total Area   Attributes
+-----------------------------------------------------------------------------
+AO22X1_LVT         tiny_std_ss    2.541440     41    104.199040
+DFFARX1_RVT        tiny_std_ss    6.862080     51    349.966080  n
+INVX1_RVT          tiny_std_ss    1.270720     25     31.768000
+-----------------------------------------------------------------------------
+Total 3 references                                   485.933120
+1

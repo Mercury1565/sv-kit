@@ -1,0 +1,29 @@
+{
+  "failures": [
+    "VCS Error-[IND] Identifier not declared at rtl/fifo.sv:41"
+  ],
+  "final_time_ps": null,
+  "messages": [
+    {
+      "code": "IND",
+      "file": "rtl/fifo.sv",
+      "line": 41,
+      "severity": "error",
+      "text": "Identifier not declared: Identifier 'rd_ok' has not been declared yet. If this error is not expected,"
+    },
+    {
+      "code": "TFIPC",
+      "file": "tb/fifo_tb.sv",
+      "line": 22,
+      "severity": "warning",
+      "text": "Too few instance port connections: fifo_tb, \"fifo #(.DEPTH(8)) dut( .clock (clock),  .reset (reset),  .wr_en (wr_en),  .din (din));\" (x2)"
+    },
+    {
+      "code": "PCWM-L",
+      "file": "tb/fifo_tb.sv",
+      "line": 22,
+      "severity": "warning",
+      "text": "Port connection width mismatch: \"fifo #(.DEPTH(8)) dut( .clock (clock),  .reset (reset),  .wr_en (wr_en),  .din (din));\""
+    }
+  ]
+}

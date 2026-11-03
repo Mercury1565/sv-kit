@@ -1,0 +1,9 @@
+# Multi-file sample: separate report files of one DC run, parsed together.
+# One path per line, relative to this directory.
+design.rpt
+timing_ns_met.rpt
+timing_hold.rpt
+qor_ns.rpt
+constraints_clean.rpt
+power_uw.rpt
+resources.rpt

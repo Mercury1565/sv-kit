@@ -1,0 +1,49 @@
+****************************************
+Report : reference
+Design : pipe_top
+Version: T-2022.03-SP4
+Date   : Mon Nov  2 14:21:44 2026
+****************************************
+
+Attributes:
+    b - black box (unknown)
+   bo - allows boundary optimization
+    d - dont_touch
+   mo - map_only
+    h - hierarchical
+    n - noncombinational
+    r - removable
+    s - synthetic operator
+    u - contains unmapped logic
+
+Reference          Library       Unit Area   Count    Total Area   Attributes
+-----------------------------------------------------------------------------
+DFFHQNx1_T75_R     tiny7_rvt_tt   0.290160       4      1.160640  n
+INVx1_T75_R        tiny7_rvt_tt   0.043740       6      0.262440
+stage_W8                          5.162580       2     10.325160  h, n
+-----------------------------------------------------------------------------
+Total 3 references                                    11.748240
+
+****************************************
+Design: stage_W8
+****************************************
+Reference          Library       Unit Area   Count    Total Area   Attributes
+-----------------------------------------------------------------------------
+AND2x2_T75_L       tiny7_lvt_tt   0.087480      10      0.874800
+DFFHQNx1_T75_R     tiny7_rvt_tt   0.290160       8      2.321280  n
+NAND2xp5_T75_R     tiny7_rvt_tt   0.087480       9      0.787320
+NOR2xp33_T75_SL    tiny7_slvt_tt  0.087480       2      0.174960
+add_W8                            1.004220       1      1.004220  h
+-----------------------------------------------------------------------------
+Total 5 references                                     5.162580
+
+****************************************
+Design: add_W8
+****************************************
+Reference          Library       Unit Area   Count    Total Area   Attributes
+-----------------------------------------------------------------------------
+FAx1_T75_R         tiny7_rvt_tt   0.196830       4      0.787320
+HAxp5_T75_R        tiny7_rvt_tt   0.072300       3      0.216900
+-----------------------------------------------------------------------------
+Total 2 references                                     1.004220
+1

@@ -1,0 +1,118 @@
+{
+  "area_by_hier": {},
+  "area_total": null,
+  "area_unit": "um^2",
+  "cell_count": null,
+  "cells_by_type": {},
+  "corner": null,
+  "extra": {
+    "log_counts": {
+      "error": 1,
+      "information": 6,
+      "warning": 9
+    },
+    "removed_registers": [
+      {
+        "code": "OPT-1206",
+        "design": null,
+        "reason": "constant",
+        "register": "u_ctl0/mode_q_reg[1]"
+      },
+      {
+        "code": "OPT-1206",
+        "design": null,
+        "reason": "constant",
+        "register": "u_ctl0/mode_q_reg[0]"
+      },
+      {
+        "code": "OPT-1207",
+        "design": null,
+        "reason": "unloaded",
+        "register": "u_ctl1/spare_q_reg"
+      },
+      {
+        "code": "OPT-1215",
+        "design": "fifo_ctl_DEPTH8_W16_1",
+        "reason": "merged",
+        "register": "wptr_q_reg[3]"
+      }
+    ],
+    "reports": [],
+    "time_unit": "ns",
+    "time_unit_source": "default"
+  },
+  "hold_tns": null,
+  "hold_wns": null,
+  "netlist": null,
+  "paths": [],
+  "period": null,
+  "power": {
+    "dynamic": null,
+    "leakage": null,
+    "total": null
+  },
+  "schema_version": 1,
+  "tns": null,
+  "tool": "dc",
+  "top": "",
+  "vt_mix": {},
+  "warnings": [
+    {
+      "code": "LINK-3",
+      "file": null,
+      "line": null,
+      "severity": "error",
+      "text": "Width mismatch on port 'data_o' of reference to 'fifo_ram' in 'fifo_top'."
+    },
+    {
+      "code": "VER-936",
+      "file": "rtl/fifo_ctl.sv",
+      "line": 41,
+      "severity": "warning",
+      "text": "rtl/fifo_ctl.sv:41: the undeclared symbol 'rd_ok' assumed to have the default net type, which is 'wire'."
+    },
+    {
+      "code": "ELAB-909",
+      "file": "rtl/fifo_ctl.sv",
+      "line": 57,
+      "severity": "warning",
+      "text": "rtl/fifo_ctl.sv:57: Case statement is not a full case."
+    },
+    {
+      "code": "ELAB-366",
+      "file": "rtl/fifo_ctl.sv",
+      "line": 88,
+      "severity": "warning",
+      "text": "rtl/fifo_ctl.sv:88: Net dbg_q[3] or a directly connected net is driven by more than one source, and not all drivers are three-state."
+    },
+    {
+      "code": "UID-341",
+      "file": null,
+      "line": null,
+      "severity": "warning",
+      "text": "Design 'fifo_top' has '1' unresolved references. For more detailed information, use the \"link\" command."
+    },
+    {
+      "code": "LINT-28",
+      "file": null,
+      "line": null,
+      "severity": "warning",
+      "text": "In design 'fifo_ctl_DEPTH8_W16', port 'dbg_i[7]' is not connected to any nets. (x3)"
+    },
+    {
+      "code": "TIM-164",
+      "file": null,
+      "line": null,
+      "severity": "warning",
+      "text": "The trip points for the library named tiny_std_tt differ from those in the library named tiny_std_tt_lvt."
+    },
+    {
+      "code": "TIM-134",
+      "file": null,
+      "line": null,
+      "severity": "warning",
+      "text": "Design 'fifo_top' contains 1 high-fanout nets. A fanout number of 1000 will be used for delay calculations involving these nets."
+    }
+  ],
+  "wns": null
+}

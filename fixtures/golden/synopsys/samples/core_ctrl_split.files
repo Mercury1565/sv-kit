@@ -1,0 +1,5 @@
+# Multi-file sample: a ps-unit library run without a unit hint. The time unit is taken
+# from the clock period magnitude in the timing report and applied to the constraints report.
+timing_ps_violated.rpt
+constraints_violators.rpt
+dc_warnings.log

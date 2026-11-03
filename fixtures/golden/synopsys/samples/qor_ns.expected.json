@@ -1,0 +1,94 @@
+{
+  "area_by_hier": {},
+  "area_total": 627.603206,
+  "area_unit": "um^2",
+  "cell_count": 214,
+  "cells_by_type": {},
+  "corner": null,
+  "extra": {
+    "qor": {
+      "INPUTS": {
+        "Critical Path Clk Period": 1.0,
+        "Critical Path Length": 0.4,
+        "Critical Path Slack": 0.55,
+        "Levels of Logic": 3.0,
+        "No. of Hold Violations": 0.0,
+        "No. of Violating Paths": 0.0,
+        "Total Hold Violation": 0.0,
+        "Total Negative Slack": 0.0,
+        "Worst Hold Violation": 0.0
+      },
+      "clk": {
+        "Critical Path Clk Period": 1.0,
+        "Critical Path Length": 0.71,
+        "Critical Path Slack": 0.23,
+        "Levels of Logic": 9.0,
+        "No. of Hold Violations": 1.0,
+        "No. of Violating Paths": 0.0,
+        "Total Hold Violation": -0.03,
+        "Total Negative Slack": 0.0,
+        "Worst Hold Violation": -0.03
+      }
+    },
+    "qor_sections": {
+      "Area": {
+        "Buf/Inv Area": 41.164801,
+        "Cell Area": 627.603206,
+        "Combinational Area": 412.307201,
+        "Design Area": 714.005421,
+        "Macro/Black Box Area": 0.0,
+        "Net Area": 86.402215,
+        "Noncombinational Area": 215.296005,
+        "Total Buffer Area": 15.25,
+        "Total Inverter Area": 25.92
+      },
+      "Cell Count": {
+        "Buf Cell Count": 9.0,
+        "Buf/Inv Cell Count": 31.0,
+        "CT Buf/Inv Cell Count": 0.0,
+        "Combinational Cell Count": 182.0,
+        "Hierarchical Cell Count": 2.0,
+        "Hierarchical Port Count": 58.0,
+        "Inv Cell Count": 22.0,
+        "Leaf Cell Count": 214.0,
+        "Macro Count": 0.0,
+        "Sequential Cell Count": 32.0
+      },
+      "Compile CPU Statistics": {
+        "Logic Optimization": 1.8,
+        "Mapping Optimization": 2.95,
+        "Overall Compile Time": 6.12,
+        "Overall Compile Wall Clock Time": 6.48,
+        "Resource Sharing": 0.21
+      },
+      "Design Rules": {
+        "Max Cap Violations": 0.0,
+        "Max Trans Violations": 0.0,
+        "Nets With Violations": 1.0,
+        "Total Number of Nets": 268.0
+      }
+    },
+    "reports": [
+      "qor"
+    ],
+    "time_unit": "ns",
+    "time_unit_source": "default"
+  },
+  "hold_tns": -30.0,
+  "hold_wns": -30.0,
+  "netlist": null,
+  "paths": [],
+  "period": 1000.0,
+  "power": {
+    "dynamic": null,
+    "leakage": null,
+    "total": null
+  },
+  "schema_version": 1,
+  "tns": 0.0,
+  "tool": "dc",
+  "top": "alu_pipe",
+  "vt_mix": {},
+  "warnings": [],
+  "wns": 230.0
+}

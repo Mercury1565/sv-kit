@@ -1,0 +1,61 @@
+{
+  "area_by_hier": {},
+  "area_total": null,
+  "area_unit": "um^2",
+  "cell_count": null,
+  "cells_by_type": {},
+  "corner": null,
+  "extra": {
+    "constraint_violations": {
+      "max_fanout": {
+        "count": 1,
+        "worst": "rst_n",
+        "worst_slack": -48.0
+      },
+      "max_transition": {
+        "count": 2,
+        "worst": "n1043",
+        "worst_slack": -32.7
+      }
+    },
+    "hold_violators": 1,
+    "reports": [
+      "constraint"
+    ],
+    "setup_violators": 3,
+    "time_unit": "ns",
+    "time_unit_source": "default"
+  },
+  "hold_tns": -3400.0,
+  "hold_wns": -3400.0,
+  "netlist": null,
+  "paths": [],
+  "period": null,
+  "power": {
+    "dynamic": null,
+    "leakage": null,
+    "total": null
+  },
+  "schema_version": 1,
+  "tns": -94230.0,
+  "tool": "dc",
+  "top": "core_ctrl",
+  "vt_mix": {},
+  "warnings": [
+    {
+      "code": "max_transition",
+      "file": null,
+      "line": null,
+      "severity": "warning",
+      "text": "2 max_transition violation(s); worst n1043 (slack -32.7)"
+    },
+    {
+      "code": "max_fanout",
+      "file": null,
+      "line": null,
+      "severity": "warning",
+      "text": "1 max_fanout violation(s); worst rst_n (slack -48)"
+    }
+  ],
+  "wns": -51120.0
+}

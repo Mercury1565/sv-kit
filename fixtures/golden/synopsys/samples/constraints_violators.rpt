@@ -1,0 +1,46 @@
+****************************************
+Report : constraint
+        -all_violators
+Design : core_ctrl
+Version: T-2022.03-SP4
+Date   : Mon Nov  2 11:02:55 2026
+****************************************
+
+
+   max_delay/setup ('core_clk' group)
+
+                             Required        Actual
+   Endpoint                  Path Delay      Path Delay        Slack
+   -----------------------------------------------------------------
+   result[15]                   380.00          431.12 r        -51.12  (VIOLATED)
+   result[14]                   380.00          418.40 f        -38.40  (VIOLATED)
+   u_datapath_with_a_very_long_hierarchical_name/acc_q_reg_30_/D
+                                375.30          380.01 r         -4.71  (VIOLATED)
+
+
+   min_delay/hold ('core_clk' group)
+
+                             Required        Actual
+   Endpoint                  Path Delay      Path Delay        Slack
+   -----------------------------------------------------------------
+   ctrl_state_reg_0_/D           12.50            9.10 f         -3.40  (VIOLATED)
+
+
+   max_transition
+
+                             Required        Actual
+   Net                       Transition      Transition        Slack
+   -----------------------------------------------------------------
+   n1043                        80.00          112.70           -32.70  (VIOLATED)
+   n877                         80.00           84.10            -4.10  (VIOLATED)
+
+
+   max_fanout
+
+                             Required        Actual
+   Net                       Fanout          Fanout            Slack
+   -----------------------------------------------------------------
+   rst_n                         16.00           64.00           -48.00  (VIOLATED)
+
+
+1
