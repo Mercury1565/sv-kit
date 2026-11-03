@@ -2,6 +2,7 @@
 
 ## Owner summary
 - **Phase:** Phases 0–3 are implemented and pass on the open-source flow. **~65 % to MVP.** Remaining: real VCS/DC validation, a dogfood run, an X-trace sim path for the OSS flow, hardening and README.
+- **Continuing on CAEN:** step-by-step handoff in [`docs/CAEN.md`](docs/CAEN.md) (transfer, env, Synopsys tests, real goldens, dogfood).
 - **Demoable (OSS flow, any fixture copy):** `svkit sim --all`, `svkit synth --matrix` (compare table), `svkit sweep clock` (T_min), `svkit xtrace`, `svkit serve` (Runs, Tests, Synthesis, Compare, Sweep, Waves, Perf, Design, X-Trace views).
 - **Needs owner:**
   1. **Dev host is not CAEN.** No Synopsys tools or dogfood repo here; the VCS/DC adapters are tested only against hand-written report samples and fake tools. Real VCS/DC runs and the dogfood checkpoint need a CAEN session.
