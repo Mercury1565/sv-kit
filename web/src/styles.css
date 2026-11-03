@@ -339,3 +339,14 @@ pre.log { margin: 0; padding: 8px 10px; font: var(--fs-sm)/1.45 var(--mono); bac
 @media (prefers-reduced-motion: reduce) {
   button, .btn { transition: none; }
 }
+
+/* job error: one-line summary + full text (tool hint, build-log tail) on demand */
+.job-error { position: relative; display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+button.link { border: 0; background: none; height: auto; padding: 0; color: var(--accent); cursor: pointer; }
+button.link:hover { text-decoration: underline; }
+.job-error-full {
+  position: absolute; top: calc(100% + 6px); right: 0; z-index: 20; margin: 0;
+  width: min(720px, calc(100vw - 32px)); max-height: 50vh; overflow: auto;
+  padding: 8px 10px; white-space: pre-wrap; overflow-wrap: anywhere;
+  border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--bg-raised); color: var(--fg);
+}

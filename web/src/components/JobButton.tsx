@@ -25,20 +25,41 @@ export function JobButton({ kind, args, children, primary, disabled }: { kind: J
   };
 
   const running = busy || job?.status === "running";
+  const error = job?.status === "error" ? job.error ?? "error" : err;
   return (
-    <span className="row" style={{ gap: 6 }}>
+    <span className="row job-status" style={{ gap: 6 }}>
       <button className={primary ? "primary" : ""} onClick={go} disabled={disabled || running}>
         {children}
       </button>
-      {job && (
-        <span className={`small ${job.status === "error" ? "worse" : "muted"} ellipsis`} style={{ maxWidth: 280 }} title={job.error ?? undefined}>
-          {job.status === "running" ? `running ${job.job_id}…` : job.status === "error" ? `failed: ${job.error ?? "error"}` : `done${job.run_ids.length ? ` → ${job.run_ids.join(", ")}` : ""}`}
+      {job && job.status !== "error" && (
+        <span className="small muted ellipsis" style={{ maxWidth: 280 }}>
+          {job.status === "running" ? `running ${job.job_id}…` : `done${job.run_ids.length ? ` → ${job.run_ids.join(", ")}` : ""}`}
         </span>
       )}
-      {err && (
-        <span className="small worse ellipsis" style={{ maxWidth: 280 }} title={err}>
-          {err}
-        </span>
+      {error && <JobError text={error} />}
+    </span>
+  );
+}
+
+/** One-line summary of a job error; the full multi-line text (tool hint, log tail) opens below it. */
+export function JobError({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  const first = text.split("\n", 1)[0];
+  const more = text.includes("\n") || first.length > 60;
+  return (
+    <span className="job-error">
+      <span className="small worse ellipsis" style={{ maxWidth: 360 }} title={first}>
+        failed: {first}
+      </span>
+      {more && (
+        <button className="link small" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
+          {open ? "hide" : "details"}
+        </button>
+      )}
+      {open && (
+        <pre className="job-error-full mono small" role="status">
+          {text}
+        </pre>
       )}
     </span>
   );
