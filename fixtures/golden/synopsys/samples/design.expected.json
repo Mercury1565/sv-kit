@@ -1,0 +1,44 @@
+{
+  "area_by_hier": {},
+  "area_total": null,
+  "area_unit": "um^2",
+  "cell_count": null,
+  "cells_by_type": {},
+  "corner": "tt_1p0v_25c",
+  "extra": {
+    "libraries": [
+      "tiny_std_tt"
+    ],
+    "operating_conditions": {
+      "library": "tiny_std_tt",
+      "name": "tt_1p0v_25c",
+      "process": 1.0,
+      "temperature": 25.0,
+      "voltage": 1.0
+    },
+    "reports": [
+      "design"
+    ],
+    "time_unit": "ns",
+    "time_unit_source": "default",
+    "wire_load_mode": "top",
+    "wire_load_model": "wl_small"
+  },
+  "hold_tns": null,
+  "hold_wns": null,
+  "netlist": null,
+  "paths": [],
+  "period": null,
+  "power": {
+    "dynamic": null,
+    "leakage": null,
+    "total": null
+  },
+  "schema_version": 1,
+  "tns": null,
+  "tool": "dc",
+  "top": "alu_pipe",
+  "vt_mix": {},
+  "warnings": [],
+  "wns": null
+}

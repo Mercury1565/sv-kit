@@ -1,0 +1,49 @@
+****************************************
+Report : area
+Design : soc_lite
+Version: T-2022.03-SP4
+Date   : Mon Nov  2 13:40:05 2026
+****************************************
+
+Library(s) Used:
+
+    tiny_std_tt (File: /path/to/libs/tiny_std_tt.db)
+    tiny_std_tt_lvt (File: /path/to/libs/tiny_std_tt_lvt.db)
+
+Number of ports:                          371
+Number of nets:                          2904
+Number of cells:                         2511
+Number of combinational cells:           2105
+Number of sequential cells:               402
+Number of macros/black boxes:               0
+Number of buf/inv:                        377
+Number of references:                       4
+
+Combinational area:               3810.524011
+Buf/Inv area:                      402.112006
+Noncombinational area:            2650.995243
+Macro/Black Box area:                0.000000
+Net Interconnect area:             991.384120
+
+Total cell area:                  6461.519254
+Total area:                       7452.903374
+
+Hierarchical area distribution
+------------------------------
+
+                                  Global cell area              Local cell area
+                                  --------------------  ------------------------------
+Hierarchical cell                 Absolute     Percent  Combi-     Noncombi-  Black-
+                                  Total        Total    national   national   boxes   Design
+--------------------------------  -----------  -------  ---------  ---------  ------  ------------------------------
+soc_lite                            6461.5193    100.0    96.2112     0.0000  0.0000  soc_lite
+u_core                              5102.4331     79.0   210.4400   410.7700  0.0000  core_W32
+u_core/u_decode                      802.1100     12.4   752.3300    49.7800  0.0000  decode_W32
+u_core/u_execute                    3679.1131     56.9   701.0011   210.6600  0.0000  execute_W32
+u_core/u_execute/u_multiplier_with_long_name_0
+                                    2767.4520     42.8  2101.2520   666.2000  0.0000  mult_W32_S2
+u_uart                              1262.8750     19.5   931.0950   331.7800  0.0000  uart_tx_rx_DIV16
+--------------------------------  -----------  -------  ---------  ---------  ------  ------------------------------
+Total                                                    4792.3333  1669.1907  0.0000
+
+1

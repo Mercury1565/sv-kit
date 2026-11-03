@@ -1,0 +1,101 @@
+
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -input_pins
+        -nets
+        -max_paths 2
+        -transition_time
+        -capacitance
+Design : alu_pipe
+Version: S-2021.06-SP5
+Date   : Mon Nov  2 09:14:27 2026
+****************************************
+
+Operating Conditions: tt_1p0v_25c   Library: tiny_std_tt
+Wire Load Model Mode: top
+
+  Startpoint: u_stage1/opa_q_reg_3_
+              (rising edge-triggered flip-flop clocked by clk)
+  Endpoint: u_stage2/res_q_reg_7_
+            (rising edge-triggered flip-flop clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  alu_pipe           wl_small              tiny_std_tt
+
+  Point                                        Fanout       Cap     Trans      Incr       Path
+  ------------------------------------------------------------------------------------------------
+  clock clk (rise edge)                                                         0.00       0.00
+  clock network delay (ideal)                                                   0.00       0.00
+  u_stage1/opa_q_reg_3_/CLK (DFFX1_RVT)                             0.00       0.00       0.00 r
+  u_stage1/opa_q_reg_3_/Q (DFFX1_RVT)                               0.04       0.18       0.18 f
+  u_stage1/opa_q[3] (net)                          3       2.15                 0.00       0.18 f
+  u_stage1/U41/A1 (NAND2X1_RVT)                                     0.04       0.00       0.18 f
+  u_stage1/U41/Y (NAND2X1_RVT)                                      0.06       0.07       0.25 r
+  u_stage1/n52 (net)                               1       0.88                 0.00       0.25 r
+  u_stage1/U40/A (INVX1_LVT)                                        0.06       0.00       0.25 r
+  u_stage1/U40/Y (INVX1_LVT)                                        0.03       0.03 *     0.28 f
+  u_stage1/n53 (net)                               2       1.40                 0.00       0.28 f
+  u_stage1/sum_o[3] (alu_stage1_W8)                                            0.00       0.28 f
+  sum1[3] (net)                                    2       1.40                 0.00       0.28 f
+  u_stage2/U77/A2 (AO22X1_RVT)                                      0.03       0.00       0.28 f
+  u_stage2/U77/Y (AO22X1_RVT)                                       0.05       0.16       0.44 f
+  u_stage2/n90 (net)                               1       0.75                 0.00       0.44 f
+  u_stage2/U80/A (XOR2X1_HVT)                                       0.05       0.00       0.44 f
+  u_stage2/U80/Y (XOR2X1_HVT)                                       0.07       0.22 &     0.66 r
+  u_stage2/n91 (net)                               1       0.60                 0.00       0.66 r
+  u_stage2/res_q_reg_7_/D (DFFX1_RVT)                               0.07       0.05       0.71 r
+  data arrival time                                                                        0.71
+
+  clock clk (rise edge)                                                         1.00       1.00
+  clock network delay (ideal)                                                   0.00       1.00
+  u_stage2/res_q_reg_7_/CLK (DFFX1_RVT)                                         0.00       1.00 r
+  library setup time                                                           -0.06       0.94
+  data required time                                                                       0.94
+  ------------------------------------------------------------------------------------------------
+  data required time                                                                       0.94
+  data arrival time                                                                       -0.71
+  ------------------------------------------------------------------------------------------------
+  slack (MET)                                                                              0.23
+
+
+  Startpoint: op_sel[1] (input port clocked by clk)
+  Endpoint: u_stage2/res_q_reg_0_
+            (rising edge-triggered flip-flop clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  alu_pipe           wl_small              tiny_std_tt
+
+  Point                                        Fanout       Cap     Trans      Incr       Path
+  ------------------------------------------------------------------------------------------------
+  clock clk (rise edge)                                                         0.00       0.00
+  clock network delay (ideal)                                                   0.00       0.00
+  input external delay                                                          0.20       0.20 f
+  op_sel[1] (in)                                                    0.02       0.01       0.21 f
+  op_sel[1] (net)                                  4       3.10                 0.00       0.21 f
+  u_stage2/U12/S0 (MUX21X1_RVT)                                     0.02       0.00       0.21 f
+  u_stage2/U12/Y (MUX21X1_RVT)                                      0.05       0.19       0.40 r
+  u_stage2/n17 (net)                               1       0.70                 0.00       0.40 r
+  u_stage2/res_q_reg_0_/D (DFFX1_RVT)                               0.05       0.00       0.40 r
+  data arrival time                                                                        0.40
+
+  clock clk (rise edge)                                                         1.00       1.00
+  clock network delay (ideal)                                                   0.00       1.00
+  u_stage2/res_q_reg_0_/CLK (DFFX1_RVT)                                         0.00       1.00 r
+  library setup time                                                           -0.05       0.95
+  data required time                                                                       0.95
+  ------------------------------------------------------------------------------------------------
+  data required time                                                                       0.95
+  data arrival time                                                                       -0.40
+  ------------------------------------------------------------------------------------------------
+  slack (MET)                                                                              0.55
+
+
+1

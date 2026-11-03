@@ -1,0 +1,51 @@
+
+                           Design Compiler Graphical
+                                 DC Ultra (TM)
+                                  DFTMAX (TM)
+                              Power Compiler (TM)
+
+Initializing...
+Loading db file '/path/to/libs/tiny_std_tt.db'
+Running PRESTO HDLC
+Compiling source file rtl/fifo_ctl.sv
+Warning:  rtl/fifo_ctl.sv:41: the undeclared symbol 'rd_ok' assumed to have the default net type, which is 'wire'. (VER-936)
+Warning:  rtl/fifo_ctl.sv:57: Case statement is not a full case. (ELAB-909)
+Presto compilation completed successfully.
+Information: Building the design 'fifo_ctl' instantiated from design 'fifo_top' with
+	the parameters "DEPTH=8,W=16". (HDL-193)
+
+Inferred memory devices in process
+	in routine fifo_ctl_DEPTH8_W16 line 33 in file
+		'rtl/fifo_ctl.sv'.
+===============================================================================
+|    Register Name    |   Type    | Width | Bus | MB | AR | AS | SR | SS | ST |
+===============================================================================
+|     count_q_reg     | Flip-flop |   4   |  Y  | N  | N  | N  | Y  | N  | N  |
+===============================================================================
+Warning:  rtl/fifo_ctl.sv:88: Net dbg_q[3] or a directly connected net is driven by more than one source, and not all drivers are three-state. (ELAB-366)
+Warning: Design 'fifo_top' has '1' unresolved references. For more detailed information, use the "link" command. (UID-341)
+Information: Uniquified 2 instances of design 'fifo_ctl_DEPTH8_W16'. (OPT-1056)
+Warning: In design 'fifo_ctl_DEPTH8_W16', port 'dbg_i[7]' is not connected to any nets. (LINT-28)
+Warning: In design 'fifo_ctl_DEPTH8_W16', port 'dbg_i[6]' is not connected to any nets. (LINT-28)
+Warning: In design 'fifo_ctl_DEPTH8_W16', port 'dbg_i[5]' is not connected to any nets. (LINT-28)
+
+  Beginning Pass 1 Mapping
+  ------------------------
+Information: The register 'u_ctl0/mode_q_reg[1]' is a constant and will be removed. (OPT-1206)
+Information: The register 'u_ctl0/mode_q_reg[0]' is a constant and will be removed. (OPT-1206)
+Information: The register 'u_ctl1/spare_q_reg' will be removed. (OPT-1207)
+Information: In design 'fifo_ctl_DEPTH8_W16_1', the register 'wptr_q_reg[3]' is removed because it is merged to 'rptr_q_reg[3]'. (OPT-1215)
+Warning: The trip points for the library named tiny_std_tt differ from those
+	in the library named tiny_std_tt_lvt. (TIM-164)
+Error: Width mismatch on port 'data_o' of reference to 'fifo_ram' in
+	'fifo_top'. (LINK-3)
+Warning: Design 'fifo_top' contains 1 high-fanout nets. A fanout number of 1000 will be used for delay calculations involving these nets. (TIM-134)
+
+  Optimization Complete
+  ---------------------
+Memory usage for this session 182 Mbytes.
+Memory usage for this session including child processes 182 Mbytes.
+CPU usage for this session 9 seconds ( 0.00 hours ).
+Elapsed time for this session 11 seconds ( 0.00 hours ).
+
+Thank you...

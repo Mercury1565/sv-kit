@@ -1,0 +1,199 @@
+{
+  "area_by_hier": {},
+  "area_total": null,
+  "area_unit": "um^2",
+  "cell_count": null,
+  "cells_by_type": {},
+  "corner": "tt_1p0v_25c",
+  "extra": {
+    "reports": [
+      "timing"
+    ],
+    "time_unit": "ns",
+    "time_unit_source": "default"
+  },
+  "hold_tns": null,
+  "hold_wns": null,
+  "netlist": null,
+  "paths": [
+    {
+      "arrival": 710.0,
+      "endpoint": "u_stage2/res_q_reg_7_",
+      "path_group": "clk",
+      "path_type": "max",
+      "points": [
+        {
+          "arrival": 0.0,
+          "cell": "DFFX1_RVT",
+          "incr": 0.0,
+          "inst": "u_stage1/opa_q_reg_3_",
+          "net": null,
+          "pin": "CLK",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 180.0,
+          "cell": "DFFX1_RVT",
+          "incr": 180.0,
+          "inst": "u_stage1/opa_q_reg_3_",
+          "net": "u_stage1/opa_q[3]",
+          "pin": "Q",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 180.0,
+          "cell": "NAND2X1_RVT",
+          "incr": 0.0,
+          "inst": "u_stage1/U41",
+          "net": null,
+          "pin": "A1",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 250.0,
+          "cell": "NAND2X1_RVT",
+          "incr": 70.0,
+          "inst": "u_stage1/U41",
+          "net": "u_stage1/n52",
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 250.0,
+          "cell": "INVX1_LVT",
+          "incr": 0.0,
+          "inst": "u_stage1/U40",
+          "net": null,
+          "pin": "A",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 280.0,
+          "cell": "INVX1_LVT",
+          "incr": 30.0,
+          "inst": "u_stage1/U40",
+          "net": "u_stage1/n53",
+          "pin": "Y",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 280.0,
+          "cell": "alu_stage1_W8",
+          "incr": 0.0,
+          "inst": "u_stage1",
+          "net": "sum1[3]",
+          "pin": "sum_o[3]",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 280.0,
+          "cell": "AO22X1_RVT",
+          "incr": 0.0,
+          "inst": "u_stage2/U77",
+          "net": null,
+          "pin": "A2",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 440.0,
+          "cell": "AO22X1_RVT",
+          "incr": 160.0,
+          "inst": "u_stage2/U77",
+          "net": "u_stage2/n90",
+          "pin": "Y",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 440.0,
+          "cell": "XOR2X1_HVT",
+          "incr": 0.0,
+          "inst": "u_stage2/U80",
+          "net": null,
+          "pin": "A",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 660.0,
+          "cell": "XOR2X1_HVT",
+          "incr": 220.0,
+          "inst": "u_stage2/U80",
+          "net": "u_stage2/n91",
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 710.0,
+          "cell": "DFFX1_RVT",
+          "incr": 50.0,
+          "inst": "u_stage2/res_q_reg_7_",
+          "net": null,
+          "pin": "D",
+          "rise_fall": "r"
+        }
+      ],
+      "required": 940.0,
+      "slack": 230.0,
+      "startpoint": "u_stage1/opa_q_reg_3_"
+    },
+    {
+      "arrival": 400.0,
+      "endpoint": "u_stage2/res_q_reg_0_",
+      "path_group": "clk",
+      "path_type": "max",
+      "points": [
+        {
+          "arrival": 210.0,
+          "cell": null,
+          "incr": 10.0,
+          "inst": "",
+          "net": "op_sel[1]",
+          "pin": "op_sel[1]",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 210.0,
+          "cell": "MUX21X1_RVT",
+          "incr": 0.0,
+          "inst": "u_stage2/U12",
+          "net": null,
+          "pin": "S0",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 400.0,
+          "cell": "MUX21X1_RVT",
+          "incr": 190.0,
+          "inst": "u_stage2/U12",
+          "net": "u_stage2/n17",
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 400.0,
+          "cell": "DFFX1_RVT",
+          "incr": 0.0,
+          "inst": "u_stage2/res_q_reg_0_",
+          "net": null,
+          "pin": "D",
+          "rise_fall": "r"
+        }
+      ],
+      "required": 950.0,
+      "slack": 550.0,
+      "startpoint": "op_sel[1]"
+    }
+  ],
+  "period": 1000.0,
+  "power": {
+    "dynamic": null,
+    "leakage": null,
+    "total": null
+  },
+  "schema_version": 1,
+  "tns": 0.0,
+  "tool": "dc",
+  "top": "alu_pipe",
+  "vt_mix": {},
+  "warnings": [],
+  "wns": 230.0
+}

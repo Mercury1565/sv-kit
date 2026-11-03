@@ -1,0 +1,60 @@
+{
+  "area_by_hier": {
+    "": 6461.5193,
+    "u_core": 5102.4331,
+    "u_core/u_decode": 802.11,
+    "u_core/u_execute": 3679.1131,
+    "u_core/u_execute/u_multiplier_with_long_name_0": 2767.452,
+    "u_uart": 1262.875
+  },
+  "area_total": 6461.519254,
+  "area_unit": "um^2",
+  "cell_count": 2511,
+  "cells_by_type": {},
+  "corner": null,
+  "extra": {
+    "area": {
+      "buf_inv": 402.112006,
+      "buf_inv_cells": 377,
+      "cells": 2511,
+      "combinational": 3810.524011,
+      "combinational_cells": 2105,
+      "macro": 0.0,
+      "macros": 0,
+      "net_interconnect": 991.38412,
+      "nets": 2904,
+      "noncombinational": 2650.995243,
+      "ports": 371,
+      "references": 4,
+      "sequential_cells": 402,
+      "total": 7452.903374,
+      "total_cell": 6461.519254
+    },
+    "libraries": [
+      "tiny_std_tt",
+      "tiny_std_tt_lvt"
+    ],
+    "reports": [
+      "area"
+    ],
+    "time_unit": "ns",
+    "time_unit_source": "default"
+  },
+  "hold_tns": null,
+  "hold_wns": null,
+  "netlist": null,
+  "paths": [],
+  "period": null,
+  "power": {
+    "dynamic": null,
+    "leakage": null,
+    "total": null
+  },
+  "schema_version": 1,
+  "tns": null,
+  "tool": "dc",
+  "top": "soc_lite",
+  "vt_mix": {},
+  "warnings": [],
+  "wns": null
+}

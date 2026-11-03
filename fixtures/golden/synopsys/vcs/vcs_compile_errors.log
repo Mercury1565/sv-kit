@@ -1,0 +1,35 @@
+                         Chronologic VCS (TM)
+         Version T-2022.06_Full64 -- Mon Nov  2 10:11:12 2026
+
+Parsing design file 'rtl/fifo.sv'
+Parsing design file 'tb/fifo_tb.sv'
+
+Warning-[TFIPC] Too few instance port connections
+tb/fifo_tb.sv, 22
+fifo_tb, "fifo #(.DEPTH(8)) dut( .clock (clock),  .reset (reset),  .wr_en (wr_en),  .din (din));"
+  The above instance has fewer port connections than the module definition.
+  Please use '+lint=TFIPC-L' to print out detailed information of unconnected
+  ports.
+
+
+Warning-[TFIPC] Too few instance port connections
+tb/fifo_tb.sv, 31
+fifo_tb, "fifo #(.DEPTH(8)) dut2( .clock (clock));"
+  The above instance has fewer port connections than the module definition.
+
+
+Error-[IND] Identifier not declared
+rtl/fifo.sv, 41
+  Identifier 'rd_ok' has not been declared yet. If this error is not expected,
+  please check if you have set `default_nettype to none.
+
+
+Lint-[PCWM-L] Port connection width mismatch
+tb/fifo_tb.sv, 22
+"fifo #(.DEPTH(8)) dut( .clock (clock),  .reset (reset),  .wr_en (wr_en),  .din (din));"
+  The following 8-bit expression is connected to 16-bit port "din" of module
+  "fifo", instance "dut".
+
+2 warnings
+1 error
+CPU time: .312 seconds to compile

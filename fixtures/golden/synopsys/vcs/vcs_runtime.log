@@ -1,0 +1,18 @@
+Chronologic VCS simulator copyright 1991-2022
+Contains Synopsys proprietary information.
+Compiler version T-2022.06_Full64; Runtime version T-2022.06_Full64;  Nov  2 10:12 2026
+TEST=fill_drain
+Warning: "tb/fifo_tb.sv", 58: fifo_tb.chk: at time 120000 ps
+level above threshold
+"tb/fifo_tb.sv", 64: fifo_tb.a_no_overflow: started at 245000ps failed at 255000ps
+	Offending '(!(full &amp;&amp; wr_en))'
+Error: "tb/fifo_tb.sv", 70: fifo_tb.chk: at time 300000 ps
+data mismatch: expected 8'h3c got 8'hxx
+Error: "tb/fifo_tb.sv", 70: fifo_tb.chk: at time 310000 ps
+data mismatch: expected 8'h3d got 8'hxx
+$finish called from file "tb/fifo_tb.sv", line 90.
+$finish at simulation time               500000
+           V C S   S i m u l a t i o n   R e p o r t
+Time: 500000 ps
+CPU Time:      0.280 seconds;       Data structure size:   0.0Mb
+Mon Nov  2 10:12:03 2026

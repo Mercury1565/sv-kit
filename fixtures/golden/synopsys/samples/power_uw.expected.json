@@ -1,0 +1,39 @@
+{
+  "area_by_hier": {},
+  "area_total": null,
+  "area_unit": "um^2",
+  "cell_count": null,
+  "cells_by_type": {},
+  "corner": null,
+  "extra": {
+    "power": {
+      "dynamic": 0.256953,
+      "internal": 0.182441,
+      "leakage": 8.2014e-06,
+      "switching": 0.074512,
+      "total": 0.2569612
+    },
+    "reports": [
+      "power"
+    ],
+    "time_unit": "ns",
+    "time_unit_source": "report"
+  },
+  "hold_tns": null,
+  "hold_wns": null,
+  "netlist": null,
+  "paths": [],
+  "period": null,
+  "power": {
+    "dynamic": 0.256953,
+    "leakage": 8.2014e-06,
+    "total": 0.2569612
+  },
+  "schema_version": 1,
+  "tns": null,
+  "tool": "dc",
+  "top": "alu_pipe",
+  "vt_mix": {},
+  "warnings": [],
+  "wns": null
+}

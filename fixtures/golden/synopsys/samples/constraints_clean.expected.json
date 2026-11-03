@@ -1,0 +1,34 @@
+{
+  "area_by_hier": {},
+  "area_total": null,
+  "area_unit": "um^2",
+  "cell_count": null,
+  "cells_by_type": {},
+  "corner": null,
+  "extra": {
+    "hold_violators": 0,
+    "reports": [
+      "constraint"
+    ],
+    "setup_violators": 0,
+    "time_unit": "ns",
+    "time_unit_source": "default"
+  },
+  "hold_tns": null,
+  "hold_wns": null,
+  "netlist": null,
+  "paths": [],
+  "period": null,
+  "power": {
+    "dynamic": null,
+    "leakage": null,
+    "total": null
+  },
+  "schema_version": 1,
+  "tns": null,
+  "tool": "dc",
+  "top": "alu_pipe",
+  "vt_mix": {},
+  "warnings": [],
+  "wns": null
+}

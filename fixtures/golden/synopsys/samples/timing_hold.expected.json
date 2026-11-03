@@ -1,0 +1,118 @@
+{
+  "area_by_hier": {},
+  "area_total": null,
+  "area_unit": "um^2",
+  "cell_count": null,
+  "cells_by_type": {},
+  "corner": "tt_1p0v_25c",
+  "extra": {
+    "reports": [
+      "timing"
+    ],
+    "time_unit": "ns",
+    "time_unit_source": "default"
+  },
+  "hold_tns": -30.0,
+  "hold_wns": -30.0,
+  "netlist": null,
+  "paths": [
+    {
+      "arrival": 90.0,
+      "endpoint": "u_stage2/valid_q_reg",
+      "path_group": "clk",
+      "path_type": "min",
+      "points": [
+        {
+          "arrival": 0.0,
+          "cell": "DFFX1_RVT",
+          "incr": 0.0,
+          "inst": "u_stage1/valid_q_reg",
+          "net": null,
+          "pin": "CLK",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 90.0,
+          "cell": "DFFX1_RVT",
+          "incr": 90.0,
+          "inst": "u_stage1/valid_q_reg",
+          "net": null,
+          "pin": "Q",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 90.0,
+          "cell": "DFFX1_RVT",
+          "incr": 0.0,
+          "inst": "u_stage2/valid_q_reg",
+          "net": null,
+          "pin": "D",
+          "rise_fall": "r"
+        }
+      ],
+      "required": 120.0,
+      "slack": -30.0,
+      "startpoint": "u_stage1/valid_q_reg"
+    },
+    {
+      "arrival": 180.0,
+      "endpoint": "u_stage2/res_q_reg_0_",
+      "path_group": "clk",
+      "path_type": "min",
+      "points": [
+        {
+          "arrival": 0.0,
+          "cell": "DFFX1_RVT",
+          "incr": 0.0,
+          "inst": "u_stage1/opa_q_reg_0_",
+          "net": null,
+          "pin": "CLK",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 100.0,
+          "cell": "DFFX1_RVT",
+          "incr": 100.0,
+          "inst": "u_stage1/opa_q_reg_0_",
+          "net": null,
+          "pin": "Q",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 180.0,
+          "cell": "MUX21X1_RVT",
+          "incr": 80.0,
+          "inst": "u_stage2/U12",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 180.0,
+          "cell": "DFFX1_RVT",
+          "incr": 0.0,
+          "inst": "u_stage2/res_q_reg_0_",
+          "net": null,
+          "pin": "D",
+          "rise_fall": "f"
+        }
+      ],
+      "required": 110.0,
+      "slack": 70.0,
+      "startpoint": "u_stage1/opa_q_reg_0_"
+    }
+  ],
+  "period": null,
+  "power": {
+    "dynamic": null,
+    "leakage": null,
+    "total": null
+  },
+  "schema_version": 1,
+  "tns": null,
+  "tool": "dc",
+  "top": "alu_pipe",
+  "vt_mix": {},
+  "warnings": [],
+  "wns": null
+}

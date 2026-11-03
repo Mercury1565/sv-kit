@@ -1,0 +1,76 @@
+****************************************
+Report : design
+Design : alu_pipe
+Version: S-2021.06-SP5
+Date   : Mon Nov  2 09:14:29 2026
+****************************************
+
+Design allows ideal nets on clock nets.
+
+Library(s) Used:
+
+    tiny_std_tt (File: /path/to/libs/tiny_std_tt.db)
+
+Local Link Library:
+
+    {tiny_std_tt.db}
+
+Flip-Flop Types:
+
+    No flip-flop types specified.
+
+Latch Types:
+
+    No latch types specified.
+
+Operating Conditions:
+
+
+    Operating Condition Name : tt_1p0v_25c
+    Library : tiny_std_tt
+    Process :   1.00
+    Temperature :  25.00
+    Voltage :   1.00
+
+Wire Loading Model:
+
+    Selected manually by the user.
+
+Name           :   wl_small
+Location       :   tiny_std_tt
+Resistance     :   0.0003
+Capacitance    :   0.000312
+Area           :   0.01
+Slope          :   3.0
+Fanout   Length   Points Average Cap Std Deviation
+--------------------------------------------------------------
+     1     0.66
+
+
+
+Wire Loading Model Mode: top.
+
+Timing Ranges:
+
+    No timing ranges specified.
+
+Pin Input Delays:
+
+    None specified.
+
+Pin Output Delays:
+
+    None specified.
+
+Disabled Timing Arcs:
+
+    No arcs disabled.
+
+Required Licenses:
+
+    None Required
+
+Design Parameters:
+
+    None specified.
+1

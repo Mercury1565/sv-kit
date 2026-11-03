@@ -1,0 +1,31 @@
+{
+  "failures": [
+    "assertion fifo_tb.a_no_overflow failed at 255000ps (tb/fifo_tb.sv:64)",
+    "$error at tb/fifo_tb.sv:70: data mismatch: expected 8'h3c got 8'hxx",
+    "$error at tb/fifo_tb.sv:70: data mismatch: expected 8'h3d got 8'hxx"
+  ],
+  "final_time_ps": 500000.0,
+  "messages": [
+    {
+      "code": "assert",
+      "file": "tb/fifo_tb.sv",
+      "line": 64,
+      "severity": "error",
+      "text": "assertion fifo_tb.a_no_overflow failed at 255000ps (started 245000ps)"
+    },
+    {
+      "code": "$error",
+      "file": "tb/fifo_tb.sv",
+      "line": 70,
+      "severity": "error",
+      "text": "fifo_tb.chk: at time 300000 ps: data mismatch: expected 8'h3c got 8'hxx (x2)"
+    },
+    {
+      "code": "$warning",
+      "file": "tb/fifo_tb.sv",
+      "line": 58,
+      "severity": "warning",
+      "text": "fifo_tb.chk: at time 120000 ps: level above threshold"
+    }
+  ]
+}

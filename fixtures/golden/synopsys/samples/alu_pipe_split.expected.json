@@ -1,0 +1,430 @@
+{
+  "area_by_hier": {},
+  "area_total": 627.603206,
+  "area_unit": "um^2",
+  "cell_count": 214,
+  "cells_by_type": {},
+  "corner": "tt_1p0v_25c",
+  "extra": {
+    "hold_violators": 0,
+    "libraries": [
+      "tiny_std_tt"
+    ],
+    "operating_conditions": {
+      "library": "tiny_std_tt",
+      "name": "tt_1p0v_25c",
+      "process": 1.0,
+      "temperature": 25.0,
+      "voltage": 1.0
+    },
+    "power": {
+      "dynamic": 0.256953,
+      "internal": 0.182441,
+      "leakage": 8.2014e-06,
+      "switching": 0.074512,
+      "total": 0.2569612
+    },
+    "qor": {
+      "INPUTS": {
+        "Critical Path Clk Period": 1.0,
+        "Critical Path Length": 0.4,
+        "Critical Path Slack": 0.55,
+        "Levels of Logic": 3.0,
+        "No. of Hold Violations": 0.0,
+        "No. of Violating Paths": 0.0,
+        "Total Hold Violation": 0.0,
+        "Total Negative Slack": 0.0,
+        "Worst Hold Violation": 0.0
+      },
+      "clk": {
+        "Critical Path Clk Period": 1.0,
+        "Critical Path Length": 0.71,
+        "Critical Path Slack": 0.23,
+        "Levels of Logic": 9.0,
+        "No. of Hold Violations": 1.0,
+        "No. of Violating Paths": 0.0,
+        "Total Hold Violation": -0.03,
+        "Total Negative Slack": 0.0,
+        "Worst Hold Violation": -0.03
+      }
+    },
+    "qor_sections": {
+      "Area": {
+        "Buf/Inv Area": 41.164801,
+        "Cell Area": 627.603206,
+        "Combinational Area": 412.307201,
+        "Design Area": 714.005421,
+        "Macro/Black Box Area": 0.0,
+        "Net Area": 86.402215,
+        "Noncombinational Area": 215.296005,
+        "Total Buffer Area": 15.25,
+        "Total Inverter Area": 25.92
+      },
+      "Cell Count": {
+        "Buf Cell Count": 9.0,
+        "Buf/Inv Cell Count": 31.0,
+        "CT Buf/Inv Cell Count": 0.0,
+        "Combinational Cell Count": 182.0,
+        "Hierarchical Cell Count": 2.0,
+        "Hierarchical Port Count": 58.0,
+        "Inv Cell Count": 22.0,
+        "Leaf Cell Count": 214.0,
+        "Macro Count": 0.0,
+        "Sequential Cell Count": 32.0
+      },
+      "Compile CPU Statistics": {
+        "Logic Optimization": 1.8,
+        "Mapping Optimization": 2.95,
+        "Overall Compile Time": 6.12,
+        "Overall Compile Wall Clock Time": 6.48,
+        "Resource Sharing": 0.21
+      },
+      "Design Rules": {
+        "Max Cap Violations": 0.0,
+        "Max Trans Violations": 0.0,
+        "Nets With Violations": 1.0,
+        "Total Number of Nets": 268.0
+      }
+    },
+    "reports": [
+      "constraint",
+      "design",
+      "power",
+      "qor",
+      "resources",
+      "timing"
+    ],
+    "resources": [
+      {
+        "columns": [
+          "resource",
+          "module",
+          "parameters",
+          "contained resources",
+          "contained operations"
+        ],
+        "design": "alu_stage2_W8",
+        "file": "alu_stage2.sv",
+        "rows": [
+          {
+            "contained operations": "add_41",
+            "contained resources": "",
+            "module": "DW01_add",
+            "parameters": "width=8",
+            "resource": "r310"
+          },
+          {
+            "contained operations": "sub_42",
+            "contained resources": "",
+            "module": "DW01_sub",
+            "parameters": "width=8",
+            "resource": "r312"
+          },
+          {
+            "contained operations": "eq_57 lt_58 gt_59",
+            "contained resources": "",
+            "module": "DW01_cmp6",
+            "parameters": "width=8",
+            "resource": "r314"
+          }
+        ],
+        "table": "Resource Sharing Report for design alu_stage2_W8 in file rtl/alu_stage2.sv"
+      },
+      {
+        "columns": [
+          "cell",
+          "module",
+          "current implementation",
+          "set implementation"
+        ],
+        "rows": [
+          {
+            "cell": "add_41",
+            "current implementation": "pparch (area,speed)",
+            "module": "DW01_add"
+          },
+          {
+            "cell": "sub_42",
+            "current implementation": "rpl",
+            "module": "DW01_sub"
+          }
+        ],
+        "table": "Implementation Report"
+      }
+    ],
+    "setup_violators": 0,
+    "time_unit": "ns",
+    "time_unit_source": "report",
+    "wire_load_mode": "top",
+    "wire_load_model": "wl_small"
+  },
+  "hold_tns": -30.0,
+  "hold_wns": -30.0,
+  "netlist": null,
+  "paths": [
+    {
+      "arrival": 710.0,
+      "endpoint": "u_stage2/res_q_reg_7_",
+      "path_group": "clk",
+      "path_type": "max",
+      "points": [
+        {
+          "arrival": 0.0,
+          "cell": "DFFX1_RVT",
+          "incr": 0.0,
+          "inst": "u_stage1/opa_q_reg_3_",
+          "net": null,
+          "pin": "CLK",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 180.0,
+          "cell": "DFFX1_RVT",
+          "incr": 180.0,
+          "inst": "u_stage1/opa_q_reg_3_",
+          "net": "u_stage1/opa_q[3]",
+          "pin": "Q",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 180.0,
+          "cell": "NAND2X1_RVT",
+          "incr": 0.0,
+          "inst": "u_stage1/U41",
+          "net": null,
+          "pin": "A1",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 250.0,
+          "cell": "NAND2X1_RVT",
+          "incr": 70.0,
+          "inst": "u_stage1/U41",
+          "net": "u_stage1/n52",
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 250.0,
+          "cell": "INVX1_LVT",
+          "incr": 0.0,
+          "inst": "u_stage1/U40",
+          "net": null,
+          "pin": "A",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 280.0,
+          "cell": "INVX1_LVT",
+          "incr": 30.0,
+          "inst": "u_stage1/U40",
+          "net": "u_stage1/n53",
+          "pin": "Y",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 280.0,
+          "cell": "alu_stage1_W8",
+          "incr": 0.0,
+          "inst": "u_stage1",
+          "net": "sum1[3]",
+          "pin": "sum_o[3]",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 280.0,
+          "cell": "AO22X1_RVT",
+          "incr": 0.0,
+          "inst": "u_stage2/U77",
+          "net": null,
+          "pin": "A2",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 440.0,
+          "cell": "AO22X1_RVT",
+          "incr": 160.0,
+          "inst": "u_stage2/U77",
+          "net": "u_stage2/n90",
+          "pin": "Y",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 440.0,
+          "cell": "XOR2X1_HVT",
+          "incr": 0.0,
+          "inst": "u_stage2/U80",
+          "net": null,
+          "pin": "A",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 660.0,
+          "cell": "XOR2X1_HVT",
+          "incr": 220.0,
+          "inst": "u_stage2/U80",
+          "net": "u_stage2/n91",
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 710.0,
+          "cell": "DFFX1_RVT",
+          "incr": 50.0,
+          "inst": "u_stage2/res_q_reg_7_",
+          "net": null,
+          "pin": "D",
+          "rise_fall": "r"
+        }
+      ],
+      "required": 940.0,
+      "slack": 230.0,
+      "startpoint": "u_stage1/opa_q_reg_3_"
+    },
+    {
+      "arrival": 400.0,
+      "endpoint": "u_stage2/res_q_reg_0_",
+      "path_group": "clk",
+      "path_type": "max",
+      "points": [
+        {
+          "arrival": 210.0,
+          "cell": null,
+          "incr": 10.0,
+          "inst": "",
+          "net": "op_sel[1]",
+          "pin": "op_sel[1]",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 210.0,
+          "cell": "MUX21X1_RVT",
+          "incr": 0.0,
+          "inst": "u_stage2/U12",
+          "net": null,
+          "pin": "S0",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 400.0,
+          "cell": "MUX21X1_RVT",
+          "incr": 190.0,
+          "inst": "u_stage2/U12",
+          "net": "u_stage2/n17",
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 400.0,
+          "cell": "DFFX1_RVT",
+          "incr": 0.0,
+          "inst": "u_stage2/res_q_reg_0_",
+          "net": null,
+          "pin": "D",
+          "rise_fall": "r"
+        }
+      ],
+      "required": 950.0,
+      "slack": 550.0,
+      "startpoint": "op_sel[1]"
+    },
+    {
+      "arrival": 90.0,
+      "endpoint": "u_stage2/valid_q_reg",
+      "path_group": "clk",
+      "path_type": "min",
+      "points": [
+        {
+          "arrival": 0.0,
+          "cell": "DFFX1_RVT",
+          "incr": 0.0,
+          "inst": "u_stage1/valid_q_reg",
+          "net": null,
+          "pin": "CLK",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 90.0,
+          "cell": "DFFX1_RVT",
+          "incr": 90.0,
+          "inst": "u_stage1/valid_q_reg",
+          "net": null,
+          "pin": "Q",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 90.0,
+          "cell": "DFFX1_RVT",
+          "incr": 0.0,
+          "inst": "u_stage2/valid_q_reg",
+          "net": null,
+          "pin": "D",
+          "rise_fall": "r"
+        }
+      ],
+      "required": 120.0,
+      "slack": -30.0,
+      "startpoint": "u_stage1/valid_q_reg"
+    },
+    {
+      "arrival": 180.0,
+      "endpoint": "u_stage2/res_q_reg_0_",
+      "path_group": "clk",
+      "path_type": "min",
+      "points": [
+        {
+          "arrival": 0.0,
+          "cell": "DFFX1_RVT",
+          "incr": 0.0,
+          "inst": "u_stage1/opa_q_reg_0_",
+          "net": null,
+          "pin": "CLK",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 100.0,
+          "cell": "DFFX1_RVT",
+          "incr": 100.0,
+          "inst": "u_stage1/opa_q_reg_0_",
+          "net": null,
+          "pin": "Q",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 180.0,
+          "cell": "MUX21X1_RVT",
+          "incr": 80.0,
+          "inst": "u_stage2/U12",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 180.0,
+          "cell": "DFFX1_RVT",
+          "incr": 0.0,
+          "inst": "u_stage2/res_q_reg_0_",
+          "net": null,
+          "pin": "D",
+          "rise_fall": "f"
+        }
+      ],
+      "required": 110.0,
+      "slack": 70.0,
+      "startpoint": "u_stage1/opa_q_reg_0_"
+    }
+  ],
+  "period": 1000.0,
+  "power": {
+    "dynamic": 0.256953,
+    "leakage": 8.2014e-06,
+    "total": 0.2569612
+  },
+  "schema_version": 1,
+  "tns": 0.0,
+  "tool": "dc",
+  "top": "alu_pipe",
+  "vt_mix": {},
+  "warnings": [],
+  "wns": 230.0
+}

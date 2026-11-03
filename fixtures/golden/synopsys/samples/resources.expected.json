@@ -1,0 +1,90 @@
+{
+  "area_by_hier": {},
+  "area_total": null,
+  "area_unit": "um^2",
+  "cell_count": null,
+  "cells_by_type": {},
+  "corner": null,
+  "extra": {
+    "reports": [
+      "resources"
+    ],
+    "resources": [
+      {
+        "columns": [
+          "resource",
+          "module",
+          "parameters",
+          "contained resources",
+          "contained operations"
+        ],
+        "design": "alu_stage2_W8",
+        "file": "alu_stage2.sv",
+        "rows": [
+          {
+            "contained operations": "add_41",
+            "contained resources": "",
+            "module": "DW01_add",
+            "parameters": "width=8",
+            "resource": "r310"
+          },
+          {
+            "contained operations": "sub_42",
+            "contained resources": "",
+            "module": "DW01_sub",
+            "parameters": "width=8",
+            "resource": "r312"
+          },
+          {
+            "contained operations": "eq_57 lt_58 gt_59",
+            "contained resources": "",
+            "module": "DW01_cmp6",
+            "parameters": "width=8",
+            "resource": "r314"
+          }
+        ],
+        "table": "Resource Sharing Report for design alu_stage2_W8 in file rtl/alu_stage2.sv"
+      },
+      {
+        "columns": [
+          "cell",
+          "module",
+          "current implementation",
+          "set implementation"
+        ],
+        "rows": [
+          {
+            "cell": "add_41",
+            "current implementation": "pparch (area,speed)",
+            "module": "DW01_add"
+          },
+          {
+            "cell": "sub_42",
+            "current implementation": "rpl",
+            "module": "DW01_sub"
+          }
+        ],
+        "table": "Implementation Report"
+      }
+    ],
+    "time_unit": "ns",
+    "time_unit_source": "default"
+  },
+  "hold_tns": null,
+  "hold_wns": null,
+  "netlist": null,
+  "paths": [],
+  "period": null,
+  "power": {
+    "dynamic": null,
+    "leakage": null,
+    "total": null
+  },
+  "schema_version": 1,
+  "tns": null,
+  "tool": "dc",
+  "top": "alu_pipe",
+  "vt_mix": {},
+  "warnings": [],
+  "wns": null
+}

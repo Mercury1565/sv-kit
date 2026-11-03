@@ -1,0 +1,209 @@
+
+****************************************
+Report : units
+Design : fir4
+Version: T-2022.03-SP4
+Date   : Mon Nov  2 16:12:40 2026
+****************************************
+
+Units
+---------------------------------------------------------------------------
+Capacitive_load_unit           : 1e-15 Farad
+Current_unit                   : 1e-06 Amp
+Resistance_unit                : 1000 Ohm
+Time_unit                      : 1e-12 Second
+Voltage_unit                   : 1 Volt
+1
+
+****************************************
+Report : qor
+Design : fir4
+Version: T-2022.03-SP4
+Date   : Mon Nov  2 16:12:40 2026
+****************************************
+
+
+  Timing Path Group 'clk'
+  -----------------------------------
+  Levels of Logic:              14.00
+  Critical Path Length:        612.40
+  Critical Path Slack:          71.25
+  Critical Path Clk Period:    700.00
+  Total Negative Slack:          0.00
+  No. of Violating Paths:        0.00
+  Worst Hold Violation:          0.00
+  Total Hold Violation:          0.00
+  No. of Hold Violations:        0.00
+  -----------------------------------
+
+
+  Cell Count
+  -----------------------------------
+  Hierarchical Cell Count:          0
+  Hierarchical Port Count:          0
+  Leaf Cell Count:                  9
+  Buf/Inv Cell Count:               2
+  Buf Cell Count:                   0
+  Inv Cell Count:                   2
+  CT Buf/Inv Cell Count:            0
+  Combinational Cell Count:         5
+  Sequential Cell Count:            4
+  Macro Count:                      0
+  -----------------------------------
+
+
+  Area
+  -----------------------------------
+  Combinational Area:        0.583200
+  Noncombinational Area:     1.166400
+  Buf/Inv Area:              0.087480
+  Total Buffer Area:             0.00
+  Total Inverter Area:           0.09
+  Macro/Black Box Area:      0.000000
+  Net Area:                  0.000000
+  -----------------------------------
+  Cell Area:                 1.749600
+  Design Area:               1.749600
+
+
+  Design Rules
+  -----------------------------------
+  Total Number of Nets:            21
+  Nets With Violations:             0
+  Max Trans Violations:             0
+  Max Cap Violations:               0
+  -----------------------------------
+
+1
+
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : fir4
+Version: T-2022.03-SP4
+Date   : Mon Nov  2 16:12:40 2026
+****************************************
+
+Operating Conditions: PVT_0P7V_25C   Library: tiny7_rvt_tt
+Wire Load Model Mode: top
+
+  Startpoint: tap_q_reg_0_
+              (rising edge-triggered flip-flop clocked by clk)
+  Endpoint: acc_q_reg_3_
+            (rising edge-triggered flip-flop clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Point                                    Incr       Path
+  -----------------------------------------------------------
+  clock clk (rise edge)                    0.00       0.00
+  clock network delay (ideal)              0.00       0.00
+  tap_q_reg_0_/CLK (DFFHQNx1_T75_R)        0.00       0.00 r
+  tap_q_reg_0_/QN (DFFHQNx1_T75_R)        42.10      42.10 f
+  U12/Y (INVx1_T75_R)                     14.30      56.40 r
+  U13/CON (FAx1_T75_R)                   240.00     296.40 f
+  U14/SN (FAx1_T75_L)                    290.00     586.40 r
+  U15/Y (NAND2xp5_T75_R)                  26.00     612.40 f
+  acc_q_reg_3_/D (DFFHQNx1_T75_R)          0.00     612.40 f
+  data arrival time                                 612.40
+
+  clock clk (rise edge)                  700.00     700.00
+  clock network delay (ideal)              0.00     700.00
+  acc_q_reg_3_/CLK (DFFHQNx1_T75_R)        0.00     700.00 r
+  library setup time                     -16.35     683.65
+  data required time                                683.65
+  -----------------------------------------------------------
+  data required time                                683.65
+  data arrival time                                -612.40
+  -----------------------------------------------------------
+  slack (MET)                                        71.25
+
+
+1
+
+****************************************
+Report : area
+Design : fir4
+Version: T-2022.03-SP4
+Date   : Mon Nov  2 16:12:41 2026
+****************************************
+
+Library(s) Used:
+
+    tiny7_rvt_tt (File: /path/to/libs/tiny7_rvt_tt.db)
+    tiny7_lvt_tt (File: /path/to/libs/tiny7_lvt_tt.db)
+
+Number of ports:                           14
+Number of nets:                            21
+Number of cells:                            9
+Number of combinational cells:              5
+Number of sequential cells:                 4
+Number of macros/black boxes:               0
+Number of buf/inv:                          2
+Number of references:                       5
+
+Combinational area:                  0.583200
+Buf/Inv area:                        0.087480
+Noncombinational area:               1.166400
+Macro/Black Box area:                0.000000
+Net Interconnect area:      undefined  (Wire load has zero net area)
+
+Total cell area:                     1.749600
+Total area:                 undefined
+1
+
+****************************************
+Report : reference
+Design : fir4
+Version: T-2022.03-SP4
+Date   : Mon Nov  2 16:12:41 2026
+****************************************
+
+Attributes:
+    b - black box (unknown)
+    n - noncombinational
+
+Reference          Library       Unit Area   Count    Total Area   Attributes
+-----------------------------------------------------------------------------
+DFFHQNx1_T75_R     tiny7_rvt_tt   0.291600       4      1.166400  n
+FAx1_T75_L         tiny7_lvt_tt   0.204120       1      0.204120
+FAx1_T75_R         tiny7_rvt_tt   0.204120       1      0.204120
+INVx1_T75_R        tiny7_rvt_tt   0.043740       2      0.087480
+NAND2xp5_T75_R     tiny7_rvt_tt   0.087480       1      0.087480
+-----------------------------------------------------------------------------
+Total 5 references                                     1.749600
+1
+
+****************************************
+Report : power
+        -analysis_effort low
+Design : fir4
+Version: T-2022.03-SP4
+Date   : Mon Nov  2 16:12:41 2026
+****************************************
+
+
+Library(s) Used:
+
+    tiny7_rvt_tt (File: /path/to/libs/tiny7_rvt_tt.db)
+
+
+Global Operating Voltage = 0.7
+Power-specific unit information :
+    Voltage Units = 1V
+    Capacitance Units = 1.000000ff
+    Time Units = 1ps
+    Dynamic Power Units = 1mW    (derived from V,C,T units)
+    Leakage Power Units = 1pW
+
+
+  Cell Internal Power  = 1.4210e-02 mW   (58%)
+  Net Switching Power  = 1.0290e-02 mW   (42%)
+                         ---------
+Total Dynamic Power    = 2.4500e-02 mW  (100%)
+
+Cell Leakage Power     = 3.1500e+04 pW
+
+1

@@ -1,0 +1,191 @@
+{
+  "area_by_hier": {},
+  "area_total": 1.7496,
+  "area_unit": "um^2",
+  "cell_count": 9,
+  "cells_by_type": {
+    "DFFHQNx1_T75_R": 4,
+    "FAx1_T75_L": 1,
+    "FAx1_T75_R": 1,
+    "INVx1_T75_R": 2,
+    "NAND2xp5_T75_R": 1
+  },
+  "corner": "PVT_0P7V_25C",
+  "extra": {
+    "area": {
+      "buf_inv": 0.08748,
+      "buf_inv_cells": 2,
+      "cells": 9,
+      "combinational": 0.5832,
+      "combinational_cells": 5,
+      "macro": 0.0,
+      "macros": 0,
+      "nets": 21,
+      "noncombinational": 1.1664,
+      "ports": 14,
+      "references": 5,
+      "sequential_cells": 4,
+      "total_cell": 1.7496
+    },
+    "libraries": [
+      "tiny7_rvt_tt",
+      "tiny7_lvt_tt"
+    ],
+    "power": {
+      "dynamic": 0.0245,
+      "internal": 0.01421,
+      "leakage": 3.15e-05,
+      "switching": 0.01029,
+      "total": 0.0245315
+    },
+    "qor": {
+      "clk": {
+        "Critical Path Clk Period": 700.0,
+        "Critical Path Length": 612.4,
+        "Critical Path Slack": 71.25,
+        "Levels of Logic": 14.0,
+        "No. of Hold Violations": 0.0,
+        "No. of Violating Paths": 0.0,
+        "Total Hold Violation": 0.0,
+        "Total Negative Slack": 0.0,
+        "Worst Hold Violation": 0.0
+      }
+    },
+    "qor_sections": {
+      "Area": {
+        "Buf/Inv Area": 0.08748,
+        "Cell Area": 1.7496,
+        "Combinational Area": 0.5832,
+        "Design Area": 1.7496,
+        "Macro/Black Box Area": 0.0,
+        "Net Area": 0.0,
+        "Noncombinational Area": 1.1664,
+        "Total Buffer Area": 0.0,
+        "Total Inverter Area": 0.09
+      },
+      "Cell Count": {
+        "Buf Cell Count": 0.0,
+        "Buf/Inv Cell Count": 2.0,
+        "CT Buf/Inv Cell Count": 0.0,
+        "Combinational Cell Count": 5.0,
+        "Hierarchical Cell Count": 0.0,
+        "Hierarchical Port Count": 0.0,
+        "Inv Cell Count": 2.0,
+        "Leaf Cell Count": 9.0,
+        "Macro Count": 0.0,
+        "Sequential Cell Count": 4.0
+      },
+      "Design Rules": {
+        "Max Cap Violations": 0.0,
+        "Max Trans Violations": 0.0,
+        "Nets With Violations": 0.0,
+        "Total Number of Nets": 21.0
+      }
+    },
+    "reports": [
+      "area",
+      "power",
+      "qor",
+      "reference",
+      "timing",
+      "units"
+    ],
+    "time_unit": "ps",
+    "time_unit_source": "report"
+  },
+  "hold_tns": null,
+  "hold_wns": null,
+  "netlist": null,
+  "paths": [
+    {
+      "arrival": 612.4,
+      "endpoint": "acc_q_reg_3_",
+      "path_group": "clk",
+      "path_type": "max",
+      "points": [
+        {
+          "arrival": 0.0,
+          "cell": "DFFHQNx1_T75_R",
+          "incr": 0.0,
+          "inst": "tap_q_reg_0_",
+          "net": null,
+          "pin": "CLK",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 42.1,
+          "cell": "DFFHQNx1_T75_R",
+          "incr": 42.1,
+          "inst": "tap_q_reg_0_",
+          "net": null,
+          "pin": "QN",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 56.4,
+          "cell": "INVx1_T75_R",
+          "incr": 14.3,
+          "inst": "U12",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 296.4,
+          "cell": "FAx1_T75_R",
+          "incr": 240.0,
+          "inst": "U13",
+          "net": null,
+          "pin": "CON",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 586.4,
+          "cell": "FAx1_T75_L",
+          "incr": 290.0,
+          "inst": "U14",
+          "net": null,
+          "pin": "SN",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 612.4,
+          "cell": "NAND2xp5_T75_R",
+          "incr": 26.0,
+          "inst": "U15",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 612.4,
+          "cell": "DFFHQNx1_T75_R",
+          "incr": 0.0,
+          "inst": "acc_q_reg_3_",
+          "net": null,
+          "pin": "D",
+          "rise_fall": "f"
+        }
+      ],
+      "required": 683.65,
+      "slack": 71.25,
+      "startpoint": "tap_q_reg_0_"
+    }
+  ],
+  "period": 700.0,
+  "power": {
+    "dynamic": 0.0245,
+    "leakage": 3.15e-05,
+    "total": 0.0245315
+  },
+  "schema_version": 1,
+  "tns": 0.0,
+  "tool": "dc",
+  "top": "fir4",
+  "vt_mix": {
+    "LVT": 1,
+    "RVT": 8
+  },
+  "warnings": [],
+  "wns": 71.25
+}

@@ -1,0 +1,293 @@
+{
+  "area_by_hier": {
+    "": 2310.568,
+    "u_ex": 1381.728,
+    "u_mem": 884.112
+  },
+  "area_total": 2310.568,
+  "area_unit": "um^2",
+  "cell_count": 524,
+  "cells_by_type": {
+    "AO22X1_LVT": 71,
+    "DFFARX1_RVT": 91,
+    "FADDX1_RVT": 64,
+    "INVX1_RVT": 27,
+    "NAND2X0_RVT": 250,
+    "NBUFFX2_RVT": 21
+  },
+  "corner": "ss_0p9v_125c",
+  "extra": {
+    "area": {
+      "buf_inv": 112.8448,
+      "buf_inv_cells": 64,
+      "cells": 524,
+      "combinational": 1504.2096,
+      "combinational_cells": 431,
+      "macro": 0.0,
+      "macros": 0,
+      "nets": 611,
+      "noncombinational": 806.3584,
+      "ports": 130,
+      "references": 3,
+      "sequential_cells": 91,
+      "total_cell": 2310.568
+    },
+    "hold_violators": 0,
+    "libraries": [
+      "tiny_std_ss"
+    ],
+    "operating_conditions": {
+      "library": "tiny_std_ss",
+      "name": "ss_0p9v_125c",
+      "process": 1.0,
+      "temperature": 125.0,
+      "voltage": 0.9
+    },
+    "power": {
+      "dynamic": 1.941,
+      "internal": 1.2034,
+      "leakage": 0.15233,
+      "switching": 0.737552,
+      "total": 2.09333
+    },
+    "reports": [
+      "area",
+      "constraint",
+      "design",
+      "power",
+      "reference",
+      "resources",
+      "timing"
+    ],
+    "resources": [
+      {
+        "columns": [
+          "cell",
+          "module",
+          "parameters",
+          "contained operations"
+        ],
+        "file": "ex_stage.sv",
+        "rows": [
+          {
+            "cell": "add_x_1",
+            "contained operations": "add_88 (ex_stage.sv:88)",
+            "module": "DW01_add",
+            "parameters": "width=32"
+          },
+          {
+            "cell": "sub_x_2",
+            "contained operations": "sub_89 (ex_stage.sv:89)",
+            "module": "DW01_sub",
+            "parameters": "width=32"
+          }
+        ],
+        "table": "Resource Report for this hierarchy in file rtl/ex_stage.sv"
+      },
+      {
+        "columns": [
+          "cell",
+          "module",
+          "current implementation",
+          "set implementation"
+        ],
+        "rows": [
+          {
+            "cell": "add_x_1",
+            "current implementation": "apparch (area)",
+            "module": "DW01_add"
+          },
+          {
+            "cell": "sub_x_2",
+            "current implementation": "apparch (area)",
+            "module": "DW01_sub"
+          }
+        ],
+        "table": "Implementation Report"
+      }
+    ],
+    "setup_violators": 2,
+    "time_unit": "ns",
+    "time_unit_source": "report",
+    "wire_load_mode": "top",
+    "wire_load_model": "wl_medium"
+  },
+  "hold_tns": null,
+  "hold_wns": null,
+  "netlist": null,
+  "paths": [
+    {
+      "arrival": 1960.0,
+      "endpoint": "u_mem/addr_q_reg_31_",
+      "path_group": "clock",
+      "path_type": "max",
+      "points": [
+        {
+          "arrival": 0.0,
+          "cell": "DFFARX1_RVT",
+          "incr": 0.0,
+          "inst": "u_ex/opa_q_reg_12_",
+          "net": null,
+          "pin": "CLK",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 310.0,
+          "cell": "DFFARX1_RVT",
+          "incr": 310.0,
+          "inst": "u_ex/opa_q_reg_12_",
+          "net": null,
+          "pin": "Q",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 430.0,
+          "cell": "NAND2X0_RVT",
+          "incr": 120.0,
+          "inst": "u_ex/U311",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 870.0,
+          "cell": "FADDX1_RVT",
+          "incr": 440.0,
+          "inst": "u_ex/u_add/U58",
+          "net": null,
+          "pin": "CO",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 1280.0,
+          "cell": "FADDX1_RVT",
+          "incr": 410.0,
+          "inst": "u_ex/u_add/U59",
+          "net": null,
+          "pin": "CO",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 1750.0,
+          "cell": "FADDX1_RVT",
+          "incr": 470.0,
+          "inst": "u_ex/u_add/U60",
+          "net": null,
+          "pin": "S",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 1960.0,
+          "cell": "AO22X1_LVT",
+          "incr": 210.0,
+          "inst": "u_mem/U9",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 1960.0,
+          "cell": "DFFARX1_RVT",
+          "incr": 0.0,
+          "inst": "u_mem/addr_q_reg_31_",
+          "net": null,
+          "pin": "D",
+          "rise_fall": "r"
+        }
+      ],
+      "required": 1860.0,
+      "slack": -100.0,
+      "startpoint": "u_ex/opa_q_reg_12_"
+    },
+    {
+      "arrival": 1580.0,
+      "endpoint": "u_mem/addr_q_reg_30_",
+      "path_group": "clock",
+      "path_type": "max",
+      "points": [
+        {
+          "arrival": 0.0,
+          "cell": "DFFARX1_RVT",
+          "incr": 0.0,
+          "inst": "u_ex/opa_q_reg_12_",
+          "net": null,
+          "pin": "CLK",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 310.0,
+          "cell": "DFFARX1_RVT",
+          "incr": 310.0,
+          "inst": "u_ex/opa_q_reg_12_",
+          "net": null,
+          "pin": "Q",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 430.0,
+          "cell": "NAND2X0_RVT",
+          "incr": 120.0,
+          "inst": "u_ex/U311",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 870.0,
+          "cell": "FADDX1_RVT",
+          "incr": 440.0,
+          "inst": "u_ex/u_add/U58",
+          "net": null,
+          "pin": "CO",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 1370.0,
+          "cell": "FADDX1_RVT",
+          "incr": 500.0,
+          "inst": "u_ex/u_add/U59",
+          "net": null,
+          "pin": "S",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 1580.0,
+          "cell": "AO22X1_LVT",
+          "incr": 210.0,
+          "inst": "u_mem/U8",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 1580.0,
+          "cell": "DFFARX1_RVT",
+          "incr": 0.0,
+          "inst": "u_mem/addr_q_reg_30_",
+          "net": null,
+          "pin": "D",
+          "rise_fall": "r"
+        }
+      ],
+      "required": 1860.0,
+      "slack": 280.0,
+      "startpoint": "u_ex/opa_q_reg_12_"
+    }
+  ],
+  "period": 2000.0,
+  "power": {
+    "dynamic": 1.941,
+    "leakage": 0.15233,
+    "total": 2.09333
+  },
+  "schema_version": 1,
+  "tns": -150.0,
+  "tool": "dc",
+  "top": "minicore",
+  "vt_mix": {
+    "LVT": 71,
+    "RVT": 453
+  },
+  "warnings": [],
+  "wns": -100.0
+}
