@@ -1,0 +1,59 @@
+# svkit project file for the `fifo` fixture (a mini user project).
+# Open-source flow (Verilator / Yosys / OpenSTA) first, Synopsys (VCS / DC) second.
+
+[project]
+name = "fifo"
+top = "fifo"
+tb_top = "fifo_tb"
+sources = { glob = ["rtl/*.sv"] }
+tb_sources = { glob = ["tb/*.sv"] }
+clock = "clock"
+reset = { name = "reset", active = "high" }
+workdir_exclude = ["output", "build", "syn_out"]
+
+[flows.sim.verilator]
+mode = "builtin"
+waves = "output/{test}.vcd"
+golden = { actual = "output/{test}.out", expected = "expected/{test}.out", time_regex = '^@(\d+)', time_unit = "cycle" }
+tests = { names = ["fill_drain", "interleave", "random"] }
+
+[flows.sim.vcs]
+mode = "wrap"
+cmd = "make sim-vcs TEST={test}"
+log = "vcs_out/{test}.log"
+waves = "output/{test}.vcd"
+golden = { actual = "output/{test}.out", expected = "expected/{test}.out", time_regex = '^@(\d+)', time_unit = "cycle" }
+tests = { names = ["fill_drain", "interleave", "random"] }
+
+[flows.synth.yosys]
+mode = "builtin"
+sta = "opensta"
+
+[flows.synth.dc]
+mode = "wrap"
+cmd = "make syn-dc"
+script = "synopsys/syn.tcl"
+reports = ["syn_out/{top}.rep"]
+netlist = "syn_out/{top}.vg"
+log = "syn_out/{top}.log"
+license_seats = 1
+
+[flows.sta.opensta]
+max_paths = 5
+
+[knobs]
+clock_period = { file = "clock_period.txt", unit = "ps", default = 2000 }
+corner = { tcl_var = "corner", default = "TT" }
+dont_use = { tcl_var = "svkit_dont_use", default = "" }
+# DC only: replace the compile command, e.g. --set compile_cmd=compile_ultra
+compile_cmd = { tcl_replace = '^compile\b.*$', with = "{value}" }
+
+[experiments]
+baseline = {}
+ss_corner = { corner = "SS" }
+rvt_only = { dont_use = "*_L", tcl_append = "set_dont_use [get_lib_cells */*_L]" }   # yosys: dont_use; DC: tcl_append
+
+[library]
+vt_suffix = { "_R" = "RVT", "_L" = "LVT" }
+liberty = ["../lib/svkit_tiny.lib"]
+corners = { TT = ["../lib/svkit_tiny.lib"], SS = ["../lib/svkit_tiny_ss.lib"] }

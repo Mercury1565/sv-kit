@@ -1,0 +1,59 @@
+{
+   "creator": "Yosys 0.70+16 (git sha1 3bb533450, Release, Clang /usr/bin/clang++ 21.1.8)",
+   "invocation": "stat -json -liberty svkit_tiny.lib ",
+   "modules": {
+      "\\counter": {
+         "num_wires":         52,
+         "num_wire_bits":     59,
+         "num_pub_wires":     6,
+         "num_pub_wire_bits": 13,
+         "num_ports":         6,
+         "num_port_bits":     13,
+         "num_memories":      0,
+         "num_memory_bits":   0,
+         "num_processes":     0,
+         "num_cells":         55,
+         "num_submodules":       0,
+         "area":              128.500000,
+         "sequential_area":    54.000000,
+         "num_cells_by_type": {
+            "AND2_L": 7,
+            "AOI21_L": 7,
+            "DFFR_R": 9,
+            "INV_L": 12,
+            "NAND2_L": 5,
+            "NOR2_L": 8,
+            "OAI21_L": 5,
+            "OR2_L": 1,
+            "XOR2_L": 1
+         }
+      }
+   },
+      "design": {
+         "num_wires":         52,
+         "num_wire_bits":     59,
+         "num_pub_wires":     6,
+         "num_pub_wire_bits": 13,
+         "num_ports":         6,
+         "num_port_bits":     13,
+         "num_memories":      0,
+         "num_memory_bits":   0,
+         "num_processes":     0,
+         "num_cells":         55,
+         "num_submodules":       0,
+         "area":              128.500000,
+         "sequential_area":    54.000000,
+         "num_cells_by_type": {
+            "AND2_L": 7,
+            "AOI21_L": 7,
+            "DFFR_R": 9,
+            "INV_L": 12,
+            "NAND2_L": 5,
+            "NOR2_L": 8,
+            "OAI21_L": 5,
+            "OR2_L": 1,
+            "XOR2_L": 1
+         }
+      }
+}
+

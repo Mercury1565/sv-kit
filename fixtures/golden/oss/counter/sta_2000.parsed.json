@@ -1,0 +1,994 @@
+{
+ "schema_version": 1,
+ "tool": "opensta",
+ "top": "counter",
+ "period": 2000.0,
+ "corner": null,
+ "wns": 1759.3,
+ "tns": 0.0,
+ "hold_wns": 0.5,
+ "hold_tns": 0.0,
+ "area_total": null,
+ "area_unit": "um^2",
+ "area_by_hier": {},
+ "cell_count": null,
+ "cells_by_type": {},
+ "vt_mix": {},
+ "power": {
+  "dynamic": 0.0168423,
+  "leakage": 0.0005148,
+  "total": 0.017357
+ },
+ "paths": [
+  {
+   "startpoint": "_094_",
+   "endpoint": "_099_",
+   "path_group": "svkit_clk",
+   "path_type": "max",
+   "slack": 1759.3,
+   "required": 1970.0,
+   "arrival": 210.7,
+   "points": [
+    {
+     "inst": "_094_",
+     "pin": "CLK",
+     "cell": "DFFR_R",
+     "incr": 0.0,
+     "arrival": 0.0,
+     "rise_fall": "r",
+     "net": null
+    },
+    {
+     "inst": "_094_",
+     "pin": "Q",
+     "cell": "DFFR_R",
+     "incr": 60.2,
+     "arrival": 60.2,
+     "rise_fall": "r",
+     "net": "count[2]"
+    },
+    {
+     "inst": "_069_",
+     "pin": "B",
+     "cell": "NAND2_L",
+     "incr": 0.0,
+     "arrival": 60.2,
+     "rise_fall": "r",
+     "net": null
+    },
+    {
+     "inst": "_069_",
+     "pin": "Y",
+     "cell": "NAND2_L",
+     "incr": 19.9,
+     "arrival": 80.1,
+     "rise_fall": "f",
+     "net": "_020_"
+    },
+    {
+     "inst": "_089_",
+     "pin": "A",
+     "cell": "NOR2_L",
+     "incr": 0.0,
+     "arrival": 80.1,
+     "rise_fall": "f",
+     "net": null
+    },
+    {
+     "inst": "_089_",
+     "pin": "Y",
+     "cell": "NOR2_L",
+     "incr": 20.5,
+     "arrival": 100.6,
+     "rise_fall": "r",
+     "net": "_024_"
+    },
+    {
+     "inst": "_090_",
+     "pin": "B",
+     "cell": "AND2_L",
+     "incr": 0.0,
+     "arrival": 100.6,
+     "rise_fall": "r",
+     "net": null
+    },
+    {
+     "inst": "_090_",
+     "pin": "Y",
+     "cell": "AND2_L",
+     "incr": 32.8,
+     "arrival": 133.4,
+     "rise_fall": "r",
+     "net": "_025_"
+    },
+    {
+     "inst": "_051_",
+     "pin": "A",
+     "cell": "AND2_L",
+     "incr": 0.0,
+     "arrival": 133.4,
+     "rise_fall": "r",
+     "net": null
+    },
+    {
+     "inst": "_051_",
+     "pin": "Y",
+     "cell": "AND2_L",
+     "incr": 31.8,
+     "arrival": 165.2,
+     "rise_fall": "r",
+     "net": "_030_"
+    },
+    {
+     "inst": "_070_",
+     "pin": "A2",
+     "cell": "OAI21_L",
+     "incr": 0.0,
+     "arrival": 165.2,
+     "rise_fall": "r",
+     "net": null
+    },
+    {
+     "inst": "_070_",
+     "pin": "Y",
+     "cell": "OAI21_L",
+     "incr": 23.7,
+     "arrival": 189.0,
+     "rise_fall": "f",
+     "net": "_040_"
+    },
+    {
+     "inst": "_071_",
+     "pin": "B",
+     "cell": "AOI21_L",
+     "incr": 0.0,
+     "arrival": 189.0,
+     "rise_fall": "f",
+     "net": null
+    },
+    {
+     "inst": "_071_",
+     "pin": "Y",
+     "cell": "AOI21_L",
+     "incr": 21.8,
+     "arrival": 210.7,
+     "rise_fall": "r",
+     "net": "_016_"
+    },
+    {
+     "inst": "_099_",
+     "pin": "D",
+     "cell": "DFFR_R",
+     "incr": 0.0,
+     "arrival": 210.7,
+     "rise_fall": "r",
+     "net": null
+    }
+   ]
+  },
+  {
+   "startpoint": "_094_",
+   "endpoint": "_097_",
+   "path_group": "svkit_clk",
+   "path_type": "max",
+   "slack": 1764.1,
+   "required": 1970.0,
+   "arrival": 205.9,
+   "points": [
+    {
+     "inst": "_094_",
+     "pin": "CLK",
+     "cell": "DFFR_R",
+     "incr": 0.0,
+     "arrival": 0.0,
+     "rise_fall": "r",
+     "net": null
+    },
+    {
+     "inst": "_094_",
+     "pin": "Q",
+     "cell": "DFFR_R",
+     "incr": 60.2,
+     "arrival": 60.2,
+     "rise_fall": "r",
+     "net": "count[2]"
+    },
+    {
+     "inst": "_069_",
+     "pin": "B",
+     "cell": "NAND2_L",
+     "incr": 0.0,
+     "arrival": 60.2,
+     "rise_fall": "r",
+     "net": null
+    },
+    {
+     "inst": "_069_",
+     "pin": "Y",
+     "cell": "NAND2_L",
+     "incr": 19.9,
+     "arrival": 80.1,
+     "rise_fall": "f",
+     "net": "_020_"
+    },
+    {
+     "inst": "_089_",
+     "pin": "A",
+     "cell": "NOR2_L",
+     "incr": 0.0,
+     "arrival": 80.1,
+     "rise_fall": "f",
+     "net": null
+    },
+    {
+     "inst": "_089_",
+     "pin": "Y",
+     "cell": "NOR2_L",
+     "incr": 20.5,
+     "arrival": 100.6,
+     "rise_fall": "r",
+     "net": "_024_"
+    },
+    {
+     "inst": "_090_",
+     "pin": "B",
+     "cell": "AND2_L",
+     "incr": 0.0,
+     "arrival": 100.6,
+     "rise_fall": "r",
+     "net": null
+    },
+    {
+     "inst": "_090_",
+     "pin": "Y",
+     "cell": "AND2_L",
+     "incr": 32.8,
+     "arrival": 133.4,
+     "rise_fall": "r",
+     "net": "_025_"
+    },
+    {
+     "inst": "_050_",
+     "pin": "B",
+     "cell": "NAND2_L",
+     "incr": 0.0,
+     "arrival": 133.4,
+     "rise_fall": "r",
+     "net": null
+    },
+    {
+     "inst": "_050_",
+     "pin": "Y",
+     "cell": "NAND2_L",
+     "incr": 19.5,
+     "arrival": 152.9,
+     "rise_fall": "f",
+     "net": "_029_"
+    },
+    {
+     "inst": "_064_",
+     "pin": "B",
+     "cell": "XOR2_L",
+     "incr": 0.0,
+     "arrival": 152.9,
+     "rise_fall": "f",
+     "net": null
+    },
+    {
+     "inst": "_064_",
+     "pin": "Y",
+     "cell": "XOR2_L",
+     "incr": 34.3,
+     "arrival": 187.2,
+     "rise_fall": "f",
+     "net": "_037_"
+    },
+    {
+     "inst": "_065_",
+     "pin": "B",
+     "cell": "NOR2_L",
+     "incr": 0.0,
+     "arrival": 187.2,
+     "rise_fall": "f",
+     "net": null
+    },
+    {
+     "inst": "_065_",
+     "pin": "Y",
+     "cell": "NOR2_L",
+     "incr": 18.7,
+     "arrival": 205.9,
+     "rise_fall": "r",
+     "net": "_014_"
+    },
+    {
+     "inst": "_097_",
+     "pin": "D",
+     "cell": "DFFR_R",
+     "incr": 0.0,
+     "arrival": 205.9,
+     "rise_fall": "r",
+     "net": null
+    }
+   ]
+  },
+  {
+   "startpoint": "_094_",
+   "endpoint": "_100_",
+   "path_group": "svkit_clk",
+   "path_type": "max",
+   "slack": 1768.5,
+   "required": 1970.0,
+   "arrival": 201.5,
+   "points": [
+    {
+     "inst": "_094_",
+     "pin": "CLK",
+     "cell": "DFFR_R",
+     "incr": 0.0,
+     "arrival": 0.0,
+     "rise_fall": "r",
+     "net": null
+    },
+    {
+     "inst": "_094_",
+     "pin": "Q",
+     "cell": "DFFR_R",
+     "incr": 60.2,
+     "arrival": 60.2,
+     "rise_fall": "r",
+     "net": "count[2]"
+    },
+    {
+     "inst": "_069_",
+     "pin": "B",
+     "cell": "NAND2_L",
+     "incr": 0.0,
+     "arrival": 60.2,
+     "rise_fall": "r",
+     "net": null
+    },
+    {
+     "inst": "_069_",
+     "pin": "Y",
+     "cell": "NAND2_L",
+     "incr": 19.9,
+     "arrival": 80.1,
+     "rise_fall": "f",
+     "net": "_020_"
+    },
+    {
+     "inst": "_089_",
+     "pin": "A",
+     "cell": "NOR2_L",
+     "incr": 0.0,
+     "arrival": 80.1,
+     "rise_fall": "f",
+     "net": null
+    },
+    {
+     "inst": "_089_",
+     "pin": "Y",
+     "cell": "NOR2_L",
+     "incr": 20.5,
+     "arrival": 100.6,
+     "rise_fall": "r",
+     "net": "_024_"
+    },
+    {
+     "inst": "_090_",
+     "pin": "B",
+     "cell": "AND2_L",
+     "incr": 0.0,
+     "arrival": 100.6,
+     "rise_fall": "r",
+     "net": null
+    },
+    {
+     "inst": "_090_",
+     "pin": "Y",
+     "cell": "AND2_L",
+     "incr": 32.8,
+     "arrival": 133.4,
+     "rise_fall": "r",
+     "net": "_025_"
+    },
+    {
+     "inst": "_051_",
+     "pin": "A",
+     "cell": "AND2_L",
+     "incr": 0.0,
+     "arrival": 133.4,
+     "rise_fall": "r",
+     "net": null
+    },
+    {
+     "inst": "_051_",
+     "pin": "Y",
+     "cell": "AND2_L",
+     "incr": 31.8,
+     "arrival": 165.2,
+     "rise_fall": "r",
+     "net": "_030_"
+    },
+    {
+     "inst": "_052_",
+     "pin": "B",
+     "cell": "NAND2_L",
+     "incr": 0.0,
+     "arrival": 165.2,
+     "rise_fall": "r",
+     "net": null
+    },
+    {
+     "inst": "_052_",
+     "pin": "Y",
+     "cell": "NAND2_L",
+     "incr": 17.6,
+     "arrival": 182.8,
+     "rise_fall": "f",
+     "net": "_031_"
+    },
+    {
+     "inst": "_053_",
+     "pin": "B",
+     "cell": "NOR2_L",
+     "incr": 0.0,
+     "arrival": 182.8,
+     "rise_fall": "f",
+     "net": null
+    },
+    {
+     "inst": "_053_",
+     "pin": "Y",
+     "cell": "NOR2_L",
+     "incr": 18.7,
+     "arrival": 201.5,
+     "rise_fall": "r",
+     "net": "_000_"
+    },
+    {
+     "inst": "_100_",
+     "pin": "D",
+     "cell": "DFFR_R",
+     "incr": 0.0,
+     "arrival": 201.5,
+     "rise_fall": "r",
+     "net": null
+    }
+   ]
+  },
+  {
+   "startpoint": "_094_",
+   "endpoint": "_096_",
+   "path_group": "svkit_clk",
+   "path_type": "max",
+   "slack": 1777.2,
+   "required": 1970.0,
+   "arrival": 192.9,
+   "points": [
+    {
+     "inst": "_094_",
+     "pin": "CLK",
+     "cell": "DFFR_R",
+     "incr": 0.0,
+     "arrival": 0.0,
+     "rise_fall": "r",
+     "net": null
+    },
+    {
+     "inst": "_094_",
+     "pin": "Q",
+     "cell": "DFFR_R",
+     "incr": 60.2,
+     "arrival": 60.2,
+     "rise_fall": "f",
+     "net": "count[2]"
+    },
+    {
+     "inst": "_069_",
+     "pin": "B",
+     "cell": "NAND2_L",
+     "incr": 0.0,
+     "arrival": 60.2,
+     "rise_fall": "f",
+     "net": null
+    },
+    {
+     "inst": "_069_",
+     "pin": "Y",
+     "cell": "NAND2_L",
+     "incr": 19.9,
+     "arrival": 80.1,
+     "rise_fall": "r",
+     "net": "_020_"
+    },
+    {
+     "inst": "_089_",
+     "pin": "A",
+     "cell": "NOR2_L",
+     "incr": 0.0,
+     "arrival": 80.1,
+     "rise_fall": "r",
+     "net": null
+    },
+    {
+     "inst": "_089_",
+     "pin": "Y",
+     "cell": "NOR2_L",
+     "incr": 20.5,
+     "arrival": 100.6,
+     "rise_fall": "f",
+     "net": "_024_"
+    },
+    {
+     "inst": "_090_",
+     "pin": "B",
+     "cell": "AND2_L",
+     "incr": 0.0,
+     "arrival": 100.6,
+     "rise_fall": "f",
+     "net": null
+    },
+    {
+     "inst": "_090_",
+     "pin": "Y",
+     "cell": "AND2_L",
+     "incr": 32.8,
+     "arrival": 133.4,
+     "rise_fall": "f",
+     "net": "_025_"
+    },
+    {
+     "inst": "_066_",
+     "pin": "A2",
+     "cell": "AOI21_L",
+     "incr": 0.0,
+     "arrival": 133.4,
+     "rise_fall": "f",
+     "net": null
+    },
+    {
+     "inst": "_066_",
+     "pin": "Y",
+     "cell": "AOI21_L",
+     "incr": 25.1,
+     "arrival": 158.5,
+     "rise_fall": "r",
+     "net": "_038_"
+    },
+    {
+     "inst": "_067_",
+     "pin": "B",
+     "cell": "OAI21_L",
+     "incr": 0.0,
+     "arrival": 158.5,
+     "rise_fall": "r",
+     "net": null
+    },
+    {
+     "inst": "_067_",
+     "pin": "Y",
+     "cell": "OAI21_L",
+     "incr": 21.8,
+     "arrival": 180.3,
+     "rise_fall": "f",
+     "net": "_039_"
+    },
+    {
+     "inst": "_068_",
+     "pin": "A",
+     "cell": "INV_L",
+     "incr": 0.0,
+     "arrival": 180.3,
+     "rise_fall": "f",
+     "net": null
+    },
+    {
+     "inst": "_068_",
+     "pin": "Y",
+     "cell": "INV_L",
+     "incr": 12.6,
+     "arrival": 192.9,
+     "rise_fall": "r",
+     "net": "_015_"
+    },
+    {
+     "inst": "_096_",
+     "pin": "D",
+     "cell": "DFFR_R",
+     "incr": 0.0,
+     "arrival": 192.9,
+     "rise_fall": "r",
+     "net": null
+    }
+   ]
+  },
+  {
+   "startpoint": "_094_",
+   "endpoint": "_098_",
+   "path_group": "svkit_clk",
+   "path_type": "max",
+   "slack": 1777.9,
+   "required": 1970.0,
+   "arrival": 192.1,
+   "points": [
+    {
+     "inst": "_094_",
+     "pin": "CLK",
+     "cell": "DFFR_R",
+     "incr": 0.0,
+     "arrival": 0.0,
+     "rise_fall": "r",
+     "net": null
+    },
+    {
+     "inst": "_094_",
+     "pin": "Q",
+     "cell": "DFFR_R",
+     "incr": 60.2,
+     "arrival": 60.2,
+     "rise_fall": "f",
+     "net": "count[2]"
+    },
+    {
+     "inst": "_069_",
+     "pin": "B",
+     "cell": "NAND2_L",
+     "incr": 0.0,
+     "arrival": 60.2,
+     "rise_fall": "f",
+     "net": null
+    },
+    {
+     "inst": "_069_",
+     "pin": "Y",
+     "cell": "NAND2_L",
+     "incr": 19.9,
+     "arrival": 80.1,
+     "rise_fall": "r",
+     "net": "_020_"
+    },
+    {
+     "inst": "_089_",
+     "pin": "A",
+     "cell": "NOR2_L",
+     "incr": 0.0,
+     "arrival": 80.1,
+     "rise_fall": "r",
+     "net": null
+    },
+    {
+     "inst": "_089_",
+     "pin": "Y",
+     "cell": "NOR2_L",
+     "incr": 20.5,
+     "arrival": 100.6,
+     "rise_fall": "f",
+     "net": "_024_"
+    },
+    {
+     "inst": "_049_",
+     "pin": "B",
+     "cell": "AND2_L",
+     "incr": 0.0,
+     "arrival": 100.6,
+     "rise_fall": "f",
+     "net": null
+    },
+    {
+     "inst": "_049_",
+     "pin": "Y",
+     "cell": "AND2_L",
+     "incr": 27.7,
+     "arrival": 128.3,
+     "rise_fall": "f",
+     "net": "_028_"
+    },
+    {
+     "inst": "_074_",
+     "pin": "A2",
+     "cell": "AOI21_L",
+     "incr": 0.0,
+     "arrival": 128.3,
+     "rise_fall": "f",
+     "net": null
+    },
+    {
+     "inst": "_074_",
+     "pin": "Y",
+     "cell": "AOI21_L",
+     "incr": 23.0,
+     "arrival": 151.3,
+     "rise_fall": "r",
+     "net": "_043_"
+    },
+    {
+     "inst": "_076_",
+     "pin": "B",
+     "cell": "AOI21_L",
+     "incr": 0.0,
+     "arrival": 151.3,
+     "rise_fall": "r",
+     "net": null
+    },
+    {
+     "inst": "_076_",
+     "pin": "Y",
+     "cell": "AOI21_L",
+     "incr": 22.1,
+     "arrival": 173.4,
+     "rise_fall": "f",
+     "net": "_045_"
+    },
+    {
+     "inst": "_077_",
+     "pin": "B",
+     "cell": "NOR2_L",
+     "incr": 0.0,
+     "arrival": 173.4,
+     "rise_fall": "f",
+     "net": null
+    },
+    {
+     "inst": "_077_",
+     "pin": "Y",
+     "cell": "NOR2_L",
+     "incr": 18.7,
+     "arrival": 192.1,
+     "rise_fall": "r",
+     "net": "_017_"
+    },
+    {
+     "inst": "_098_",
+     "pin": "D",
+     "cell": "DFFR_R",
+     "incr": 0.0,
+     "arrival": 192.1,
+     "rise_fall": "r",
+     "net": null
+    }
+   ]
+  },
+  {
+   "startpoint": "reset",
+   "endpoint": "_092_",
+   "path_group": "asynchronous",
+   "path_type": "min",
+   "slack": 0.5,
+   "required": 10.0,
+   "arrival": 10.5,
+   "points": [
+    {
+     "inst": "",
+     "pin": "reset",
+     "cell": null,
+     "incr": 0.0,
+     "arrival": 0.0,
+     "rise_fall": "f",
+     "net": "reset"
+    },
+    {
+     "inst": "_083_",
+     "pin": "A",
+     "cell": "INV_L",
+     "incr": 0.0,
+     "arrival": 0.0,
+     "rise_fall": "f",
+     "net": null
+    },
+    {
+     "inst": "_083_",
+     "pin": "Y",
+     "cell": "INV_L",
+     "incr": 10.5,
+     "arrival": 10.5,
+     "rise_fall": "r",
+     "net": "_004_"
+    },
+    {
+     "inst": "_092_",
+     "pin": "RN",
+     "cell": "DFFR_R",
+     "incr": 0.0,
+     "arrival": 10.5,
+     "rise_fall": "r",
+     "net": null
+    }
+   ]
+  },
+  {
+   "startpoint": "reset",
+   "endpoint": "_093_",
+   "path_group": "asynchronous",
+   "path_type": "min",
+   "slack": 0.5,
+   "required": 10.0,
+   "arrival": 10.5,
+   "points": [
+    {
+     "inst": "",
+     "pin": "reset",
+     "cell": null,
+     "incr": 0.0,
+     "arrival": 0.0,
+     "rise_fall": "f",
+     "net": "reset"
+    },
+    {
+     "inst": "_084_",
+     "pin": "A",
+     "cell": "INV_L",
+     "incr": 0.0,
+     "arrival": 0.0,
+     "rise_fall": "f",
+     "net": null
+    },
+    {
+     "inst": "_084_",
+     "pin": "Y",
+     "cell": "INV_L",
+     "incr": 10.5,
+     "arrival": 10.5,
+     "rise_fall": "r",
+     "net": "_003_"
+    },
+    {
+     "inst": "_093_",
+     "pin": "RN",
+     "cell": "DFFR_R",
+     "incr": 0.0,
+     "arrival": 10.5,
+     "rise_fall": "r",
+     "net": null
+    }
+   ]
+  },
+  {
+   "startpoint": "reset",
+   "endpoint": "_094_",
+   "path_group": "asynchronous",
+   "path_type": "min",
+   "slack": 0.5,
+   "required": 10.0,
+   "arrival": 10.5,
+   "points": [
+    {
+     "inst": "",
+     "pin": "reset",
+     "cell": null,
+     "incr": 0.0,
+     "arrival": 0.0,
+     "rise_fall": "f",
+     "net": "reset"
+    },
+    {
+     "inst": "_085_",
+     "pin": "A",
+     "cell": "INV_L",
+     "incr": 0.0,
+     "arrival": 0.0,
+     "rise_fall": "f",
+     "net": null
+    },
+    {
+     "inst": "_085_",
+     "pin": "Y",
+     "cell": "INV_L",
+     "incr": 10.5,
+     "arrival": 10.5,
+     "rise_fall": "r",
+     "net": "_002_"
+    },
+    {
+     "inst": "_094_",
+     "pin": "RN",
+     "cell": "DFFR_R",
+     "incr": 0.0,
+     "arrival": 10.5,
+     "rise_fall": "r",
+     "net": null
+    }
+   ]
+  },
+  {
+   "startpoint": "reset",
+   "endpoint": "_095_",
+   "path_group": "asynchronous",
+   "path_type": "min",
+   "slack": 0.5,
+   "required": 10.0,
+   "arrival": 10.5,
+   "points": [
+    {
+     "inst": "",
+     "pin": "reset",
+     "cell": null,
+     "incr": 0.0,
+     "arrival": 0.0,
+     "rise_fall": "f",
+     "net": "reset"
+    },
+    {
+     "inst": "_086_",
+     "pin": "A",
+     "cell": "INV_L",
+     "incr": 0.0,
+     "arrival": 0.0,
+     "rise_fall": "f",
+     "net": null
+    },
+    {
+     "inst": "_086_",
+     "pin": "Y",
+     "cell": "INV_L",
+     "incr": 10.5,
+     "arrival": 10.5,
+     "rise_fall": "r",
+     "net": "_001_"
+    },
+    {
+     "inst": "_095_",
+     "pin": "RN",
+     "cell": "DFFR_R",
+     "incr": 0.0,
+     "arrival": 10.5,
+     "rise_fall": "r",
+     "net": null
+    }
+   ]
+  },
+  {
+   "startpoint": "reset",
+   "endpoint": "_096_",
+   "path_group": "asynchronous",
+   "path_type": "min",
+   "slack": 0.5,
+   "required": 10.0,
+   "arrival": 10.5,
+   "points": [
+    {
+     "inst": "",
+     "pin": "reset",
+     "cell": null,
+     "incr": 0.0,
+     "arrival": 0.0,
+     "rise_fall": "f",
+     "net": "reset"
+    },
+    {
+     "inst": "_081_",
+     "pin": "A",
+     "cell": "INV_L",
+     "incr": 0.0,
+     "arrival": 0.0,
+     "rise_fall": "f",
+     "net": null
+    },
+    {
+     "inst": "_081_",
+     "pin": "Y",
+     "cell": "INV_L",
+     "incr": 10.5,
+     "arrival": 10.5,
+     "rise_fall": "r",
+     "net": "_006_"
+    },
+    {
+     "inst": "_096_",
+     "pin": "RN",
+     "cell": "DFFR_R",
+     "incr": 0.0,
+     "arrival": 10.5,
+     "rise_fall": "r",
+     "net": null
+    }
+   ]
+  }
+ ],
+ "warnings": [],
+ "netlist": null,
+ "extra": {
+  "sta_time_unit_ps": 1000.0
+ }
+}

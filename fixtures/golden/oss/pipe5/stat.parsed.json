@@ -1,0 +1,45 @@
+{
+ "schema_version": 1,
+ "tool": "yosys",
+ "top": "p5_core",
+ "period": null,
+ "corner": null,
+ "wns": null,
+ "tns": null,
+ "hold_wns": null,
+ "hold_tns": null,
+ "area_total": 2993.0,
+ "area_unit": "um^2",
+ "area_by_hier": {
+  "": 2993.0,
+  "p5_alu": 361.0,
+  "p5_hazard": 49.5,
+  "p5_regfile": 1110.5
+ },
+ "cell_count": 1148,
+ "cells_by_type": {
+  "AND2_L": 34,
+  "AOI21_L": 115,
+  "DFF_R": 183,
+  "INV_L": 56,
+  "MUX2_L": 211,
+  "NAND2_L": 240,
+  "NOR2_L": 109,
+  "OAI21_L": 125,
+  "OR2_L": 13,
+  "XNOR2_L": 27,
+  "XOR2_L": 35
+ },
+ "vt_mix": {},
+ "power": {
+  "dynamic": null,
+  "leakage": null,
+  "total": null
+ },
+ "paths": [],
+ "warnings": [],
+ "netlist": null,
+ "extra": {
+  "sequential_area": 915.0
+ }
+}

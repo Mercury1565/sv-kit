@@ -1,0 +1,613 @@
+OpenSTA 2.5.0 2e59563717 Copyright (c) 2024, Parallax Software, Inc.
+License GPLv3: GNU GPL version 3 <http://gnu.org/licenses/gpl.html>
+
+This is free software, and you are free to change and redistribute it
+under certain conditions; type `show_copying' for details. 
+This program comes with ABSOLUTELY NO WARRANTY; for details type `show_warranty'.
+@@svkit units
+ time 1ns
+ capacitance 1fF
+ resistance 1kohm
+ voltage 1v
+ current 1mA
+ power 1nW
+ distance 1um
+@@svkit clocks
+clock svkit_clk 0.500000
+@@svkit max
+Startpoint: _824_ (rising edge-triggered flip-flop clocked by svkit_clk)
+Endpoint: _852_ (rising edge-triggered flip-flop clocked by svkit_clk)
+Path Group: svkit_clk
+Path Type: max
+
+      Cap      Slew     Delay      Time   Description
+-------------------------------------------------------------------------------
+             0.0000    0.0000    0.0000   clock svkit_clk (rise edge)
+                       0.0000    0.0000   clock network delay (ideal)
+             0.0000    0.0000    0.0000 ^ _824_/CLK (DFF_R)
+  11.2000    0.0548    0.0724    0.0724 ^ _824_/Q (DFF_R)
+                                          wb_rd[2] (net)
+             0.0548    0.0000    0.0724 ^ _653_/A (XOR2_L)
+   1.2000    0.0111    0.0428    0.1152 ^ _653_/Y (XOR2_L)
+                                          _347_ (net)
+             0.0111    0.0000    0.1152 ^ _654_/B (NOR2_L)
+   1.2000    0.0111    0.0190    0.1342 v _654_/Y (NOR2_L)
+                                          _348_ (net)
+             0.0111    0.0000    0.1342 v _655_/B (NAND2_L)
+  11.2000    0.0411    0.0310    0.1652 ^ _655_/Y (NAND2_L)
+                                          _349_ (net)
+             0.0411    0.0000    0.1652 ^ _667_/S (MUX2_L)
+   1.4000    0.0117    0.0441    0.2093 ^ _667_/Y (MUX2_L)
+                                          _355_ (net)
+             0.0117    0.0000    0.2093 ^ _668_/A (MUX2_L)
+   8.1000    0.0318    0.0483    0.2576 ^ _668_/Y (MUX2_L)
+                                          fa[1] (net)
+             0.0318    0.0000    0.2576 ^ u_alu/_325_/B (XOR2_L)
+   4.1000    0.0198    0.0425    0.3001 ^ u_alu/_325_/Y (XOR2_L)
+                                          u_alu/_005_ (net)
+             0.0198    0.0000    0.3001 ^ u_alu/_327_/B (AOI21_L)
+   1.3000    0.0114    0.0239    0.3240 v u_alu/_327_/Y (AOI21_L)
+                                          u_alu/_007_ (net)
+             0.0114    0.0000    0.3240 v u_alu/_329_/B (AOI21_L)
+   2.8000    0.0159    0.0245    0.3485 ^ u_alu/_329_/Y (AOI21_L)
+                                          u_alu/_008_ (net)
+             0.0159    0.0000    0.3485 ^ u_alu/_330_/B (NOR2_L)
+   1.3000    0.0114    0.0201    0.3686 v u_alu/_330_/Y (NOR2_L)
+                                          u_alu/_009_ (net)
+             0.0114    0.0000    0.3686 v u_alu/_331_/B (AOI21_L)
+   2.8000    0.0159    0.0245    0.3931 ^ u_alu/_331_/Y (AOI21_L)
+                                          u_alu/_010_ (net)
+             0.0159    0.0000    0.3931 ^ u_alu/_332_/B (NOR2_L)
+   1.3000    0.0114    0.0201    0.4133 v u_alu/_332_/Y (NOR2_L)
+                                          u_alu/_011_ (net)
+             0.0114    0.0000    0.4133 v u_alu/_333_/B (AOI21_L)
+   2.8000    0.0159    0.0245    0.4377 ^ u_alu/_333_/Y (AOI21_L)
+                                          u_alu/_012_ (net)
+             0.0159    0.0000    0.4377 ^ u_alu/_334_/B (NOR2_L)
+   1.3000    0.0114    0.0201    0.4579 v u_alu/_334_/Y (NOR2_L)
+                                          u_alu/_013_ (net)
+             0.0114    0.0000    0.4579 v u_alu/_335_/B (AOI21_L)
+   2.9000    0.0162    0.0246    0.4825 ^ u_alu/_335_/Y (AOI21_L)
+                                          u_alu/_014_ (net)
+             0.0162    0.0000    0.4825 ^ u_alu/_336_/A2 (OAI21_L)
+   3.7000    0.0186    0.0268    0.5093 v u_alu/_336_/Y (OAI21_L)
+                                          u_alu/_015_ (net)
+             0.0186    0.0000    0.5093 v u_alu/_227_/A2 (AOI21_L)
+   2.8000    0.0159    0.0259    0.5352 ^ u_alu/_227_/Y (AOI21_L)
+                                          u_alu/_076_ (net)
+             0.0159    0.0000    0.5352 ^ u_alu/_263_/B (XOR2_L)
+   1.3000    0.0114    0.0351    0.5703 ^ u_alu/_263_/Y (XOR2_L)
+                                          u_alu/_107_ (net)
+             0.0114    0.0000    0.5703 ^ u_alu/_270_/A2 (AOI21_L)
+   1.3000    0.0114    0.0222    0.5926 v u_alu/_270_/Y (AOI21_L)
+                                          u_alu/_113_ (net)
+             0.0114    0.0000    0.5926 v u_alu/_271_/B (OAI21_L)
+   1.4000    0.0117    0.0224    0.6149 ^ u_alu/_271_/Y (OAI21_L)
+                                          ex_y[7] (net)
+             0.0117    0.0000    0.6149 ^ _699_/A (MUX2_L)
+   1.0000    0.0105    0.0376    0.6526 ^ _699_/Y (MUX2_L)
+                                          _098_ (net)
+             0.0105    0.0000    0.6526 ^ _852_/D (DFF_R)
+                                 0.6526   data arrival time
+
+             0.0000    0.5000    0.5000   clock svkit_clk (rise edge)
+                       0.0000    0.5000   clock network delay (ideal)
+                       0.0000    0.5000   clock reconvergence pessimism
+                                 0.5000 ^ _852_/CLK (DFF_R)
+                      -0.0300    0.4700   library setup time
+                                 0.4700   data required time
+-------------------------------------------------------------------------------
+                                 0.4700   data required time
+                                -0.6526   data arrival time
+-------------------------------------------------------------------------------
+                                -0.1826   slack (VIOLATED)
+
+
+Startpoint: _824_ (rising edge-triggered flip-flop clocked by svkit_clk)
+Endpoint: _851_ (rising edge-triggered flip-flop clocked by svkit_clk)
+Path Group: svkit_clk
+Path Type: max
+
+      Cap      Slew     Delay      Time   Description
+-------------------------------------------------------------------------------
+             0.0000    0.0000    0.0000   clock svkit_clk (rise edge)
+                       0.0000    0.0000   clock network delay (ideal)
+             0.0000    0.0000    0.0000 ^ _824_/CLK (DFF_R)
+  11.2000    0.0548    0.0724    0.0724 ^ _824_/Q (DFF_R)
+                                          wb_rd[2] (net)
+             0.0548    0.0000    0.0724 ^ _653_/A (XOR2_L)
+   1.2000    0.0111    0.0428    0.1152 ^ _653_/Y (XOR2_L)
+                                          _347_ (net)
+             0.0111    0.0000    0.1152 ^ _654_/B (NOR2_L)
+   1.2000    0.0111    0.0190    0.1342 v _654_/Y (NOR2_L)
+                                          _348_ (net)
+             0.0111    0.0000    0.1342 v _655_/B (NAND2_L)
+  11.2000    0.0411    0.0310    0.1652 ^ _655_/Y (NAND2_L)
+                                          _349_ (net)
+             0.0411    0.0000    0.1652 ^ _667_/S (MUX2_L)
+   1.4000    0.0117    0.0441    0.2093 ^ _667_/Y (MUX2_L)
+                                          _355_ (net)
+             0.0117    0.0000    0.2093 ^ _668_/A (MUX2_L)
+   8.1000    0.0318    0.0483    0.2576 ^ _668_/Y (MUX2_L)
+                                          fa[1] (net)
+             0.0318    0.0000    0.2576 ^ u_alu/_325_/B (XOR2_L)
+   4.1000    0.0198    0.0425    0.3001 ^ u_alu/_325_/Y (XOR2_L)
+                                          u_alu/_005_ (net)
+             0.0198    0.0000    0.3001 ^ u_alu/_327_/B (AOI21_L)
+   1.3000    0.0114    0.0239    0.3240 v u_alu/_327_/Y (AOI21_L)
+                                          u_alu/_007_ (net)
+             0.0114    0.0000    0.3240 v u_alu/_329_/B (AOI21_L)
+   2.8000    0.0159    0.0245    0.3485 ^ u_alu/_329_/Y (AOI21_L)
+                                          u_alu/_008_ (net)
+             0.0159    0.0000    0.3485 ^ u_alu/_330_/B (NOR2_L)
+   1.3000    0.0114    0.0201    0.3686 v u_alu/_330_/Y (NOR2_L)
+                                          u_alu/_009_ (net)
+             0.0114    0.0000    0.3686 v u_alu/_331_/B (AOI21_L)
+   2.8000    0.0159    0.0245    0.3931 ^ u_alu/_331_/Y (AOI21_L)
+                                          u_alu/_010_ (net)
+             0.0159    0.0000    0.3931 ^ u_alu/_332_/B (NOR2_L)
+   1.3000    0.0114    0.0201    0.4133 v u_alu/_332_/Y (NOR2_L)
+                                          u_alu/_011_ (net)
+             0.0114    0.0000    0.4133 v u_alu/_333_/B (AOI21_L)
+   2.8000    0.0159    0.0245    0.4377 ^ u_alu/_333_/Y (AOI21_L)
+                                          u_alu/_012_ (net)
+             0.0159    0.0000    0.4377 ^ u_alu/_334_/B (NOR2_L)
+   1.3000    0.0114    0.0201    0.4579 v u_alu/_334_/Y (NOR2_L)
+                                          u_alu/_013_ (net)
+             0.0114    0.0000    0.4579 v u_alu/_335_/B (AOI21_L)
+   2.9000    0.0162    0.0246    0.4825 ^ u_alu/_335_/Y (AOI21_L)
+                                          u_alu/_014_ (net)
+             0.0162    0.0000    0.4825 ^ u_alu/_336_/A2 (OAI21_L)
+   3.7000    0.0186    0.0268    0.5093 v u_alu/_336_/Y (OAI21_L)
+                                          u_alu/_015_ (net)
+             0.0186    0.0000    0.5093 v u_alu/_337_/B (AND2_L)
+   1.3000    0.0114    0.0267    0.5360 v u_alu/_337_/Y (AND2_L)
+                                          u_alu/_016_ (net)
+             0.0114    0.0000    0.5360 v u_alu/_354_/A1 (OAI21_L)
+   1.1000    0.0108    0.0219    0.5579 ^ u_alu/_354_/Y (OAI21_L)
+                                          u_alu/_031_ (net)
+             0.0108    0.0000    0.5579 ^ u_alu/_355_/B (OR2_L)
+   1.4000    0.0117    0.0283    0.5861 ^ u_alu/_355_/Y (OR2_L)
+                                          ex_y[6] (net)
+             0.0117    0.0000    0.5861 ^ _687_/A (MUX2_L)
+   1.0000    0.0105    0.0376    0.6238 ^ _687_/Y (MUX2_L)
+                                          _108_ (net)
+             0.0105    0.0000    0.6238 ^ _851_/D (DFF_R)
+                                 0.6238   data arrival time
+
+             0.0000    0.5000    0.5000   clock svkit_clk (rise edge)
+                       0.0000    0.5000   clock network delay (ideal)
+                       0.0000    0.5000   clock reconvergence pessimism
+                                 0.5000 ^ _851_/CLK (DFF_R)
+                      -0.0300    0.4700   library setup time
+                                 0.4700   data required time
+-------------------------------------------------------------------------------
+                                 0.4700   data required time
+                                -0.6238   data arrival time
+-------------------------------------------------------------------------------
+                                -0.1538   slack (VIOLATED)
+
+
+Startpoint: _824_ (rising edge-triggered flip-flop clocked by svkit_clk)
+Endpoint: _845_ (rising edge-triggered flip-flop clocked by svkit_clk)
+Path Group: svkit_clk
+Path Type: max
+
+      Cap      Slew     Delay      Time   Description
+-------------------------------------------------------------------------------
+             0.0000    0.0000    0.0000   clock svkit_clk (rise edge)
+                       0.0000    0.0000   clock network delay (ideal)
+             0.0000    0.0000    0.0000 ^ _824_/CLK (DFF_R)
+  11.2000    0.0548    0.0724    0.0724 ^ _824_/Q (DFF_R)
+                                          wb_rd[2] (net)
+             0.0548    0.0000    0.0724 ^ _653_/A (XOR2_L)
+   1.2000    0.0111    0.0428    0.1152 ^ _653_/Y (XOR2_L)
+                                          _347_ (net)
+             0.0111    0.0000    0.1152 ^ _654_/B (NOR2_L)
+   1.2000    0.0111    0.0190    0.1342 v _654_/Y (NOR2_L)
+                                          _348_ (net)
+             0.0111    0.0000    0.1342 v _655_/B (NAND2_L)
+  11.2000    0.0411    0.0310    0.1652 ^ _655_/Y (NAND2_L)
+                                          _349_ (net)
+             0.0411    0.0000    0.1652 ^ _667_/S (MUX2_L)
+   1.4000    0.0117    0.0441    0.2093 ^ _667_/Y (MUX2_L)
+                                          _355_ (net)
+             0.0117    0.0000    0.2093 ^ _668_/A (MUX2_L)
+   8.1000    0.0318    0.0483    0.2576 ^ _668_/Y (MUX2_L)
+                                          fa[1] (net)
+             0.0318    0.0000    0.2576 ^ u_alu/_325_/B (XOR2_L)
+   4.1000    0.0198    0.0425    0.3001 ^ u_alu/_325_/Y (XOR2_L)
+                                          u_alu/_005_ (net)
+             0.0198    0.0000    0.3001 ^ u_alu/_327_/B (AOI21_L)
+   1.3000    0.0114    0.0239    0.3240 v u_alu/_327_/Y (AOI21_L)
+                                          u_alu/_007_ (net)
+             0.0114    0.0000    0.3240 v u_alu/_329_/B (AOI21_L)
+   2.8000    0.0159    0.0245    0.3485 ^ u_alu/_329_/Y (AOI21_L)
+                                          u_alu/_008_ (net)
+             0.0159    0.0000    0.3485 ^ u_alu/_330_/B (NOR2_L)
+   1.3000    0.0114    0.0201    0.3686 v u_alu/_330_/Y (NOR2_L)
+                                          u_alu/_009_ (net)
+             0.0114    0.0000    0.3686 v u_alu/_331_/B (AOI21_L)
+   2.8000    0.0159    0.0245    0.3931 ^ u_alu/_331_/Y (AOI21_L)
+                                          u_alu/_010_ (net)
+             0.0159    0.0000    0.3931 ^ u_alu/_332_/B (NOR2_L)
+   1.3000    0.0114    0.0201    0.4133 v u_alu/_332_/Y (NOR2_L)
+                                          u_alu/_011_ (net)
+             0.0114    0.0000    0.4133 v u_alu/_333_/B (AOI21_L)
+   2.8000    0.0159    0.0245    0.4377 ^ u_alu/_333_/Y (AOI21_L)
+                                          u_alu/_012_ (net)
+             0.0159    0.0000    0.4377 ^ u_alu/_334_/B (NOR2_L)
+   1.3000    0.0114    0.0201    0.4579 v u_alu/_334_/Y (NOR2_L)
+                                          u_alu/_013_ (net)
+             0.0114    0.0000    0.4579 v u_alu/_335_/B (AOI21_L)
+   2.9000    0.0162    0.0246    0.4825 ^ u_alu/_335_/Y (AOI21_L)
+                                          u_alu/_014_ (net)
+             0.0162    0.0000    0.4825 ^ u_alu/_336_/A2 (OAI21_L)
+   3.7000    0.0186    0.0268    0.5093 v u_alu/_336_/Y (OAI21_L)
+                                          u_alu/_015_ (net)
+             0.0186    0.0000    0.5093 v u_alu/_227_/A2 (AOI21_L)
+   2.8000    0.0159    0.0259    0.5352 ^ u_alu/_227_/Y (AOI21_L)
+                                          u_alu/_076_ (net)
+             0.0159    0.0000    0.5352 ^ u_alu/_228_/B (NOR2_L)
+   1.3000    0.0114    0.0201    0.5553 v u_alu/_228_/Y (NOR2_L)
+                                          u_alu/_077_ (net)
+             0.0114    0.0000    0.5553 v u_alu/_243_/A1 (OAI21_L)
+   1.4000    0.0117    0.0224    0.5777 ^ u_alu/_243_/Y (OAI21_L)
+                                          ex_y[0] (net)
+             0.0117    0.0000    0.5777 ^ _698_/A (MUX2_L)
+   1.0000    0.0105    0.0376    0.6154 ^ _698_/Y (MUX2_L)
+                                          _099_ (net)
+             0.0105    0.0000    0.6154 ^ _845_/D (DFF_R)
+                                 0.6154   data arrival time
+
+             0.0000    0.5000    0.5000   clock svkit_clk (rise edge)
+                       0.0000    0.5000   clock network delay (ideal)
+                       0.0000    0.5000   clock reconvergence pessimism
+                                 0.5000 ^ _845_/CLK (DFF_R)
+                      -0.0300    0.4700   library setup time
+                                 0.4700   data required time
+-------------------------------------------------------------------------------
+                                 0.4700   data required time
+                                -0.6154   data arrival time
+-------------------------------------------------------------------------------
+                                -0.1454   slack (VIOLATED)
+
+
+Startpoint: _824_ (rising edge-triggered flip-flop clocked by svkit_clk)
+Endpoint: _804_ (rising edge-triggered flip-flop clocked by svkit_clk)
+Path Group: svkit_clk
+Path Type: max
+
+      Cap      Slew     Delay      Time   Description
+-------------------------------------------------------------------------------
+             0.0000    0.0000    0.0000   clock svkit_clk (rise edge)
+                       0.0000    0.0000   clock network delay (ideal)
+             0.0000    0.0000    0.0000 ^ _824_/CLK (DFF_R)
+  11.2000    0.0548    0.0724    0.0724 ^ _824_/Q (DFF_R)
+                                          wb_rd[2] (net)
+             0.0548    0.0000    0.0724 ^ _653_/A (XOR2_L)
+   1.2000    0.0111    0.0428    0.1152 ^ _653_/Y (XOR2_L)
+                                          _347_ (net)
+             0.0111    0.0000    0.1152 ^ _654_/B (NOR2_L)
+   1.2000    0.0111    0.0190    0.1342 v _654_/Y (NOR2_L)
+                                          _348_ (net)
+             0.0111    0.0000    0.1342 v _655_/B (NAND2_L)
+  11.2000    0.0411    0.0310    0.1652 ^ _655_/Y (NAND2_L)
+                                          _349_ (net)
+             0.0411    0.0000    0.1652 ^ _663_/S (MUX2_L)
+   1.4000    0.0117    0.0441    0.2093 ^ _663_/Y (MUX2_L)
+                                          _353_ (net)
+             0.0117    0.0000    0.2093 ^ _664_/A (MUX2_L)
+   9.3000    0.0354    0.0501    0.2594 ^ _664_/Y (MUX2_L)
+                                          fa[3] (net)
+             0.0354    0.0000    0.2594 ^ u_alu/_320_/B (XOR2_L)
+   3.9000    0.0192    0.0429    0.3023 ^ u_alu/_320_/Y (XOR2_L)
+                                          u_alu/_000_ (net)
+             0.0192    0.0000    0.3023 ^ u_alu/_249_/B (OR2_L)
+   1.2000    0.0111    0.0296    0.3320 ^ u_alu/_249_/Y (OR2_L)
+                                          u_alu/_095_ (net)
+             0.0111    0.0000    0.3320 ^ u_alu/_250_/B (NOR2_L)
+   2.5000    0.0150    0.0210    0.3530 v u_alu/_250_/Y (NOR2_L)
+                                          u_alu/_096_ (net)
+             0.0150    0.0000    0.3530 v u_alu/_251_/B (NAND2_L)
+   1.2000    0.0111    0.0168    0.3698 ^ u_alu/_251_/Y (NAND2_L)
+                                          u_alu/_097_ (net)
+             0.0111    0.0000    0.3698 ^ u_alu/_256_/B (NOR2_L)
+   1.2000    0.0111    0.0190    0.3888 v u_alu/_256_/Y (NOR2_L)
+                                          u_alu/_101_ (net)
+             0.0111    0.0000    0.3888 v u_alu/_257_/B (NAND2_L)
+   1.2000    0.0111    0.0160    0.4048 ^ u_alu/_257_/Y (NAND2_L)
+                                          u_alu/_102_ (net)
+             0.0111    0.0000    0.4048 ^ u_alu/_258_/B (NAND2_L)
+   1.2000    0.0111    0.0160    0.4208 v u_alu/_258_/Y (NAND2_L)
+                                          ex_take (net)
+             0.0111    0.0000    0.4208 v _559_/B (NAND2_L)
+  14.9000    0.0522    0.0366    0.4574 ^ _559_/Y (NAND2_L)
+                                          _144_ (net)
+             0.0522    0.0000    0.4574 ^ _399_/A (NAND2_L)
+  35.0000    0.1125    0.0749    0.5323 v _399_/Y (NAND2_L)
+                                          _196_ (net)
+             0.1125    0.0000    0.5323 v _585_/A (MUX2_L)
+   1.3000    0.0114    0.0583    0.5906 v _585_/Y (MUX2_L)
+                                          _298_ (net)
+             0.0114    0.0000    0.5906 v _586_/A2 (AOI21_L)
+   1.0000    0.0105    0.0218    0.6124 ^ _586_/Y (AOI21_L)
+                                          _011_ (net)
+             0.0105    0.0000    0.6124 ^ _804_/D (DFF_R)
+                                 0.6124   data arrival time
+
+             0.0000    0.5000    0.5000   clock svkit_clk (rise edge)
+                       0.0000    0.5000   clock network delay (ideal)
+                       0.0000    0.5000   clock reconvergence pessimism
+                                 0.5000 ^ _804_/CLK (DFF_R)
+                      -0.0300    0.4700   library setup time
+                                 0.4700   data required time
+-------------------------------------------------------------------------------
+                                 0.4700   data required time
+                                -0.6124   data arrival time
+-------------------------------------------------------------------------------
+                                -0.1424   slack (VIOLATED)
+
+
+Startpoint: _824_ (rising edge-triggered flip-flop clocked by svkit_clk)
+Endpoint: _808_ (rising edge-triggered flip-flop clocked by svkit_clk)
+Path Group: svkit_clk
+Path Type: max
+
+      Cap      Slew     Delay      Time   Description
+-------------------------------------------------------------------------------
+             0.0000    0.0000    0.0000   clock svkit_clk (rise edge)
+                       0.0000    0.0000   clock network delay (ideal)
+             0.0000    0.0000    0.0000 ^ _824_/CLK (DFF_R)
+  11.2000    0.0548    0.0724    0.0724 ^ _824_/Q (DFF_R)
+                                          wb_rd[2] (net)
+             0.0548    0.0000    0.0724 ^ _653_/A (XOR2_L)
+   1.2000    0.0111    0.0428    0.1152 ^ _653_/Y (XOR2_L)
+                                          _347_ (net)
+             0.0111    0.0000    0.1152 ^ _654_/B (NOR2_L)
+   1.2000    0.0111    0.0190    0.1342 v _654_/Y (NOR2_L)
+                                          _348_ (net)
+             0.0111    0.0000    0.1342 v _655_/B (NAND2_L)
+  11.2000    0.0411    0.0310    0.1652 ^ _655_/Y (NAND2_L)
+                                          _349_ (net)
+             0.0411    0.0000    0.1652 ^ _663_/S (MUX2_L)
+   1.4000    0.0117    0.0441    0.2093 ^ _663_/Y (MUX2_L)
+                                          _353_ (net)
+             0.0117    0.0000    0.2093 ^ _664_/A (MUX2_L)
+   9.3000    0.0354    0.0501    0.2594 ^ _664_/Y (MUX2_L)
+                                          fa[3] (net)
+             0.0354    0.0000    0.2594 ^ u_alu/_320_/B (XOR2_L)
+   3.9000    0.0192    0.0429    0.3023 v u_alu/_320_/Y (XOR2_L)
+                                          u_alu/_000_ (net)
+             0.0192    0.0000    0.3023 v u_alu/_249_/B (OR2_L)
+   1.2000    0.0111    0.0296    0.3320 v u_alu/_249_/Y (OR2_L)
+                                          u_alu/_095_ (net)
+             0.0111    0.0000    0.3320 v u_alu/_250_/B (NOR2_L)
+   2.5000    0.0150    0.0210    0.3530 ^ u_alu/_250_/Y (NOR2_L)
+                                          u_alu/_096_ (net)
+             0.0150    0.0000    0.3530 ^ u_alu/_251_/B (NAND2_L)
+   1.2000    0.0111    0.0168    0.3698 v u_alu/_251_/Y (NAND2_L)
+                                          u_alu/_097_ (net)
+             0.0111    0.0000    0.3698 v u_alu/_256_/B (NOR2_L)
+   1.2000    0.0111    0.0190    0.3888 ^ u_alu/_256_/Y (NOR2_L)
+                                          u_alu/_101_ (net)
+             0.0111    0.0000    0.3888 ^ u_alu/_257_/B (NAND2_L)
+   1.2000    0.0111    0.0160    0.4048 v u_alu/_257_/Y (NAND2_L)
+                                          u_alu/_102_ (net)
+             0.0111    0.0000    0.4048 v u_alu/_258_/B (NAND2_L)
+   1.2000    0.0111    0.0160    0.4208 ^ u_alu/_258_/Y (NAND2_L)
+                                          ex_take (net)
+             0.0111    0.0000    0.4208 ^ _559_/B (NAND2_L)
+  14.9000    0.0522    0.0366    0.4574 v _559_/Y (NAND2_L)
+                                          _144_ (net)
+             0.0522    0.0000    0.4574 v _570_/A (INV_L)
+  11.4000    0.0417    0.0365    0.4939 ^ _570_/Y (INV_L)
+                                          flush_branch (net)
+             0.0417    0.0000    0.4939 ^ _398_/A (NOR2_L)
+   9.8000    0.0369    0.0380    0.5320 v _398_/Y (NOR2_L)
+                                          _195_ (net)
+             0.0369    0.0000    0.5320 v _614_/A1 (AOI21_L)
+   1.3000    0.0114    0.0273    0.5593 ^ _614_/Y (AOI21_L)
+                                          _321_ (net)
+             0.0114    0.0000    0.5593 ^ _616_/B (OAI21_L)
+   1.3000    0.0114    0.0222    0.5815 v _616_/Y (OAI21_L)
+                                          _322_ (net)
+             0.0114    0.0000    0.5815 v _617_/B (AOI21_L)
+   1.0000    0.0105    0.0218    0.6033 ^ _617_/Y (AOI21_L)
+                                          _007_ (net)
+             0.0105    0.0000    0.6033 ^ _808_/D (DFF_R)
+                                 0.6033   data arrival time
+
+             0.0000    0.5000    0.5000   clock svkit_clk (rise edge)
+                       0.0000    0.5000   clock network delay (ideal)
+                       0.0000    0.5000   clock reconvergence pessimism
+                                 0.5000 ^ _808_/CLK (DFF_R)
+                      -0.0300    0.4700   library setup time
+                                 0.4700   data required time
+-------------------------------------------------------------------------------
+                                 0.4700   data required time
+                                -0.6033   data arrival time
+-------------------------------------------------------------------------------
+                                -0.1333   slack (VIOLATED)
+
+
+@@svkit min
+Startpoint: reset (input port clocked by svkit_clk)
+Endpoint: _812_ (rising edge-triggered flip-flop clocked by svkit_clk)
+Path Group: svkit_clk
+Path Type: min
+
+      Cap      Slew     Delay      Time   Description
+-------------------------------------------------------------------------------
+             0.0000    0.0000    0.0000   clock svkit_clk (rise edge)
+                       0.0000    0.0000   clock network delay (ideal)
+                       0.0000    0.0000 v input external delay
+  97.2001    0.0000    0.0000    0.0000 v reset (in)
+                                          reset (net)
+             0.0000    0.0000    0.0000 v _456_/A (NOR2_L)
+   1.0000    0.0105    0.0165    0.0165 ^ _456_/Y (NOR2_L)
+                                          _066_ (net)
+             0.0105    0.0000    0.0165 ^ _812_/D (DFF_R)
+                                 0.0165   data arrival time
+
+             0.0000    0.0000    0.0000   clock svkit_clk (rise edge)
+                       0.0000    0.0000   clock network delay (ideal)
+                       0.0000    0.0000   clock reconvergence pessimism
+                                 0.0000 ^ _812_/CLK (DFF_R)
+                       0.0100    0.0100   library hold time
+                                 0.0100   data required time
+-------------------------------------------------------------------------------
+                                 0.0100   data required time
+                                -0.0165   data arrival time
+-------------------------------------------------------------------------------
+                                 0.0065   slack (MET)
+
+
+Startpoint: reset (input port clocked by svkit_clk)
+Endpoint: _770_ (rising edge-triggered flip-flop clocked by svkit_clk)
+Path Group: svkit_clk
+Path Type: min
+
+      Cap      Slew     Delay      Time   Description
+-------------------------------------------------------------------------------
+             0.0000    0.0000    0.0000   clock svkit_clk (rise edge)
+                       0.0000    0.0000   clock network delay (ideal)
+                       0.0000    0.0000 v input external delay
+  97.2001    0.0000    0.0000    0.0000 v reset (in)
+                                          reset (net)
+             0.0000    0.0000    0.0000 v _514_/A1 (AOI21_L)
+   1.0000    0.0105    0.0195    0.0195 ^ _514_/Y (AOI21_L)
+                                          _038_ (net)
+             0.0105    0.0000    0.0195 ^ _770_/D (DFF_R)
+                                 0.0195   data arrival time
+
+             0.0000    0.0000    0.0000   clock svkit_clk (rise edge)
+                       0.0000    0.0000   clock network delay (ideal)
+                       0.0000    0.0000   clock reconvergence pessimism
+                                 0.0000 ^ _770_/CLK (DFF_R)
+                       0.0100    0.0100   library hold time
+                                 0.0100   data required time
+-------------------------------------------------------------------------------
+                                 0.0100   data required time
+                                -0.0195   data arrival time
+-------------------------------------------------------------------------------
+                                 0.0095   slack (MET)
+
+
+Startpoint: reset (input port clocked by svkit_clk)
+Endpoint: _804_ (rising edge-triggered flip-flop clocked by svkit_clk)
+Path Group: svkit_clk
+Path Type: min
+
+      Cap      Slew     Delay      Time   Description
+-------------------------------------------------------------------------------
+             0.0000    0.0000    0.0000   clock svkit_clk (rise edge)
+                       0.0000    0.0000   clock network delay (ideal)
+                       0.0000    0.0000 v input external delay
+  97.2001    0.0000    0.0000    0.0000 v reset (in)
+                                          reset (net)
+             0.0000    0.0000    0.0000 v _586_/B (AOI21_L)
+   1.0000    0.0105    0.0195    0.0195 ^ _586_/Y (AOI21_L)
+                                          _011_ (net)
+             0.0105    0.0000    0.0195 ^ _804_/D (DFF_R)
+                                 0.0195   data arrival time
+
+             0.0000    0.0000    0.0000   clock svkit_clk (rise edge)
+                       0.0000    0.0000   clock network delay (ideal)
+                       0.0000    0.0000   clock reconvergence pessimism
+                                 0.0000 ^ _804_/CLK (DFF_R)
+                       0.0100    0.0100   library hold time
+                                 0.0100   data required time
+-------------------------------------------------------------------------------
+                                 0.0100   data required time
+                                -0.0195   data arrival time
+-------------------------------------------------------------------------------
+                                 0.0095   slack (MET)
+
+
+Startpoint: reset (input port clocked by svkit_clk)
+Endpoint: _741_ (rising edge-triggered flip-flop clocked by svkit_clk)
+Path Group: svkit_clk
+Path Type: min
+
+      Cap      Slew     Delay      Time   Description
+-------------------------------------------------------------------------------
+             0.0000    0.0000    0.0000   clock svkit_clk (rise edge)
+                       0.0000    0.0000   clock network delay (ideal)
+                       0.0000    0.0000 ^ input external delay
+  97.2001    0.0000    0.0000    0.0000 ^ reset (in)
+                                          reset (net)
+             0.0000    0.0000    0.0000 ^ _464_/A (NAND2_L)
+   1.2000    0.0111    0.0138    0.0138 v _464_/Y (NAND2_L)
+                                          _245_ (net)
+             0.0111    0.0000    0.0138 v _466_/A (NAND2_L)
+   1.0000    0.0105    0.0157    0.0295 ^ _466_/Y (NAND2_L)
+                                          _063_ (net)
+             0.0105    0.0000    0.0295 ^ _741_/D (DFF_R)
+                                 0.0295   data arrival time
+
+             0.0000    0.0000    0.0000   clock svkit_clk (rise edge)
+                       0.0000    0.0000   clock network delay (ideal)
+                       0.0000    0.0000   clock reconvergence pessimism
+                                 0.0000 ^ _741_/CLK (DFF_R)
+                       0.0100    0.0100   library hold time
+                                 0.0100   data required time
+-------------------------------------------------------------------------------
+                                 0.0100   data required time
+                                -0.0295   data arrival time
+-------------------------------------------------------------------------------
+                                 0.0195   slack (MET)
+
+
+Startpoint: reset (input port clocked by svkit_clk)
+Endpoint: _742_ (rising edge-triggered flip-flop clocked by svkit_clk)
+Path Group: svkit_clk
+Path Type: min
+
+      Cap      Slew     Delay      Time   Description
+-------------------------------------------------------------------------------
+             0.0000    0.0000    0.0000   clock svkit_clk (rise edge)
+                       0.0000    0.0000   clock network delay (ideal)
+                       0.0000    0.0000 ^ input external delay
+  97.2001    0.0000    0.0000    0.0000 ^ reset (in)
+                                          reset (net)
+             0.0000    0.0000    0.0000 ^ _467_/A (NAND2_L)
+   1.2000    0.0111    0.0138    0.0138 v _467_/Y (NAND2_L)
+                                          _247_ (net)
+             0.0111    0.0000    0.0138 v _469_/A (NAND2_L)
+   1.0000    0.0105    0.0157    0.0295 ^ _469_/Y (NAND2_L)
+                                          _062_ (net)
+             0.0105    0.0000    0.0295 ^ _742_/D (DFF_R)
+                                 0.0295   data arrival time
+
+             0.0000    0.0000    0.0000   clock svkit_clk (rise edge)
+                       0.0000    0.0000   clock network delay (ideal)
+                       0.0000    0.0000   clock reconvergence pessimism
+                                 0.0000 ^ _742_/CLK (DFF_R)
+                       0.0100    0.0100   library hold time
+                                 0.0100   data required time
+-------------------------------------------------------------------------------
+                                 0.0100   data required time
+                                -0.0295   data arrival time
+-------------------------------------------------------------------------------
+                                 0.0195   slack (MET)
+
+
+@@svkit summary
+worst slack -0.1826
+tns -4.9550
+@@svkit summary_min
+worst slack 0.0065
+@@svkit power
+Group                  Internal  Switching    Leakage      Total
+                          Power      Power      Power      Power (Watts)
+----------------------------------------------------------------
+Sequential           1.0980e-03 1.1149e-04 9.1500e-07 1.2104e-03  67.4%
+Combinational        3.5578e-04 2.1820e-04 1.2352e-05 5.8633e-04  32.6%
+Clock                0.0000e+00 0.0000e+00 0.0000e+00 0.0000e+00   0.0%
+Macro                0.0000e+00 0.0000e+00 0.0000e+00 0.0000e+00   0.0%
+Pad                  0.0000e+00 0.0000e+00 0.0000e+00 0.0000e+00   0.0%
+----------------------------------------------------------------
+Total                1.4538e-03 3.2968e-04 1.3267e-05 1.7967e-03 100.0%
+                          80.9%      18.3%       0.7%
+@@svkit end

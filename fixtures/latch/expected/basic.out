@@ -1,0 +1,17 @@
+@2 load=1 data=03 q=00
+@3 load=0 data=24 q=05
+@4 load=0 data=45 q=05
+@5 load=0 data=66 q=05
+@6 load=1 data=87 q=05
+@7 load=0 data=a8 q=88
+@8 load=0 data=c9 q=88
+@9 load=0 data=ea q=88
+@10 load=1 data=0b q=88
+@11 load=0 data=2c q=1d
+@12 load=0 data=4d q=1d
+@13 load=0 data=6e q=1d
+@14 load=1 data=8f q=1d
+@15 load=0 data=b0 q=90
+@16 load=0 data=d1 q=90
+@17 load=0 data=f2 q=90
+done

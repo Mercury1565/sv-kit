@@ -1,0 +1,21 @@
+{
+  "fixture": "counter",
+  "flow": "yosys+opensta",
+  "library": "svkit_tiny (tt)",
+  "default_clock_period_ps": 2000,
+  "t_min_note": "tightest integer clock_period (ps) with setup WNS >= 0 and hold WNS >= 0; abc -D follows the period; pass/fail was monotonic over 50..2000 ps",
+  "t_min_ps": 241,
+  "area_total": 128.5,
+  "cell_count": 55,
+  "wns_at_default_ps": 1759.3,
+  "power_total_mw": 0.017357,
+  "vt_mix": {
+    "LVT": 46,
+    "RVT": 9
+  },
+  "tests": {
+    "basic": "passed",
+    "enable": "passed",
+    "clear": "passed"
+  }
+}
