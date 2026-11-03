@@ -30,6 +30,21 @@ def _tcl_list(items) -> str:
     return " ".join("{" + str(i) + "}" for i in items)
 
 
+_SIGNED_DECL = re.compile(r"^(\s*(?:input|output|inout|wire|reg)\s+)signed\s+", re.M)
+
+
+def sta_netlist(netlist: Path, workdir: Path) -> Path:
+    """OpenSTA's Verilog reader rejects `signed` in declarations, which yosys writes for signed
+    ports. Signedness has no meaning in a gate netlist, so STA reads a copy without it."""
+    text = netlist.read_text(errors="replace")
+    clean = _SIGNED_DECL.sub(r"\1", text)
+    if clean == text:
+        return netlist
+    out = workdir / f"{netlist.stem}.sta.v"
+    out.write_text(clean)
+    return out
+
+
 def build_tcl(*, liberty: list[Path], netlist: Path, top: str, clock: str, period_lib: Optional[float],
               sdc: Optional[Path], max_paths: int) -> str:
     """The STA script. `period_lib` is in the LIBRARY time unit (None = keep the SDC's clock)."""
@@ -283,6 +298,7 @@ class OpenStaAdapter(StaAdapter):
                 ctx.log(f"[svkit] no clock_period knob and no SDC: using {DEFAULT_PERIOD_PS:g} ps")
                 period_ps = DEFAULT_PERIOD_PS
             period_lib = _period_or_default(period_lib, unit_ps)
+        netlist = sta_netlist(netlist, ctx.workdir)
         tcl = build_tcl(liberty=liberty, netlist=netlist, top=top, clock=cfg.project.clock,
                         period_lib=period_lib, sdc=sdc, max_paths=max(1, flow.max_paths))
         script = ctx.workdir / "svkit_sta.tcl"

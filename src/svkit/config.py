@@ -145,6 +145,9 @@ class Flows(_M):
     sta: dict[str, StaFlow] = Field(default_factory=dict)
     default_sim: Optional[str] = None     # adapter name; default = first defined
     default_synth: Optional[str] = None
+    # When a flow's tools are missing on this host, run the closest open-source equivalent
+    # (another configured flow, the vcs->Verilator shim, or a builtin yosys+opensta flow).
+    fallback: bool = True
 
 
 # ------------------------------------------------------------------ knobs

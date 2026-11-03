@@ -25,7 +25,7 @@ from svkit.core import knobs as K
 from svkit.core import project as P
 from svkit.core.events import EventBus
 from svkit.core.rundb import RunDB
-from svkit.core.runner import Runner, run_summary
+from svkit.core.runner import Runner, run_summary, backends
 
 STATIC = Path(__file__).parent / "static"
 FEATURE_ROUTERS = ("routes_analysis", "routes_waves", "routes_design")
@@ -65,7 +65,7 @@ def create_app(cfg: Config) -> FastAPI:
                 "git_sha": sha, "git_dirty": dirty,
                 "flows": {"sim": list(cfg.flows.sim), "synth": list(cfg.flows.synth), "sta": list(cfg.flows.sta)},
                 "knobs": list(cfg.knobs), "experiments": list(cfg.experiments), "tests": tests,
-                "adapters": adapters}
+                "adapters": adapters, "backends": backends(cfg)}
 
     # ------------------------------------------------------------ runs
     def _run(rid: str):

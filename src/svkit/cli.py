@@ -70,6 +70,7 @@ def sim(test: Optional[str] = typer.Argument(None), all_: bool = typer.Option(Fa
     """Run one test or all tests; records one Run per test."""
     cfg = _cfg()
     r = _runner(cfg)
+    _fallback_note(r, "sim", flow)
     try:
         if all_:
             gid, runs = r.sim_all(flow=flow, jobs=jobs, use_cache=not no_cache)
@@ -89,6 +90,17 @@ def sim(test: Optional[str] = typer.Argument(None), all_: bool = typer.Option(Fa
     raise typer.Exit(EXIT_FAIL if bad else 0)
 
 
+def _fallback_note(r, kind: str, flow: Optional[str]) -> None:
+    """Say once, up front, when svkit runs an open-source stand-in for a missing tool."""
+    from svkit.core.runner import resolve_sim, resolve_synth
+    try:
+        rs = (resolve_sim if kind == "sim" else resolve_synth)(r.cfg, flow)
+    except ConfigError:
+        return
+    if rs.note:
+        typer.secho(f"note: {rs.note}", fg="yellow", err=True)
+
+
 @app.command()
 def synth(flow: Optional[str] = typer.Option(None), set_: List[str] = typer.Option([], "--set"),
           exp: Optional[str] = typer.Option(None), matrix: bool = typer.Option(False),
@@ -97,6 +109,7 @@ def synth(flow: Optional[str] = typer.Option(None), set_: List[str] = typer.Opti
     from svkit.core import knobs as K
     cfg = _cfg()
     r = _runner(cfg)
+    _fallback_note(r, "synth", flow)
     try:
         if matrix:
             gid, runs = r.matrix(flow=flow, jobs=jobs, use_cache=not no_cache)

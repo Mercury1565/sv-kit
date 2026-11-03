@@ -350,3 +350,6 @@ button.link:hover { text-decoration: underline; }
   padding: 8px 10px; white-space: pre-wrap; overflow-wrap: anywhere;
   border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--bg-raised); color: var(--fg);
 }
+
+.fallback-chip { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 10px;
+  border: 1px solid var(--border-strong); color: var(--fg); white-space: nowrap; cursor: help; }

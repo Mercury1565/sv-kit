@@ -45,6 +45,7 @@ And the follow-up:
 | 18 | MVP simulators | **VCS + Verilator**; Icarus after the MVP | Confirmed |
 | 19 | Golden-diff jump: line → sim time | `golden.time_regex` captures a time (or cycle, `time_unit = "cycle"`) from the first mismatching actual line | Decided (lead, iter 1) |
 | 20 | Liberty for the open-source fixtures | An original toy library `fixtures/lib/svkit_tiny.lib` (with `_R`/`_L` Vt variants), so results are deterministic and redistributable | Decided (lead, iter 1) |
+| 21 | Missing tools on the host | Automatic open-source fallback (other configured flow → `vcs` stand-in on Verilator → builtin Yosys + OpenSTA), labelled on every run; `[flows].fallback = false` turns it off | Decided (lead, iter 3) |
 
 ## 3. Development environment findings (CAEN Linux, RHEL 9)
 

@@ -51,6 +51,7 @@ Summary:
 | `[flows.sim.<adapter>]` | `mode = "wrap"` (run `cmd`, the user's build) or `"builtin"` (adapter compiles sources). `waves`, `log`, `golden`, `tests`, `pass_regex`, `fail_regex`, `isolate` |
 | `[flows.synth.<adapter>]` | `mode`, `cmd`, `script` (user's TCL/ys), `reports`, `netlist`, `log`, `license_seats`, `sta` (name of an STA flow), `append_before` (anchor regex for experiment `tcl_append`) |
 | `[flows.sta.<adapter>]` | `mode`, `sdc`, `max_paths` |
+| `[flows]` | `default_sim`, `default_synth`, `fallback` (default `true`: run open-source stand-ins when a flow's tools are missing, §2.1a) |
 | `[knobs]` | `name = { <mechanism> = ..., unit?, format?, default?, applies_to? }` |
 | `[experiments]` | `name = { knob = value, ..., tcl_append? = "...", env? = {...} }` |
 | `[perf]` | `source = { regex_file, cycles, instrs, stalls? }` |
@@ -66,6 +67,35 @@ Summary:
 * **builtin**: the adapter invokes the tool directly with `[project]` sources in an isolated work dir
   (useful for projects with no build, and for the fixtures). svkit never writes build scripts into
   the user's repo (decision #11 interpretation: "wrap only" = never generate *the user's* build files).
+
+### 2.1a Missing tools: open-source fallback (`svkit.compat`, decision #21)
+`Runner` resolves the flow a job really runs (`resolve_sim` / `resolve_synth`), unless
+`[flows].fallback = false`:
+1. The flow's tools are on PATH: run it.
+2. No `--flow` given: the first other configured flow whose tools are present.
+3. A VCS **wrap** flow: run the user's own command with `.svkit/shims/bin/vcs` first on PATH. That
+   stand-in (`svkit.compat.vcs_shim`) translates the vcs command line into `verilator --binary`.
+   - It handles sources, `-f`, `+define+`, `+incdir+`, `-top`, `-timescale` and `-o`. DPI `.c`
+     files are compiled with the C compiler.
+   - VCS-only dump tasks (`$vcdplus*`, `$fsdb*`) are rewritten to `$dump*` in private copies of the
+     sources.
+   - `vcs -vpd2vcd` copies the (already VCD) dump.
+   - A VCS builtin flow uses the Verilator adapter.
+4. A DC flow: builtin Yosys + OpenSTA on `[library].liberty`, else on the packaged generic demo
+   library (`svkit/data/svkit_tiny.lib`).
+
+Every such run:
+- records the backend actually used as `Run.adapter`;
+- carries an info warning `FALLBACK` (and `SynthResult.extra.fallback`);
+- has its own cache key.
+
+`GET /api/project` returns `backends` (what each kind runs on this host). The CLI prints a note.
+
+Working open-source tools are located on PATH and in common user install dirs (`~/tools/bin`,
+`~/tools/oss-cad-suite/bin`, `$SVKIT_TOOL_PATH`, …). For Verilator, version 5+ is required, and a
+stale `VERILATOR_ROOT` is ignored. Wrap commands whose Makefile sets
+`SHELL := $(SHELL) <bash opts>` get `MAKEFLAGS=SHELL=<bash wrapper>` on hosts where /bin/sh is not
+bash.
 
 ### 2.2 Isolation
 Synthesis runs always execute in `.svkit/work/<run_id>/`, a full **copy** (not hard links) of the

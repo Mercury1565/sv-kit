@@ -31,7 +31,7 @@ svkit = "svkit.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-svkit = ["server/static/**/*", "adapters/**/*.tcl", "adapters/**/*.ys"]
+svkit = ["server/static/**/*", "data/*.lib", "adapters/**/*.tcl", "adapters/**/*.ys"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -209,6 +209,7 @@ def test_vpd_without_converter(wrap_project, monkeypatch, tmp_path):
     monkeypatch.setenv("PATH", "/usr/bin:/bin")                    # no vcs, no vpd2vcd
     monkeypatch.setenv("SVKIT_LOCK_DIR", str(tmp_path / "locks"))
     cfg = C.load(wrap_project)
+    cfg.flows.fallback = False       # this test is about the missing converter, not the vcs fallback
     assert V.vpd_converter(cfg) is None
     run = Runner(cfg).sim("good", use_cache=False)
     assert run.status == "passed" and run.metrics["waves"] is None

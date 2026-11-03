@@ -214,6 +214,15 @@ export interface Project {
   experiments: string[];
   tests: string[];
   adapters: Record<string, boolean>;
+  /** What sim / synth run on this host when no flow is named (after tool fallback). */
+  backends?: Partial<Record<"sim" | "synth", Backend>>;
+}
+
+export interface Backend {
+  flow: string;
+  runs_on: string;
+  note?: string | null;
+  available: boolean;
 }
 
 export type JobKind = "sim" | "sim-all" | "synth" | "matrix" | "sweep";

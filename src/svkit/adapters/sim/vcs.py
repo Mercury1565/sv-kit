@@ -26,6 +26,7 @@ import re
 import shutil
 import threading
 import time
+from contextlib import nullcontext
 from pathlib import Path
 from typing import Any, Optional
 
@@ -132,6 +133,16 @@ def vcd_timescale_ps(path: Path) -> Optional[float]:
     return int(m.group(1)) * _TIME_PS[m.group(2)] if m else None
 
 
+def is_vcd_text(path: Path) -> bool:
+    """True when the file is a text VCD (whatever its extension)."""
+    try:
+        with open(path, "rb") as fh:
+            head = fh.read(256).lstrip()
+    except OSError:
+        return False
+    return head.startswith((b"$date", b"$version", b"$timescale", b"$comment", b"$scope", b"$var"))
+
+
 # ================================================================ adapter
 class VcsAdapter(SimAdapter):
     name = "vcs"
@@ -139,10 +150,11 @@ class VcsAdapter(SimAdapter):
 
     def run(self, ctx: RunContext, flow: SimFlow, test: str) -> SimResult:
         cwd = ctx.workdir / flow.cwd
-        res = SimResult(tool="vcs", test=test)
+        shimmed = ctx.env.get("SVKIT_VCS_SHIM") == "1"     # svkit.compat: Verilator stands in for vcs
+        res = SimResult(tool="verilator" if shimmed else "vcs", test=test)
         prepare_outputs(ctx, flow, test, cwd)
         t0 = time.time()
-        with synopsys_seat(ctx.cancel, ctx.log):
+        with (nullcontext() if shimmed else synopsys_seat(ctx.cancel, ctx.log)):
             if flow.mode == "builtin":
                 rc, stdout_log, compile_fail = self._run_builtin(ctx, flow, test, cwd, res)
             else:
@@ -311,6 +323,11 @@ class VcsAdapter(SimAdapter):
     # ------------------------------------------------------------ waves
     def _waves(self, ctx: RunContext, flow: SimFlow, test: str, cwd: Path, t0: float, res: SimResult) -> None:
         src = self._path(cwd, flow.waves, ctx, test)
+        if src is not None and not src.is_file():
+            # the configured name may not match what the TB writes (e.g. waves = x.vcd, TB dumps x.vpd)
+            sib = [src.with_suffix(e) for e in (".vcd", ".fst", ".vpd", ".fsdb") if src.with_suffix(e).is_file()]
+            if sib:
+                src = max(sib, key=lambda p: p.stat().st_mtime)
         if src is None and flow.mode == "builtin":
             cands = [p for ext in ("*.vcd", "*.fst", "*.vpd", "*.fsdb") for p in cwd.glob(ext) if _fresh(p, t0)]
             src = max(cands, key=lambda p: p.stat().st_mtime) if cands else None
@@ -333,6 +350,11 @@ class VcsAdapter(SimAdapter):
                                          + ("linked, not copied" if res.waves else "not archived")))
             return
         suf = src.suffix.lower()
+        shimmed = ctx.env.get("SVKIT_VCS_SHIM") == "1"
+        if suf in (".vpd", ".fsdb") and shimmed and is_vcd_text(src):
+            suf = ".vcd"        # a VCD under a VPD name (written by a VCD-only simulator)
+            res.waves = ctx.keep(src, "waves.vcd")
+            return
         if suf in (".vcd", ".fst"):
             res.waves = ctx.keep(src, f"waves{suf}")
         elif suf in (".vpd", ".fsdb"):

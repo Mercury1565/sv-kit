@@ -1,3 +1,4 @@
+import type { Project } from "./api/types";
 import { lazy, Suspense, useEffect, type ReactNode } from "react";
 import { isMock } from "./api/client";
 import { mockDataset } from "./api/dataset";
@@ -52,6 +53,7 @@ function Header() {
         )}
       </div>
       <div className="header-right">
+        {project?.backends && <BackendChips backends={project.backends} />}
         <span className="live" title={running ? jobs.filter((j) => j.status === "running").map((j) => `${j.job_id} ${j.kind}`).join("\n") : "no running jobs"}>
           <span className={`dot ${running ? "busy" : ""}`} />
           <span className="lbl">{running ? `${running} job${running === 1 ? "" : "s"} running` : "idle"}</span>
@@ -62,6 +64,25 @@ function Header() {
         </span>
       </div>
     </header>
+  );
+}
+
+/** "sim: verilator (vcs missing)" — shown only when a flow falls back to an open-source tool. */
+export function BackendChips({ backends }: { backends: NonNullable<Project["backends"]> }) {
+  const items = (["sim", "synth"] as const).flatMap((k) => {
+    const b = backends[k];
+    return b && b.note ? [{ k, b }] : [];
+  });
+  if (!items.length) return null;
+  return (
+    <>
+      {items.map(({ k, b }) => (
+        <span key={k} className="fallback-chip small" title={b.note ?? undefined}>
+          {k}: {b.runs_on}
+          <span className="muted"> ({b.flow} not found)</span>
+        </span>
+      ))}
+    </>
   );
 }
 
