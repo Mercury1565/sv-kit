@@ -15,7 +15,7 @@ import uuid
 from pathlib import Path
 from typing import Any, Optional
 
-from fastapi import APIRouter, Body, FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Body, FastAPI, HTTPException, Query, Response, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, JSONResponse
 
 from svkit import __version__
@@ -75,11 +75,12 @@ def create_app(cfg: Config) -> FastAPI:
             raise HTTPException(404, f"no run {rid}")
 
     @api.get("/runs")
-    def runs(kind: Optional[str] = None, group: Optional[str] = None, status: Optional[str] = None,
-             test: Optional[str] = None, tag: Optional[str] = None,
+    def runs(response: Response, kind: Optional[str] = None, group: Optional[str] = None,
+             status: Optional[str] = None, test: Optional[str] = None, tag: Optional[str] = None,
              limit: int = Query(200, le=5000), offset: int = 0) -> list[dict[str, Any]]:
-        return [run_summary(r) for r in st.db.list_runs(kind=kind, group_id=group, status=status, test=test,
-                                                         tag=tag, limit=limit, offset=offset)]
+        flt = dict(kind=kind, group_id=group, status=status, test=test, tag=tag)
+        response.headers["X-Total-Count"] = str(st.db.count_runs(**flt))
+        return [run_summary(r) for r in st.db.list_runs(**flt, limit=limit, offset=offset)]
 
     @api.get("/runs/{rid}")
     def run(rid: str) -> dict[str, Any]:

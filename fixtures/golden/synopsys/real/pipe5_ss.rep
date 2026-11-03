@@ -1,0 +1,1050 @@
+Information: Updating design information... (UID-85)
+ 
+****************************************
+Report : design
+Design : p5_core
+Version: V-2023.12-SP5
+Date   : Mon Nov  2 22:14:18 2026
+****************************************
+
+Design allows ideal nets on clock nets.
+
+Library(s) Used:
+
+    asap7sc7p5t_INVBUF_RVT_SS_ccs_211120 (File: /path/to/libs/asap7sc7p5t_INVBUF_RVT_SS_ccs_220122.db)
+    asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120 (File: /path/to/libs/asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120.db)
+    asap7sc7p5t_OA_RVT_SS_ccs_211120 (File: /path/to/libs/asap7sc7p5t_OA_RVT_SS_ccs_211120.db)
+    asap7sc7p5t_AO_RVT_SS_ccs_211120 (File: /path/to/libs/asap7sc7p5t_AO_RVT_SS_ccs_211120.db)
+    asap7sc7p5t_SEQ_RVT_SS_ccs_220123 (File: /path/to/libs/asap7sc7p5t_SEQ_RVT_SS_ccs_220123.db)
+
+Local Link Library:
+
+    {/path/to/libs/asap7sc7p5t_AO_RVT_SS_ccs_211120.db, /path/to/libs/asap7sc7p5t_INVBUF_RVT_SS_ccs_220122.db, /path/to/libs/asap7sc7p5t_OA_RVT_SS_ccs_211120.db, /path/to/libs/asap7sc7p5t_SEQ_RVT_SS_ccs_220123.db, /path/to/libs/asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120.db}
+
+Flip-Flop Types:
+
+    No flip-flop types specified.
+
+Latch Types:
+
+    No latch types specified.
+
+Operating Conditions:
+
+
+    Operating Condition Name : PVT_0P63V_100C
+    Library : asap7sc7p5t_AO_RVT_SS_ccs_211120
+    Process :   1.00
+    Temperature : 100.00
+    Voltage :   0.63
+
+Wire Loading Model:
+
+    No wire loading specified.
+
+
+Wire Loading Model Mode: top.
+
+Timing Ranges:
+
+    No timing ranges specified.
+
+Pin Input Delays:
+
+    None specified.
+
+Pin Output Delays:
+
+    None specified.
+
+Disabled Timing Arcs:
+
+    No arcs disabled.
+
+Required Licenses:
+
+    None Required
+
+Design Parameters:
+
+    None specified.
+1
+************************************
+Report : units
+Design : p5_core
+Version: V-2023.12-SP5
+Date   : Mon Nov  2 22:14:18 2026
+
+************************************
+Units
+------------------------------------
+Time_unit            : 1.0e-12 Second(ps)
+Capacitive_load_unit : 1.0e-15 Farad(fF)
+Resistance_unit      : 1000 Ohm(kOhm)
+Voltage_unit         : 1 Volt
+Power_unit           : N/A
+Current_unit         : 1.0e-03 Amp(mA)
+1
+ 
+****************************************
+Report : qor
+Design : p5_core
+Version: V-2023.12-SP5
+Date   : Mon Nov  2 22:14:18 2026
+****************************************
+
+
+  Timing Path Group 'clock'
+  -----------------------------------
+  Levels of Logic:              22.00
+  Critical Path Length:       1181.96
+  Critical Path Slack:         787.66
+  Critical Path Clk Period:   2000.00
+  Total Negative Slack:          0.00
+  No. of Violating Paths:        0.00
+  Worst Hold Violation:         -6.07
+  Total Hold Violation:       -467.04
+  No. of Hold Violations:       98.00
+  -----------------------------------
+
+
+  Cell Count
+  -----------------------------------
+  Hierarchical Cell Count:          8
+  Hierarchical Port Count:        215
+  Leaf Cell Count:                919
+  Buf/Inv Cell Count:             174
+  Buf Cell Count:                   4
+  Inv Cell Count:                 170
+  CT Buf/Inv Cell Count:            0
+  Combinational Cell Count:       734
+  Sequential Cell Count:          185
+  Macro Count:                      0
+  -----------------------------------
+
+
+  Area
+  -----------------------------------
+  Combinational Area:       63.000180
+  Noncombinational Area:    53.945998
+  Buf/Inv Area:              7.669080
+  Total Buffer Area:             0.23
+  Total Inverter Area:           7.44
+  Macro/Black Box Area:      0.000000
+  Net Area:                  0.000000
+  -----------------------------------
+  Cell Area:               116.946178
+  Design Area:             116.946178
+
+
+  Design Rules
+  -----------------------------------
+  Total Number of Nets:           975
+  Nets With Violations:             0
+  Max Trans Violations:             0
+  Max Cap Violations:               0
+  -----------------------------------
+
+
+  Hostname: host
+
+  Compile CPU Statistics
+  -----------------------------------------
+  Resource Sharing:                    0.50
+  Logic Optimization:                  0.69
+  Mapping Optimization:                0.64
+  -----------------------------------------
+  Overall Compile Time:                2.68
+  Overall Compile Wall Clock Time:     2.97
+
+  --------------------------------------------------------------------
+
+  Design  WNS: 0.00  TNS: 0.00  Number of Violating Paths: 0
+
+
+  Design (Hold)  WNS: 6.07  TNS: 467.04  Number of Violating Paths: 98
+
+  --------------------------------------------------------------------
+
+
+1
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 2
+Design : p5_core
+Version: V-2023.12-SP5
+Date   : Mon Nov  2 22:14:18 2026
+****************************************
+
+Operating Conditions: PVT_0P63V_100C   Library: asap7sc7p5t_AO_RVT_SS_ccs_211120
+Wire Load Model Mode: top
+
+  Startpoint: exmem_rd_reg[1]
+              (rising edge-triggered flip-flop clocked by clock)
+  Endpoint: ifid_instr_reg[6]
+            (rising edge-triggered flip-flop clocked by clock)
+  Path Group: clock
+  Path Type: max
+
+  Point                                                   Incr       Path
+  --------------------------------------------------------------------------
+  clock clock (rise edge)                                 0.00       0.00
+  clock network delay (ideal)                             0.00       0.00
+  exmem_rd_reg[1]/CLK (DFFHQNx1_ASAP7_75t_R)              0.00       0.00 r
+  exmem_rd_reg[1]/QN (DFFHQNx1_ASAP7_75t_R)              82.81      82.81 r
+  U197/Y (XNOR2xp5_ASAP7_75t_R)                          34.18     116.99 r
+  U196/Y (NAND5xp2_ASAP7_75t_R)                         111.32     228.31 f
+  U195/Y (NAND2xp5_ASAP7_75t_R)                         100.35     328.66 r
+  U191/Y (OAI222xp33_ASAP7_75t_R)                       105.76     434.43 f
+  u_alu/b[0] (p5_alu)                                     0.00     434.43 f
+  u_alu/U87/Y (NAND2xp33_ASAP7_75t_R)                    58.68     493.11 r
+  u_alu/U88/Y (OAI21xp33_ASAP7_75t_R)                    29.20     522.31 f
+  u_alu/U91/Y (AOI322xp5_ASAP7_75t_R)                    42.10     564.41 r
+  u_alu/U93/Y (OAI322xp33_ASAP7_75t_R)                   35.57     599.97 f
+  u_alu/U94/Y (AOI32xp33_ASAP7_75t_R)                    42.25     642.23 r
+  u_alu/U95/Y (OAI22xp33_ASAP7_75t_R)                    33.85     676.07 f
+  u_alu/U96/Y (NOR4xp25_ASAP7_75t_R)                     43.36     719.43 r
+  u_alu/U97/Y (NAND5xp2_ASAP7_75t_R)                     51.38     770.81 f
+  u_alu/U108/Y (INVx1_ASAP7_75t_R)                       22.21     793.02 r
+  u_alu/U19/Y (AOI22xp5_ASAP7_75t_R)                     17.92     810.94 f
+  u_alu/U45/Y (OAI33xp33_ASAP7_75t_R)                    28.86     839.80 r
+  u_alu/U44/Y (AND2x2_ASAP7_75t_R)                       40.39     880.19 r
+  u_alu/take (p5_alu)                                     0.00     880.19 r
+  U159/Y (NAND2xp5_ASAP7_75t_R)                          23.15     903.34 f
+  U259/Y (AOI31xp33_ASAP7_75t_R)                         33.84     937.18 r
+  U256/Y (HB1xp67_ASAP7_75t_R)                           85.15    1022.33 r
+  U255/Y (NOR2xp33_ASAP7_75t_R)                          47.34    1069.67 f
+  U253/Y (HB1xp67_ASAP7_75t_R)                           76.55    1146.22 f
+  U263/Y (AOI22xp5_ASAP7_75t_R)                          35.74    1181.96 r
+  ifid_instr_reg[6]/D (DFFHQNx1_ASAP7_75t_R)              0.00    1181.96 r
+  data arrival time                                               1181.96
+
+  clock clock (rise edge)                              2000.00    2000.00
+  clock network delay (ideal)                             0.00    2000.00
+  ifid_instr_reg[6]/CLK (DFFHQNx1_ASAP7_75t_R)            0.00    2000.00 r
+  library setup time                                    -30.38    1969.62
+  data required time                                              1969.62
+  --------------------------------------------------------------------------
+  data required time                                              1969.62
+  data arrival time                                              -1181.96
+  --------------------------------------------------------------------------
+  slack (MET)                                                      787.66
+
+
+  Startpoint: exmem_rd_reg[1]
+              (rising edge-triggered flip-flop clocked by clock)
+  Endpoint: ifid_instr_reg[0]
+            (rising edge-triggered flip-flop clocked by clock)
+  Path Group: clock
+  Path Type: max
+
+  Point                                                   Incr       Path
+  --------------------------------------------------------------------------
+  clock clock (rise edge)                                 0.00       0.00
+  clock network delay (ideal)                             0.00       0.00
+  exmem_rd_reg[1]/CLK (DFFHQNx1_ASAP7_75t_R)              0.00       0.00 r
+  exmem_rd_reg[1]/QN (DFFHQNx1_ASAP7_75t_R)              82.81      82.81 r
+  U197/Y (XNOR2xp5_ASAP7_75t_R)                          34.18     116.99 r
+  U196/Y (NAND5xp2_ASAP7_75t_R)                         111.32     228.31 f
+  U195/Y (NAND2xp5_ASAP7_75t_R)                         100.35     328.66 r
+  U191/Y (OAI222xp33_ASAP7_75t_R)                       105.76     434.43 f
+  u_alu/b[0] (p5_alu)                                     0.00     434.43 f
+  u_alu/U87/Y (NAND2xp33_ASAP7_75t_R)                    58.68     493.11 r
+  u_alu/U88/Y (OAI21xp33_ASAP7_75t_R)                    29.20     522.31 f
+  u_alu/U91/Y (AOI322xp5_ASAP7_75t_R)                    42.10     564.41 r
+  u_alu/U93/Y (OAI322xp33_ASAP7_75t_R)                   35.57     599.97 f
+  u_alu/U94/Y (AOI32xp33_ASAP7_75t_R)                    42.25     642.23 r
+  u_alu/U95/Y (OAI22xp33_ASAP7_75t_R)                    33.85     676.07 f
+  u_alu/U96/Y (NOR4xp25_ASAP7_75t_R)                     43.36     719.43 r
+  u_alu/U97/Y (NAND5xp2_ASAP7_75t_R)                     51.38     770.81 f
+  u_alu/U108/Y (INVx1_ASAP7_75t_R)                       22.21     793.02 r
+  u_alu/U19/Y (AOI22xp5_ASAP7_75t_R)                     17.92     810.94 f
+  u_alu/U45/Y (OAI33xp33_ASAP7_75t_R)                    28.86     839.80 r
+  u_alu/U44/Y (AND2x2_ASAP7_75t_R)                       40.39     880.19 r
+  u_alu/take (p5_alu)                                     0.00     880.19 r
+  U159/Y (NAND2xp5_ASAP7_75t_R)                          23.15     903.34 f
+  U259/Y (AOI31xp33_ASAP7_75t_R)                         33.84     937.18 r
+  U256/Y (HB1xp67_ASAP7_75t_R)                           85.15    1022.33 r
+  U255/Y (NOR2xp33_ASAP7_75t_R)                          47.34    1069.67 f
+  U254/Y (HB1xp67_ASAP7_75t_R)                           76.55    1146.22 f
+  U277/Y (AOI22xp5_ASAP7_75t_R)                          35.74    1181.96 r
+  ifid_instr_reg[0]/D (DFFHQNx1_ASAP7_75t_R)              0.00    1181.96 r
+  data arrival time                                               1181.96
+
+  clock clock (rise edge)                              2000.00    2000.00
+  clock network delay (ideal)                             0.00    2000.00
+  ifid_instr_reg[0]/CLK (DFFHQNx1_ASAP7_75t_R)            0.00    2000.00 r
+  library setup time                                    -30.37    1969.63
+  data required time                                              1969.63
+  --------------------------------------------------------------------------
+  data required time                                              1969.63
+  data arrival time                                              -1181.96
+  --------------------------------------------------------------------------
+  slack (MET)                                                      787.68
+
+
+1
+ 
+****************************************
+Report : timing
+        -path full
+        -delay min
+        -max_paths 2
+Design : p5_core
+Version: V-2023.12-SP5
+Date   : Mon Nov  2 22:14:18 2026
+****************************************
+
+Operating Conditions: PVT_0P63V_100C   Library: asap7sc7p5t_AO_RVT_SS_ccs_211120
+Wire Load Model Mode: top
+
+  Startpoint: reset (input port clocked by clock)
+  Endpoint: exmem_alu_reg[0]
+            (rising edge-triggered flip-flop clocked by clock)
+  Path Group: clock
+  Path Type: min
+
+  Point                                                   Incr       Path
+  --------------------------------------------------------------------------
+  clock clock (rise edge)                                 0.00       0.00
+  clock network delay (ideal)                             0.00       0.00
+  input external delay                                    0.00       0.00 r
+  reset (in)                                              0.00       0.00 r
+  U302/Y (OAI22xp5_ASAP7_75t_R)                           7.54       7.54 f
+  exmem_alu_reg[0]/D (DFFHQNx1_ASAP7_75t_R)               0.00       7.54 f
+  data arrival time                                                  7.54
+
+  clock clock (rise edge)                                 0.00       0.00
+  clock network delay (ideal)                             0.00       0.00
+  exmem_alu_reg[0]/CLK (DFFHQNx1_ASAP7_75t_R)             0.00       0.00 r
+  library hold time                                      13.61      13.61
+  data required time                                                13.61
+  --------------------------------------------------------------------------
+  data required time                                                13.61
+  data arrival time                                                 -7.54
+  --------------------------------------------------------------------------
+  slack (VIOLATED)                                                  -6.07
+
+
+  Startpoint: reset (input port clocked by clock)
+  Endpoint: exmem_alu_reg[1]
+            (rising edge-triggered flip-flop clocked by clock)
+  Path Group: clock
+  Path Type: min
+
+  Point                                                   Incr       Path
+  --------------------------------------------------------------------------
+  clock clock (rise edge)                                 0.00       0.00
+  clock network delay (ideal)                             0.00       0.00
+  input external delay                                    0.00       0.00 r
+  reset (in)                                              0.00       0.00 r
+  U307/Y (OAI22xp5_ASAP7_75t_R)                           7.54       7.54 f
+  exmem_alu_reg[1]/D (DFFHQNx1_ASAP7_75t_R)               0.00       7.54 f
+  data arrival time                                                  7.54
+
+  clock clock (rise edge)                                 0.00       0.00
+  clock network delay (ideal)                             0.00       0.00
+  exmem_alu_reg[1]/CLK (DFFHQNx1_ASAP7_75t_R)             0.00       0.00 r
+  library hold time                                      13.61      13.61
+  data required time                                                13.61
+  --------------------------------------------------------------------------
+  data required time                                                13.61
+  data arrival time                                                 -7.54
+  --------------------------------------------------------------------------
+  slack (VIOLATED)                                                  -6.07
+
+
+1
+ 
+****************************************
+Report : constraint
+        -all_violators
+Design : p5_core
+Version: V-2023.12-SP5
+Date   : Mon Nov  2 22:14:18 2026
+****************************************
+
+
+   min_delay/hold ('clock' group)
+
+                             Required        Actual
+   Endpoint                 Path Delay     Path Delay        Slack
+   -----------------------------------------------------------------
+   exmem_alu_reg[0]/D          13.61           7.54 f        -6.07  (VIOLATED)
+   exmem_alu_reg[1]/D          13.61           7.54 f        -6.07  (VIOLATED)
+   exmem_alu_reg[2]/D          13.61           7.54 f        -6.07  (VIOLATED)
+   exmem_alu_reg[3]/D          13.61           7.54 f        -6.07  (VIOLATED)
+   exmem_alu_reg[4]/D          13.61           7.54 f        -6.07  (VIOLATED)
+   exmem_alu_reg[5]/D          13.61           7.54 f        -6.07  (VIOLATED)
+   exmem_alu_reg[6]/D          13.61           7.54 f        -6.07  (VIOLATED)
+   exmem_alu_reg[7]/D          13.61           7.54 f        -6.07  (VIOLATED)
+   exmem_op_reg[0]/D           13.61           7.54 f        -6.07  (VIOLATED)
+   exmem_op_reg[1]/D           13.61           7.54 f        -6.07  (VIOLATED)
+   exmem_op_reg[2]/D           13.61           7.54 f        -6.07  (VIOLATED)
+   exmem_op_reg[3]/D           13.61           7.54 f        -6.07  (VIOLATED)
+   exmem_rd_reg[0]/D           13.61           7.54 f        -6.07  (VIOLATED)
+   exmem_rd_reg[1]/D           13.61           7.54 f        -6.07  (VIOLATED)
+   exmem_rd_reg[2]/D           13.61           7.54 f        -6.07  (VIOLATED)
+   exmem_writes_reg/D          13.61           7.54 f        -6.07  (VIOLATED)
+   idex_imm_reg[0]/D           13.61           7.54 f        -6.07  (VIOLATED)
+   idex_imm_reg[1]/D           13.61           7.54 f        -6.07  (VIOLATED)
+   idex_imm_reg[2]/D           13.61           7.54 f        -6.07  (VIOLATED)
+   idex_pc_reg[0]/D            13.61           7.54 f        -6.07  (VIOLATED)
+   idex_pc_reg[1]/D            13.61           7.54 f        -6.07  (VIOLATED)
+   idex_pc_reg[2]/D            13.61           7.54 f        -6.07  (VIOLATED)
+   idex_pc_reg[3]/D            13.61           7.54 f        -6.07  (VIOLATED)
+   idex_pc_reg[4]/D            13.61           7.54 f        -6.07  (VIOLATED)
+   idex_pc_reg[5]/D            13.61           7.54 f        -6.07  (VIOLATED)
+   idex_pc_reg[6]/D            13.61           7.54 f        -6.07  (VIOLATED)
+   idex_pc_reg[7]/D            13.61           7.54 f        -6.07  (VIOLATED)
+   exmem_sdata_reg[0]/D        13.51           8.33 f        -5.17  (VIOLATED)
+   exmem_sdata_reg[1]/D        13.51           8.33 f        -5.17  (VIOLATED)
+   exmem_sdata_reg[2]/D        13.51           8.33 f        -5.17  (VIOLATED)
+   exmem_sdata_reg[3]/D        13.51           8.33 f        -5.17  (VIOLATED)
+   exmem_sdata_reg[4]/D        13.51           8.33 f        -5.17  (VIOLATED)
+   exmem_sdata_reg[5]/D        13.51           8.33 f        -5.17  (VIOLATED)
+   exmem_sdata_reg[6]/D        13.51           8.33 f        -5.17  (VIOLATED)
+   exmem_sdata_reg[7]/D        13.51           8.33 f        -5.17  (VIOLATED)
+   idex_a_reg[0]/D             13.51           8.33 f        -5.17  (VIOLATED)
+   idex_a_reg[1]/D             13.51           8.33 f        -5.17  (VIOLATED)
+   idex_a_reg[2]/D             13.51           8.33 f        -5.17  (VIOLATED)
+   idex_a_reg[3]/D             13.51           8.33 f        -5.17  (VIOLATED)
+   idex_a_reg[4]/D             13.51           8.33 f        -5.17  (VIOLATED)
+   idex_a_reg[5]/D             13.51           8.33 f        -5.17  (VIOLATED)
+   idex_a_reg[6]/D             13.51           8.33 f        -5.17  (VIOLATED)
+   idex_a_reg[7]/D             13.51           8.33 f        -5.17  (VIOLATED)
+   idex_b_reg[0]/D             13.51           8.33 f        -5.17  (VIOLATED)
+   idex_b_reg[1]/D             13.51           8.33 f        -5.17  (VIOLATED)
+   idex_b_reg[2]/D             13.51           8.33 f        -5.17  (VIOLATED)
+   idex_b_reg[3]/D             13.51           8.33 f        -5.17  (VIOLATED)
+   idex_b_reg[4]/D             13.51           8.33 f        -5.17  (VIOLATED)
+   idex_b_reg[5]/D             13.51           8.33 f        -5.17  (VIOLATED)
+   idex_b_reg[6]/D             13.51           8.33 f        -5.17  (VIOLATED)
+   idex_b_reg[7]/D             13.51           8.33 f        -5.17  (VIOLATED)
+   idex_imm_reg[3]/D           13.51           8.33 f        -5.17  (VIOLATED)
+   idex_imm_reg[4]/D           13.51           8.33 f        -5.17  (VIOLATED)
+   idex_imm_reg[5]/D           13.51           8.33 f        -5.17  (VIOLATED)
+   idex_imm_reg[6]/D           13.51           8.33 f        -5.17  (VIOLATED)
+   idex_imm_reg[7]/D           13.51           8.33 f        -5.17  (VIOLATED)
+   idex_op_reg[0]/D            13.51           8.33 f        -5.17  (VIOLATED)
+   idex_op_reg[1]/D            13.51           8.33 f        -5.17  (VIOLATED)
+   idex_op_reg[2]/D            13.51           8.33 f        -5.17  (VIOLATED)
+   idex_op_reg[3]/D            13.51           8.33 f        -5.17  (VIOLATED)
+   idex_ra_reg[0]/D            13.51           8.33 f        -5.17  (VIOLATED)
+   idex_ra_reg[1]/D            13.51           8.33 f        -5.17  (VIOLATED)
+   idex_ra_reg[2]/D            13.51           8.33 f        -5.17  (VIOLATED)
+   idex_rb_reg[0]/D            13.51           8.33 f        -5.17  (VIOLATED)
+   idex_rb_reg[1]/D            13.51           8.33 f        -5.17  (VIOLATED)
+   idex_rb_reg[2]/D            13.51           8.33 f        -5.17  (VIOLATED)
+   idex_rd_reg[0]/D            13.51           8.33 f        -5.17  (VIOLATED)
+   idex_rd_reg[1]/D            13.51           8.33 f        -5.17  (VIOLATED)
+   idex_rd_reg[2]/D            13.51           8.33 f        -5.17  (VIOLATED)
+   idex_writes_reg/D           13.51           8.33 f        -5.17  (VIOLATED)
+   memwb_rd_reg[0]/D           13.51           8.33 f        -5.17  (VIOLATED)
+   memwb_rd_reg[1]/D           13.51           8.33 f        -5.17  (VIOLATED)
+   memwb_rd_reg[2]/D           13.51           8.33 f        -5.17  (VIOLATED)
+   memwb_writes_reg/D          13.51           8.33 f        -5.17  (VIOLATED)
+   ifid_instr_reg[0]/D         13.29           9.88 f        -3.41  (VIOLATED)
+   ifid_instr_reg[1]/D         13.29           9.88 f        -3.41  (VIOLATED)
+   ifid_instr_reg[2]/D         13.29           9.88 f        -3.41  (VIOLATED)
+   ifid_instr_reg[3]/D         13.29           9.88 f        -3.41  (VIOLATED)
+   ifid_instr_reg[4]/D         13.29           9.88 f        -3.41  (VIOLATED)
+   ifid_instr_reg[5]/D         13.29           9.88 f        -3.41  (VIOLATED)
+   ifid_instr_reg[6]/D         13.29           9.88 f        -3.41  (VIOLATED)
+   ifid_instr_reg[7]/D         13.29           9.88 f        -3.41  (VIOLATED)
+   ifid_instr_reg[8]/D         13.29           9.88 f        -3.41  (VIOLATED)
+   ifid_instr_reg[9]/D         13.29           9.88 f        -3.41  (VIOLATED)
+   ifid_instr_reg[10]/D        13.29           9.88 f        -3.41  (VIOLATED)
+   ifid_instr_reg[11]/D        13.29           9.88 f        -3.41  (VIOLATED)
+   ifid_instr_reg[12]/D        13.29           9.88 f        -3.41  (VIOLATED)
+   ifid_instr_reg[13]/D        13.29           9.88 f        -3.41  (VIOLATED)
+   ifid_instr_reg[14]/D        13.29           9.88 f        -3.41  (VIOLATED)
+   ifid_instr_reg[15]/D        13.29           9.88 f        -3.41  (VIOLATED)
+   memwb_data_reg[0]/D         12.22          11.55 f        -0.67  (VIOLATED)
+   memwb_data_reg[1]/D         12.22          11.55 f        -0.67  (VIOLATED)
+   memwb_data_reg[2]/D         12.22          11.55 f        -0.67  (VIOLATED)
+   memwb_data_reg[3]/D         12.22          11.55 f        -0.67  (VIOLATED)
+   memwb_data_reg[4]/D         12.22          11.55 f        -0.67  (VIOLATED)
+   memwb_data_reg[5]/D         12.22          11.55 f        -0.67  (VIOLATED)
+   memwb_data_reg[6]/D         12.22          11.55 f        -0.67  (VIOLATED)
+   memwb_data_reg[7]/D         12.22          11.55 f        -0.67  (VIOLATED)
+
+
+1
+Loading db file '/path/to/libs/asap7sc7p5t_SEQ_RVT_SS_ccs_220123.db'
+Loading db file '/path/to/libs/asap7sc7p5t_OA_RVT_SS_ccs_211120.db'
+Loading db file '/path/to/libs/asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120.db'
+Loading db file '/path/to/libs/asap7sc7p5t_AO_RVT_SS_ccs_211120.db'
+Loading db file '/path/to/libs/asap7sc7p5t_INVBUF_RVT_SS_ccs_220122.db'
+Information: Propagating switching activity (low effort zero delay simulation). (PWR-6)
+Warning: Design has unannotated primary inputs. (PWR-414)
+Warning: Design has unannotated sequential cell outputs. (PWR-415)
+ 
+****************************************
+Report : power
+        -analysis_effort low
+Design : p5_core
+Version: V-2023.12-SP5
+Date   : Mon Nov  2 22:14:23 2026
+****************************************
+
+
+Library(s) Used:
+
+    asap7sc7p5t_INVBUF_RVT_SS_ccs_211120 (File: /path/to/libs/asap7sc7p5t_INVBUF_RVT_SS_ccs_220122.db)
+    asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120 (File: /path/to/libs/asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120.db)
+    asap7sc7p5t_OA_RVT_SS_ccs_211120 (File: /path/to/libs/asap7sc7p5t_OA_RVT_SS_ccs_211120.db)
+    asap7sc7p5t_AO_RVT_SS_ccs_211120 (File: /path/to/libs/asap7sc7p5t_AO_RVT_SS_ccs_211120.db)
+    asap7sc7p5t_SEQ_RVT_SS_ccs_220123 (File: /path/to/libs/asap7sc7p5t_SEQ_RVT_SS_ccs_220123.db)
+
+
+Operating Conditions: PVT_0P63V_100C   Library: asap7sc7p5t_AO_RVT_SS_ccs_211120
+Wire Load Model Mode: top
+
+
+Global Operating Voltage = 0.63 
+Power-specific unit information :
+    Voltage Units = 1V
+    Capacitance Units = 1.000000ff
+    Time Units = 1ps
+    Dynamic Power Units = 1mW    (derived from V,C,T units)
+    Leakage Power Units = 1pW
+
+
+Attributes
+----------
+i - Including register clock pin internal power
+
+
+  Cell Internal Power  =  91.5963 uW   (94%)
+  Net Switching Power  =   5.3697 uW    (6%)
+                         ---------
+Total Dynamic Power    =  96.9661 uW  (100%)
+
+Cell Leakage Power     =   1.3195 uW
+
+
+                 Internal         Switching           Leakage            Total
+Power Group      Power            Power               Power              Power   (   %    )  Attrs
+--------------------------------------------------------------------------------------------------
+io_pad             0.0000            0.0000            0.0000            0.0000  (   0.00%)
+memory             0.0000            0.0000            0.0000            0.0000  (   0.00%)
+black_box          0.0000            0.0000            0.0000            0.0000  (   0.00%)
+clock_network  8.5220e-02            0.0000            0.0000        8.5220e-02  (  86.71%)  i
+register       4.0675e-03        1.6616e-03        6.1152e+05        6.3406e-03  (   6.45%)
+sequential         0.0000            0.0000            0.0000            0.0000  (   0.00%)
+combinational  2.3091e-03        3.7082e-03        7.0798e+05        6.7252e-03  (   6.84%)
+--------------------------------------------------------------------------------------------------
+Total          9.1596e-02 mW     5.3697e-03 mW     1.3195e+06 pW     9.8286e-02 mW
+1
+ 
+****************************************
+Report : resources
+Design : p5_core
+Version: V-2023.12-SP5
+Date   : Mon Nov  2 22:14:23 2026
+****************************************
+
+Resource Sharing Report for design p5_core in file
+        /path/to/work/rtl/p5_core.sv
+
+===============================================================================
+|          |              |            | Contained     |                      |
+| Resource | Module       | Parameters | Resources     | Contained Operations |
+===============================================================================
+| r107     | DW01_cmp6    | width=3    |               | eq_93                |
+| r109     | DW01_cmp6    | width=3    |               | eq_94                |
+| r111     | DW01_cmp6    | width=3    |               | eq_96                |
+| r113     | DW01_cmp6    | width=3    |               | eq_97                |
+| r115     | DW01_add     | width=8    |               | add_1_root_add_103_2 |
+| r117     | DW01_inc     | width=8    |               | add_130              |
+===============================================================================
+
+
+Implementation Report
+===============================================================================
+|                    |                  | Current            | Set            |
+| Cell               | Module           | Implementation     | Implementation |
+===============================================================================
+| add_1_root_add_103_2                  |                    |                |
+|                    | DW01_add         | rpl                |                |
+| add_130            | DW01_inc         | rpl                |                |
+===============================================================================
+
+ 
+****************************************
+Design : p5_alu
+****************************************
+Resource Sharing Report for design p5_alu in file
+        /path/to/work/rtl/p5_alu.sv
+
+===============================================================================
+|          |              |            | Contained     |                      |
+| Resource | Module       | Parameters | Resources     | Contained Operations |
+===============================================================================
+| r66      | DW01_cmp6    | width=8    |               | eq_27 lt_26 ne_28    |
+| r71      | DW01_add     | width=8    |               | add_19               |
+| r73      | DW01_sub     | width=8    |               | sub_20               |
+| r75      | DW01_add     | width=8    |               | add_25               |
+===============================================================================
+
+
+Implementation Report
+===============================================================================
+|                    |                  | Current            | Set            |
+| Cell               | Module           | Implementation     | Implementation |
+===============================================================================
+| add_19             | DW01_add         | rpl                |                |
+| sub_20             | DW01_sub         | rpl                |                |
+| add_25             | DW01_add         | rpl                |                |
+===============================================================================
+
+ 
+****************************************
+Design : p5_hazard
+****************************************
+Resource Sharing Report for design p5_hazard in file
+        /path/to/work/rtl/p5_hazard.sv
+
+===============================================================================
+|          |              |            | Contained     |                      |
+| Resource | Module       | Parameters | Resources     | Contained Operations |
+===============================================================================
+| r56      | DW01_cmp6    | width=3    |               | eq_28_2              |
+| r58      | DW01_cmp6    | width=3    |               | eq_28_3              |
+===============================================================================
+
+
+No implementations to report
+ 
+****************************************
+Design : p5_regfile
+****************************************
+Resource Sharing Report for design p5_regfile in file
+        /path/to/work/rtl/p5_regfile.sv
+
+===============================================================================
+|          |              |            | Contained     |                      |
+| Resource | Module       | Parameters | Resources     | Contained Operations |
+===============================================================================
+| r60      | DW01_cmp6    | width=3    |               | eq_23_2              |
+| r62      | DW01_cmp6    | width=3    |               | eq_24_2              |
+===============================================================================
+
+
+No implementations to report
+1
+ 
+****************************************
+Report : area
+Design : p5_core
+Version: V-2023.12-SP5
+Date   : Mon Nov  2 22:14:23 2026
+****************************************
+
+Library(s) Used:
+
+    asap7sc7p5t_INVBUF_RVT_SS_ccs_211120 (File: /path/to/libs/asap7sc7p5t_INVBUF_RVT_SS_ccs_220122.db)
+    asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120 (File: /path/to/libs/asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120.db)
+    asap7sc7p5t_OA_RVT_SS_ccs_211120 (File: /path/to/libs/asap7sc7p5t_OA_RVT_SS_ccs_211120.db)
+    asap7sc7p5t_AO_RVT_SS_ccs_211120 (File: /path/to/libs/asap7sc7p5t_AO_RVT_SS_ccs_211120.db)
+    asap7sc7p5t_SEQ_RVT_SS_ccs_220123 (File: /path/to/libs/asap7sc7p5t_SEQ_RVT_SS_ccs_220123.db)
+
+Number of ports:                          282
+Number of nets:                          1182
+Number of cells:                          927
+Number of combinational cells:            734
+Number of sequential cells:               185
+Number of macros/black boxes:               0
+Number of buf/inv:                        174
+Number of references:                      35
+
+Combinational area:                 63.000180
+Buf/Inv area:                        7.669080
+Noncombinational area:              53.945998
+Macro/Black Box area:                0.000000
+Net Interconnect area:      undefined  (No wire load specified)
+
+Total cell area:                   116.946178
+Total area:                 undefined
+
+Hierarchical area distribution
+------------------------------
+
+                                  Global cell area          Local cell area
+                                  ------------------  --------------------------- 
+Hierarchical cell                 Absolute   Percent  Combi-    Noncombi-  Black-
+                                  Total      Total    national  national   boxes   Design
+--------------------------------  ---------  -------  --------  ---------  ------  ----------------------------
+p5_core                            116.9462    100.0   21.8846    35.2836  0.0000  p5_core
+add_130                              1.4434      1.2    1.4434     0.0000  0.0000  p5_core_DW01_inc_0
+add_1_root_add_103_2                 2.2162      1.9    2.2162     0.0000  0.0000  p5_core_DW01_add_0
+u_alu                               16.0380     13.7    9.0396     0.0000  0.0000  p5_alu
+u_alu/add_19                         2.2162      1.9    2.2162     0.0000  0.0000  p5_alu_DW01_add_1_DW01_add_2
+u_alu/add_25                         2.2162      1.9    2.2162     0.0000  0.0000  p5_alu_DW01_add_0_DW01_add_1
+u_alu/sub_20                         2.5661      2.2    2.5661     0.0000  0.0000  p5_alu_DW01_sub_0
+u_hz                                 1.3851      1.2    1.3851     0.0000  0.0000  p5_hazard
+u_rf                                38.6953     33.1   20.0329    18.6624  0.0000  p5_regfile
+--------------------------------  ---------  -------  --------  ---------  ------  ----------------------------
+Total                                                  63.0002    53.9460  0.0000
+
+1
+ 
+****************************************
+Report : reference
+Design : p5_core
+Version: V-2023.12-SP5
+Date   : Mon Nov  2 22:14:23 2026
+****************************************
+
+Attributes:
+    b - black box (unknown)
+   bo - allows boundary optimization
+    d - dont_touch
+   mo - map_only
+    h - hierarchical
+    n - noncombinational
+    r - removable
+    s - synthetic operator
+    u - contains unmapped logic
+
+Reference          Library       Unit Area   Count    Total Area   Attributes
+-----------------------------------------------------------------------------
+A2O1A1Ixp33_ASAP7_75t_R
+                   asap7sc7p5t_AO_RVT_SS_ccs_211120
+                                  0.087480       1      0.087480  
+AND2x2_ASAP7_75t_R asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.087480       2      0.174960  
+AND3x1_ASAP7_75t_R asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.087480       1      0.087480  
+AND4x1_ASAP7_75t_R asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.102060       1      0.102060  
+AO22x1_ASAP7_75t_R asap7sc7p5t_AO_RVT_SS_ccs_211120
+                                  0.131220      11      1.443420  
+AOI21xp5_ASAP7_75t_R
+                   asap7sc7p5t_AO_RVT_SS_ccs_211120
+                                  0.072900       1      0.072900  
+AOI22xp5_ASAP7_75t_R
+                   asap7sc7p5t_AO_RVT_SS_ccs_211120
+                                  0.087480      24      2.099520  
+AOI31xp33_ASAP7_75t_R
+                   asap7sc7p5t_AO_RVT_SS_ccs_211120
+                                  0.087480       2      0.174960  
+AOI32xp33_ASAP7_75t_R
+                   asap7sc7p5t_AO_RVT_SS_ccs_211120
+                                  0.102060       1      0.102060  
+AOI33xp33_ASAP7_75t_R
+                   asap7sc7p5t_AO_RVT_SS_ccs_211120
+                                  0.116640       1      0.116640  
+AOI211xp5_ASAP7_75t_R
+                   asap7sc7p5t_AO_RVT_SS_ccs_211120
+                                  0.087480       1      0.087480  
+AOI221xp5_ASAP7_75t_R
+                   asap7sc7p5t_AO_RVT_SS_ccs_211120
+                                  0.102060       8      0.816480  
+AOI311xp33_ASAP7_75t_R
+                   asap7sc7p5t_AO_RVT_SS_ccs_211120
+                                  0.102060       1      0.102060  
+DFFHQNx1_ASAP7_75t_R
+                   asap7sc7p5t_SEQ_RVT_SS_ccs_220123
+                                  0.291600     121     35.283599  n
+HB1xp67_ASAP7_75t_R
+                   asap7sc7p5t_INVBUF_RVT_SS_ccs_211120
+                                  0.058320       4      0.233280  
+INVx1_ASAP7_75t_R  asap7sc7p5t_INVBUF_RVT_SS_ccs_211120
+                                  0.043740      55      2.405700  
+NAND2xp5_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.058320      11      0.641520  
+NAND3xp33_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.072900       1      0.072900  
+NAND4xp25_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.087480       3      0.262440  
+NAND5xp2_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.102060       3      0.306180  
+NOR2xp33_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.058320       4      0.233280  
+NOR3xp33_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.072900       3      0.218700  
+NOR4xp25_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.087480       1      0.087480  
+NOR5xp2_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.102060       1      0.102060  
+OAI22xp5_ASAP7_75t_R
+                   asap7sc7p5t_OA_RVT_SS_ccs_211120
+                                  0.087480      75      6.561000  
+OAI211xp5_ASAP7_75t_R
+                   asap7sc7p5t_OA_RVT_SS_ccs_211120
+                                  0.087480       1      0.087480  
+OAI222xp33_ASAP7_75t_R
+                   asap7sc7p5t_OA_RVT_SS_ccs_211120
+                                  0.145800      24      3.499200  
+OR2x2_ASAP7_75t_R  asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.087480       1      0.087480  
+TIEHIx1_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.043740       1      0.043740  
+XNOR2xp5_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.131220      12      1.574640  
+p5_alu                           16.038000       1     16.038000  h
+p5_core_DW01_add_0                2.216160       1      2.216160  h
+p5_core_DW01_inc_0                1.443420       1      1.443420  h
+p5_hazard                         1.385100       1      1.385100  h
+p5_regfile                       38.695319       1     38.695319  h, n
+-----------------------------------------------------------------------------
+Total 35 references                                   116.946178
+
+****************************************
+Design: p5_alu 
+****************************************
+Reference          Library       Unit Area   Count    Total Area   Attributes
+-----------------------------------------------------------------------------
+AND2x2_ASAP7_75t_R asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.087480       7      0.612360  
+AOI22xp5_ASAP7_75t_R
+                   asap7sc7p5t_AO_RVT_SS_ccs_211120
+                                  0.087480       1      0.087480  
+AOI22xp33_ASAP7_75t_R
+                   asap7sc7p5t_AO_RVT_SS_ccs_211120
+                                  0.087480      16      1.399680  
+AOI32xp33_ASAP7_75t_R
+                   asap7sc7p5t_AO_RVT_SS_ccs_211120
+                                  0.102060       1      0.102060  
+AOI221xp5_ASAP7_75t_R
+                   asap7sc7p5t_AO_RVT_SS_ccs_211120
+                                  0.102060       1      0.102060  
+AOI222xp33_ASAP7_75t_R
+                   asap7sc7p5t_AO_RVT_SS_ccs_211120
+                                  0.145800       7      1.020600  
+AOI322xp5_ASAP7_75t_R
+                   asap7sc7p5t_AO_RVT_SS_ccs_211120
+                                  0.131220       1      0.131220  
+INVx1_ASAP7_75t_R  asap7sc7p5t_INVBUF_RVT_SS_ccs_211120
+                                  0.043740      24      1.049760  
+NAND2xp5_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.058320       8      0.466560  
+NAND2xp33_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.058320       6      0.349920  
+NAND3xp33_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.072900       9      0.656100  
+NAND5xp2_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.102060       1      0.102060  
+NOR2xp33_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.058320      13      0.758160  
+NOR3xp33_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.072900       2      0.145800  
+NOR4xp25_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.087480       1      0.087480  
+OAI21xp33_ASAP7_75t_R
+                   asap7sc7p5t_OA_RVT_SS_ccs_211120
+                                  0.072900       1      0.072900  
+OAI22xp33_ASAP7_75t_R
+                   asap7sc7p5t_OA_RVT_SS_ccs_211120
+                                  0.087480       4      0.349920  
+OAI33xp33_ASAP7_75t_R
+                   asap7sc7p5t_OA_RVT_SS_ccs_211120
+                                  0.116640       2      0.233280  
+OAI322xp33_ASAP7_75t_R
+                   asap7sc7p5t_OA_RVT_SS_ccs_211120
+                                  0.131220       1      0.131220  
+OR2x2_ASAP7_75t_R  asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.087480       1      0.087480  
+TIELOx1_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.043740       1      0.043740  
+XOR2xp5_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.131220       8      1.049760  
+p5_alu_DW01_add_0_DW01_add_1      2.216160       1      2.216160  h
+p5_alu_DW01_add_1_DW01_add_2      2.216160       1      2.216160  h
+p5_alu_DW01_sub_0                 2.566080       1      2.566080  h
+-----------------------------------------------------------------------------
+Total 25 references                                    16.038000
+
+****************************************
+Design: p5_alu_DW01_add_0_DW01_add_1 
+****************************************
+Reference          Library       Unit Area   Count    Total Area   Attributes
+-----------------------------------------------------------------------------
+AND2x2_ASAP7_75t_R asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.087480       1      0.087480  
+FAx1_ASAP7_75t_R   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.204120       7      1.428840  r
+INVx1_ASAP7_75t_R  asap7sc7p5t_INVBUF_RVT_SS_ccs_211120
+                                  0.043740      13      0.568620  
+XOR2xp5_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.131220       1      0.131220  
+-----------------------------------------------------------------------------
+Total 4 references                                      2.216160
+
+****************************************
+Design: p5_alu_DW01_add_1_DW01_add_2 
+****************************************
+Reference          Library       Unit Area   Count    Total Area   Attributes
+-----------------------------------------------------------------------------
+AND2x2_ASAP7_75t_R asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.087480       1      0.087480  
+FAx1_ASAP7_75t_R   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.204120       7      1.428840  r
+INVx1_ASAP7_75t_R  asap7sc7p5t_INVBUF_RVT_SS_ccs_211120
+                                  0.043740      13      0.568620  
+XOR2xp5_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.131220       1      0.131220  
+-----------------------------------------------------------------------------
+Total 4 references                                      2.216160
+
+****************************************
+Design: p5_alu_DW01_sub_0 
+****************************************
+Reference          Library       Unit Area   Count    Total Area   Attributes
+-----------------------------------------------------------------------------
+FAx1_ASAP7_75t_R   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.204120       7      1.428840  r
+INVx1_ASAP7_75t_R  asap7sc7p5t_INVBUF_RVT_SS_ccs_211120
+                                  0.043740      21      0.918540  
+OR2x2_ASAP7_75t_R  asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.087480       1      0.087480  
+XNOR2xp5_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.131220       1      0.131220  
+-----------------------------------------------------------------------------
+Total 4 references                                      2.566080
+
+****************************************
+Design: p5_core_DW01_add_0 
+****************************************
+Reference          Library       Unit Area   Count    Total Area   Attributes
+-----------------------------------------------------------------------------
+FAx1_ASAP7_75t_R   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.204120       7      1.428840  r
+INVx1_ASAP7_75t_R  asap7sc7p5t_INVBUF_RVT_SS_ccs_211120
+                                  0.043740      13      0.568620  
+OR2x2_ASAP7_75t_R  asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.087480       1      0.087480  
+XNOR2xp5_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.131220       1      0.131220  
+-----------------------------------------------------------------------------
+Total 4 references                                      2.216160
+
+****************************************
+Design: p5_core_DW01_inc_0 
+****************************************
+Reference          Library       Unit Area   Count    Total Area   Attributes
+-----------------------------------------------------------------------------
+HAxp5_ASAP7_75t_R  asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.131220       6      0.787320  r
+INVx1_ASAP7_75t_R  asap7sc7p5t_INVBUF_RVT_SS_ccs_211120
+                                  0.043740      12      0.524880  
+XNOR2xp5_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.131220       1      0.131220  
+-----------------------------------------------------------------------------
+Total 3 references                                      1.443420
+
+****************************************
+Design: p5_hazard 
+****************************************
+Reference          Library       Unit Area   Count    Total Area   Attributes
+-----------------------------------------------------------------------------
+NAND2xp5_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.058320       1      0.058320  
+NAND4xp25_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.087480       2      0.174960  
+NOR3xp33_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.072900       1      0.072900  
+NOR5xp2_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.102060       1      0.102060  
+OAI31xp33_ASAP7_75t_R
+                   asap7sc7p5t_OA_RVT_SS_ccs_211120
+                                  0.087480       1      0.087480  
+OAI311xp33_ASAP7_75t_R
+                   asap7sc7p5t_OA_RVT_SS_ccs_211120
+                                  0.102060       1      0.102060  
+XNOR2xp5_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.131220       4      0.524880  
+XOR2xp5_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.131220       2      0.262440  
+-----------------------------------------------------------------------------
+Total 8 references                                      1.385100
+
+****************************************
+Design: p5_regfile 
+****************************************
+Reference          Library       Unit Area   Count    Total Area   Attributes
+-----------------------------------------------------------------------------
+A2O1A1Ixp33_ASAP7_75t_R
+                   asap7sc7p5t_AO_RVT_SS_ccs_211120
+                                  0.087480      16      1.399680  
+AND2x2_ASAP7_75t_R asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.087480       8      0.699840  
+AO21x1_ASAP7_75t_R asap7sc7p5t_AO_RVT_SS_ccs_211120
+                                  0.087480      16      1.399680  
+AO22x1_ASAP7_75t_R asap7sc7p5t_AO_RVT_SS_ccs_211120
+                                  0.131220      16      2.099520  
+AOI22xp5_ASAP7_75t_R
+                   asap7sc7p5t_AO_RVT_SS_ccs_211120
+                                  0.087480      56      4.898880  
+AOI22xp33_ASAP7_75t_R
+                   asap7sc7p5t_AO_RVT_SS_ccs_211120
+                                  0.087480      64      5.598720  
+DFFHQNx1_ASAP7_75t_R
+                   asap7sc7p5t_SEQ_RVT_SS_ccs_220123
+                                  0.291600      64     18.662399  n
+INVx1_ASAP7_75t_R  asap7sc7p5t_INVBUF_RVT_SS_ccs_211120
+                                  0.043740      19      0.831060  
+NAND2xp5_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.058320       9      0.524880  
+NAND4xp25_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.087480       2      0.174960  
+NOR2xp33_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.058320      12      0.699840  
+NOR3xp33_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.072900       2      0.145800  
+OAI21xp5_ASAP7_75t_R
+                   asap7sc7p5t_OA_RVT_SS_ccs_211120
+                                  0.072900       2      0.145800  
+OAI31xp33_ASAP7_75t_R
+                   asap7sc7p5t_OA_RVT_SS_ccs_211120
+                                  0.087480       5      0.437400  
+OAI311xp33_ASAP7_75t_R
+                   asap7sc7p5t_OA_RVT_SS_ccs_211120
+                                  0.102060       1      0.102060  
+OR3x1_ASAP7_75t_R  asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.087480       1      0.087480  
+XNOR2xp5_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120
+                                  0.131220       6      0.787320  
+-----------------------------------------------------------------------------
+Total 17 references                                    38.695319
+1

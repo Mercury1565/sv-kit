@@ -29,9 +29,14 @@ python3.11 -m venv .venv          # CAEN's python3 is 3.9: never use it
 .venv/bin/pip install -e '.[dev]'
 ```
 - **Node:** the system Node is v10. Node is needed only to rebuild `web/`, because the built assets are committed. If you do rebuild, install Node LTS into `~/tools/node` and run `cd web && npm ci && npm run build`. The build writes to `src/svkit/server/static/`.
+- **Home is a CIFS (SMB) mount** (`df -T ~`). Two consequences, both handled in code since iteration 3:
+  - `os.listxattr` fails with EAGAIN, so `shutil.copy2`/`copytree` fail. svkit copies with `svkit.core.fsutil`.
+  - Building a wheel from a tree in `~` fails on SMB temp files. Build from a copy under `/tmp`.
+  - Directory listings can lag by about 1 s (`cache=loose`).
 - **OSS flow (optional on CAEN):**
-  - Run `source ~/tools/oss-cad-suite/environment`.
-  - OpenSTA is not in OSS CAD Suite. It was installed with conda (`litex-hub::openroad`) into `~/tools/sta-env`, then symlinked as `~/tools/bin/sta`.
+  - OSS CAD Suite is extracted in `~/tools/oss-cad-suite` (re-extracted 2026-11-02; the first extraction was incomplete). Run `source ~/tools/oss-cad-suite/environment`.
+  - Its `verilator` wrapper needs Perl's `FindBin`, missing on RHEL 9. A copy of the core module (Perl v5.32.1) is in `~/tools/perl5`. Export `PERL5LIB=~/tools/perl5`; `tests/conftest.py` does this automatically.
+  - **OpenSTA is not installed on CAEN.** It is not in OSS CAD Suite. On the dev host it came from conda (`litex-hub::openroad`) into `~/tools/sta-env`, symlinked as `~/tools/bin/sta`. Installing it here is pending the owner's OK. Until then, the `oss`-marked tests skip on CAEN.
   - `tests/conftest.py` adds `~/tools/bin` and `~/tools/oss-cad-suite/bin` to PATH automatically.
   - Unset `VERILATOR_ROOT` if a stale one is set.
 - **Synopsys:** `vcs` and `dc_shell-t` are on PATH by default. Verdi is not.
@@ -44,13 +49,22 @@ python3.11 -m venv .venv          # CAEN's python3 is 3.9: never use it
 
 Set these in your shell only. Pick one of the two options:
 
-- **Option A: a real `.db` library.**
+- **Option A: a real `.db` library (works; used for iteration 3).**
   - Set `SVKIT_DC_TARGET_LIB=/abs/path/lib_tt.db`.
   - Optionally set `SVKIT_DC_TARGET_LIB_SS` for the `corner=SS` knob, plus `SVKIT_DC_LINK_LIB` and `SVKIT_DC_SEARCH_PATH`.
   - Set `SVKIT_DC_TIME_UNIT=ps` if the library uses ps.
-- **Option B: the original toy library.**
+  - The setup that passes `pytest -m synopsys` on CAEN uses the class's ASAP7 RVT `.db` libraries.
+    Take the directory from the `target_library` glob in the dogfood's `470synth.tcl` (not committed here):
+    ```
+    D=<ASAP7 DB/CCS directory from 470synth.tcl>
+    export SVKIT_DC_TARGET_LIB="$(ls $D/*_RVT_TT_ccs_*.db | tr '\n' ' ')"
+    export SVKIT_DC_TARGET_LIB_SS="$(ls $D/*_RVT_SS_ccs_*.db | tr '\n' ' ')"
+    export SVKIT_DC_SEARCH_PATH="$D" SVKIT_DC_TIME_UNIT=ps
+    ```
+- **Option B: the original toy library (does not work yet).**
   - Set `SVKIT_DC_LIBERTY=$PWD/fixtures/lib/svkit_tiny.lib`.
-  - Synthesis converts it to `.db` with `read_lib`/`write_lib`, which needs a Library Compiler license.
+  - `read_lib` is not available inside `dc_shell` on CAEN, and `write_lib` there needs `enable_write_lib_mode`. Conversion has to run in `lc_shell` (on PATH).
+  - Library Compiler also rejects `svkit_tiny.lib` itself: the clock pins' internal-power tables use the 2-D `power_2x2` template, and the `RN` recovery/removal arcs carry fall constraints. Fixing the library changes OpenSTA power numbers, so the OSS goldens must be regenerated on a host with `sta`.
 
 Details are in `fixtures/synopsys_common/README.md`.
 

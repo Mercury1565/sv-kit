@@ -1,0 +1,982 @@
+{
+  "area_by_hier": {
+    "": 116.9462,
+    "add_130": 1.4434,
+    "add_1_root_add_103_2": 2.2162,
+    "u_alu": 16.038,
+    "u_alu/add_19": 2.2162,
+    "u_alu/add_25": 2.2162,
+    "u_alu/sub_20": 2.5661,
+    "u_hz": 1.3851,
+    "u_rf": 38.6953
+  },
+  "area_total": 116.946178,
+  "area_unit": "um^2",
+  "cell_count": 919,
+  "cells_by_type": {
+    "A2O1A1Ixp33_ASAP7_75t_R": 17,
+    "AND2x2_ASAP7_75t_R": 19,
+    "AND3x1_ASAP7_75t_R": 1,
+    "AND4x1_ASAP7_75t_R": 1,
+    "AO21x1_ASAP7_75t_R": 16,
+    "AO22x1_ASAP7_75t_R": 27,
+    "AOI211xp5_ASAP7_75t_R": 1,
+    "AOI21xp5_ASAP7_75t_R": 1,
+    "AOI221xp5_ASAP7_75t_R": 9,
+    "AOI222xp33_ASAP7_75t_R": 7,
+    "AOI22xp33_ASAP7_75t_R": 80,
+    "AOI22xp5_ASAP7_75t_R": 81,
+    "AOI311xp33_ASAP7_75t_R": 1,
+    "AOI31xp33_ASAP7_75t_R": 2,
+    "AOI322xp5_ASAP7_75t_R": 1,
+    "AOI32xp33_ASAP7_75t_R": 2,
+    "AOI33xp33_ASAP7_75t_R": 1,
+    "DFFHQNx1_ASAP7_75t_R": 185,
+    "FAx1_ASAP7_75t_R": 28,
+    "HAxp5_ASAP7_75t_R": 6,
+    "HB1xp67_ASAP7_75t_R": 4,
+    "INVx1_ASAP7_75t_R": 170,
+    "NAND2xp33_ASAP7_75t_R": 6,
+    "NAND2xp5_ASAP7_75t_R": 29,
+    "NAND3xp33_ASAP7_75t_R": 10,
+    "NAND4xp25_ASAP7_75t_R": 7,
+    "NAND5xp2_ASAP7_75t_R": 4,
+    "NOR2xp33_ASAP7_75t_R": 29,
+    "NOR3xp33_ASAP7_75t_R": 8,
+    "NOR4xp25_ASAP7_75t_R": 2,
+    "NOR5xp2_ASAP7_75t_R": 2,
+    "OAI211xp5_ASAP7_75t_R": 1,
+    "OAI21xp33_ASAP7_75t_R": 1,
+    "OAI21xp5_ASAP7_75t_R": 2,
+    "OAI222xp33_ASAP7_75t_R": 24,
+    "OAI22xp33_ASAP7_75t_R": 4,
+    "OAI22xp5_ASAP7_75t_R": 75,
+    "OAI311xp33_ASAP7_75t_R": 2,
+    "OAI31xp33_ASAP7_75t_R": 6,
+    "OAI322xp33_ASAP7_75t_R": 1,
+    "OAI33xp33_ASAP7_75t_R": 2,
+    "OR2x2_ASAP7_75t_R": 4,
+    "OR3x1_ASAP7_75t_R": 1,
+    "TIEHIx1_ASAP7_75t_R": 1,
+    "TIELOx1_ASAP7_75t_R": 1,
+    "XNOR2xp5_ASAP7_75t_R": 25,
+    "XOR2xp5_ASAP7_75t_R": 12
+  },
+  "corner": "PVT_0P63V_100C",
+  "extra": {
+    "area": {
+      "buf_inv": 7.66908,
+      "buf_inv_cells": 174,
+      "cells": 927,
+      "combinational": 63.00018,
+      "combinational_cells": 734,
+      "macro": 0.0,
+      "macros": 0,
+      "nets": 1182,
+      "noncombinational": 53.945998,
+      "ports": 282,
+      "references": 35,
+      "sequential_cells": 185,
+      "total_cell": 116.946178
+    },
+    "hold_violators": 98,
+    "libraries": [
+      "asap7sc7p5t_INVBUF_RVT_SS_ccs_211120",
+      "asap7sc7p5t_SIMPLE_RVT_SS_ccs_211120",
+      "asap7sc7p5t_OA_RVT_SS_ccs_211120",
+      "asap7sc7p5t_AO_RVT_SS_ccs_211120",
+      "asap7sc7p5t_SEQ_RVT_SS_ccs_220123"
+    ],
+    "operating_conditions": {
+      "library": "asap7sc7p5t_AO_RVT_SS_ccs_211120",
+      "name": "PVT_0P63V_100C",
+      "process": 1.0,
+      "temperature": 100.0,
+      "voltage": 0.63
+    },
+    "power": {
+      "dynamic": 0.0969661,
+      "internal": 0.0915963,
+      "leakage": 0.0013195,
+      "switching": 0.0053697,
+      "total": 0.098286
+    },
+    "qor": {
+      "clock": {
+        "Critical Path Clk Period": 2000.0,
+        "Critical Path Length": 1181.96,
+        "Critical Path Slack": 787.66,
+        "Levels of Logic": 22.0,
+        "No. of Hold Violations": 98.0,
+        "No. of Violating Paths": 0.0,
+        "Total Hold Violation": -467.04,
+        "Total Negative Slack": 0.0,
+        "Worst Hold Violation": -6.07
+      }
+    },
+    "qor_sections": {
+      "Area": {
+        "Buf/Inv Area": 7.66908,
+        "Cell Area": 116.946178,
+        "Combinational Area": 63.00018,
+        "Design Area": 116.946178,
+        "Macro/Black Box Area": 0.0,
+        "Net Area": 0.0,
+        "Noncombinational Area": 53.945998,
+        "Total Buffer Area": 0.23,
+        "Total Inverter Area": 7.44
+      },
+      "Cell Count": {
+        "Buf Cell Count": 4.0,
+        "Buf/Inv Cell Count": 174.0,
+        "CT Buf/Inv Cell Count": 0.0,
+        "Combinational Cell Count": 734.0,
+        "Hierarchical Cell Count": 8.0,
+        "Hierarchical Port Count": 215.0,
+        "Inv Cell Count": 170.0,
+        "Leaf Cell Count": 919.0,
+        "Macro Count": 0.0,
+        "Sequential Cell Count": 185.0
+      },
+      "Compile CPU Statistics": {
+        "Logic Optimization": 0.69,
+        "Mapping Optimization": 0.64,
+        "Overall Compile Time": 2.68,
+        "Overall Compile Wall Clock Time": 2.97,
+        "Resource Sharing": 0.5
+      },
+      "Design Rules": {
+        "Max Cap Violations": 0.0,
+        "Max Trans Violations": 0.0,
+        "Nets With Violations": 0.0,
+        "Total Number of Nets": 975.0
+      }
+    },
+    "reports": [
+      "area",
+      "constraint",
+      "design",
+      "power",
+      "qor",
+      "reference",
+      "resources",
+      "timing",
+      "units"
+    ],
+    "resources": [
+      {
+        "columns": [
+          "resource",
+          "module",
+          "parameters",
+          "contained resources",
+          "contained operations"
+        ],
+        "design": "p5_core",
+        "file": "p5_core.sv",
+        "rows": [
+          {
+            "contained operations": "eq_93",
+            "contained resources": "",
+            "module": "DW01_cmp6",
+            "parameters": "width=3",
+            "resource": "r107"
+          },
+          {
+            "contained operations": "eq_94",
+            "contained resources": "",
+            "module": "DW01_cmp6",
+            "parameters": "width=3",
+            "resource": "r109"
+          },
+          {
+            "contained operations": "eq_96",
+            "contained resources": "",
+            "module": "DW01_cmp6",
+            "parameters": "width=3",
+            "resource": "r111"
+          },
+          {
+            "contained operations": "eq_97",
+            "contained resources": "",
+            "module": "DW01_cmp6",
+            "parameters": "width=3",
+            "resource": "r113"
+          },
+          {
+            "contained operations": "add_1_root_add_103_2",
+            "contained resources": "",
+            "module": "DW01_add",
+            "parameters": "width=8",
+            "resource": "r115"
+          },
+          {
+            "contained operations": "add_130",
+            "contained resources": "",
+            "module": "DW01_inc",
+            "parameters": "width=8",
+            "resource": "r117"
+          }
+        ],
+        "table": "Resource Sharing Report for design p5_core in file /path/to/work/rtl/p5_core.sv"
+      },
+      {
+        "columns": [
+          "cell",
+          "module",
+          "current implementation",
+          "set implementation"
+        ],
+        "rows": [
+          {
+            "cell": "add_1_root_add_103_2",
+            "current implementation": "rpl",
+            "module": "DW01_add"
+          },
+          {
+            "cell": "add_130",
+            "current implementation": "rpl",
+            "module": "DW01_inc",
+            "set implementation": ""
+          }
+        ],
+        "table": "Implementation Report"
+      },
+      {
+        "columns": [
+          "resource",
+          "module",
+          "parameters",
+          "contained resources",
+          "contained operations"
+        ],
+        "design": "p5_alu",
+        "file": "p5_alu.sv",
+        "rows": [
+          {
+            "contained operations": "eq_27 lt_26 ne_28",
+            "contained resources": "",
+            "module": "DW01_cmp6",
+            "parameters": "width=8",
+            "resource": "r66"
+          },
+          {
+            "contained operations": "add_19",
+            "contained resources": "",
+            "module": "DW01_add",
+            "parameters": "width=8",
+            "resource": "r71"
+          },
+          {
+            "contained operations": "sub_20",
+            "contained resources": "",
+            "module": "DW01_sub",
+            "parameters": "width=8",
+            "resource": "r73"
+          },
+          {
+            "contained operations": "add_25",
+            "contained resources": "",
+            "module": "DW01_add",
+            "parameters": "width=8",
+            "resource": "r75"
+          }
+        ],
+        "table": "Resource Sharing Report for design p5_alu in file /path/to/work/rtl/p5_alu.sv"
+      },
+      {
+        "columns": [
+          "cell",
+          "module",
+          "current implementation",
+          "set implementation"
+        ],
+        "rows": [
+          {
+            "cell": "add_19",
+            "current implementation": "rpl",
+            "module": "DW01_add",
+            "set implementation": ""
+          },
+          {
+            "cell": "sub_20",
+            "current implementation": "rpl",
+            "module": "DW01_sub",
+            "set implementation": ""
+          },
+          {
+            "cell": "add_25",
+            "current implementation": "rpl",
+            "module": "DW01_add",
+            "set implementation": ""
+          }
+        ],
+        "table": "Implementation Report"
+      },
+      {
+        "columns": [
+          "resource",
+          "module",
+          "parameters",
+          "contained resources",
+          "contained operations"
+        ],
+        "design": "p5_hazard",
+        "file": "p5_hazard.sv",
+        "rows": [
+          {
+            "contained operations": "eq_28_2",
+            "contained resources": "",
+            "module": "DW01_cmp6",
+            "parameters": "width=3",
+            "resource": "r56"
+          },
+          {
+            "contained operations": "eq_28_3",
+            "contained resources": "",
+            "module": "DW01_cmp6",
+            "parameters": "width=3",
+            "resource": "r58"
+          }
+        ],
+        "table": "Resource Sharing Report for design p5_hazard in file /path/to/work/rtl/p5_hazard.sv"
+      },
+      {
+        "columns": [
+          "resource",
+          "module",
+          "parameters",
+          "contained resources",
+          "contained operations"
+        ],
+        "design": "p5_regfile",
+        "file": "p5_regfile.sv",
+        "rows": [
+          {
+            "contained operations": "eq_23_2",
+            "contained resources": "",
+            "module": "DW01_cmp6",
+            "parameters": "width=3",
+            "resource": "r60"
+          },
+          {
+            "contained operations": "eq_24_2",
+            "contained resources": "",
+            "module": "DW01_cmp6",
+            "parameters": "width=3",
+            "resource": "r62"
+          }
+        ],
+        "table": "Resource Sharing Report for design p5_regfile in file /path/to/work/rtl/p5_regfile.sv"
+      }
+    ],
+    "setup_violators": 0,
+    "time_unit": "ps",
+    "time_unit_source": "report",
+    "wire_load_mode": "top"
+  },
+  "hold_tns": -466.8,
+  "hold_wns": -6.07,
+  "netlist": null,
+  "paths": [
+    {
+      "arrival": 1181.96,
+      "endpoint": "ifid_instr_reg[6]",
+      "path_group": "clock",
+      "path_type": "max",
+      "points": [
+        {
+          "arrival": 0.0,
+          "cell": "DFFHQNx1_ASAP7_75t_R",
+          "incr": 0.0,
+          "inst": "exmem_rd_reg[1]",
+          "net": null,
+          "pin": "CLK",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 82.81,
+          "cell": "DFFHQNx1_ASAP7_75t_R",
+          "incr": 82.81,
+          "inst": "exmem_rd_reg[1]",
+          "net": null,
+          "pin": "QN",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 116.99,
+          "cell": "XNOR2xp5_ASAP7_75t_R",
+          "incr": 34.18,
+          "inst": "U197",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 228.31,
+          "cell": "NAND5xp2_ASAP7_75t_R",
+          "incr": 111.32,
+          "inst": "U196",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 328.66,
+          "cell": "NAND2xp5_ASAP7_75t_R",
+          "incr": 100.35,
+          "inst": "U195",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 434.43,
+          "cell": "OAI222xp33_ASAP7_75t_R",
+          "incr": 105.76,
+          "inst": "U191",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 434.43,
+          "cell": "p5_alu",
+          "incr": 0.0,
+          "inst": "u_alu",
+          "net": null,
+          "pin": "b[0]",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 493.11,
+          "cell": "NAND2xp33_ASAP7_75t_R",
+          "incr": 58.68,
+          "inst": "u_alu/U87",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 522.31,
+          "cell": "OAI21xp33_ASAP7_75t_R",
+          "incr": 29.2,
+          "inst": "u_alu/U88",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 564.41,
+          "cell": "AOI322xp5_ASAP7_75t_R",
+          "incr": 42.1,
+          "inst": "u_alu/U91",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 599.97,
+          "cell": "OAI322xp33_ASAP7_75t_R",
+          "incr": 35.57,
+          "inst": "u_alu/U93",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 642.23,
+          "cell": "AOI32xp33_ASAP7_75t_R",
+          "incr": 42.25,
+          "inst": "u_alu/U94",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 676.07,
+          "cell": "OAI22xp33_ASAP7_75t_R",
+          "incr": 33.85,
+          "inst": "u_alu/U95",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 719.43,
+          "cell": "NOR4xp25_ASAP7_75t_R",
+          "incr": 43.36,
+          "inst": "u_alu/U96",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 770.81,
+          "cell": "NAND5xp2_ASAP7_75t_R",
+          "incr": 51.38,
+          "inst": "u_alu/U97",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 793.02,
+          "cell": "INVx1_ASAP7_75t_R",
+          "incr": 22.21,
+          "inst": "u_alu/U108",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 810.94,
+          "cell": "AOI22xp5_ASAP7_75t_R",
+          "incr": 17.92,
+          "inst": "u_alu/U19",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 839.8,
+          "cell": "OAI33xp33_ASAP7_75t_R",
+          "incr": 28.86,
+          "inst": "u_alu/U45",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 880.19,
+          "cell": "AND2x2_ASAP7_75t_R",
+          "incr": 40.39,
+          "inst": "u_alu/U44",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 880.19,
+          "cell": "p5_alu",
+          "incr": 0.0,
+          "inst": "u_alu",
+          "net": null,
+          "pin": "take",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 903.34,
+          "cell": "NAND2xp5_ASAP7_75t_R",
+          "incr": 23.15,
+          "inst": "U159",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 937.18,
+          "cell": "AOI31xp33_ASAP7_75t_R",
+          "incr": 33.84,
+          "inst": "U259",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 1022.33,
+          "cell": "HB1xp67_ASAP7_75t_R",
+          "incr": 85.15,
+          "inst": "U256",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 1069.67,
+          "cell": "NOR2xp33_ASAP7_75t_R",
+          "incr": 47.34,
+          "inst": "U255",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 1146.22,
+          "cell": "HB1xp67_ASAP7_75t_R",
+          "incr": 76.55,
+          "inst": "U253",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 1181.96,
+          "cell": "AOI22xp5_ASAP7_75t_R",
+          "incr": 35.74,
+          "inst": "U263",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 1181.96,
+          "cell": "DFFHQNx1_ASAP7_75t_R",
+          "incr": 0.0,
+          "inst": "ifid_instr_reg[6]",
+          "net": null,
+          "pin": "D",
+          "rise_fall": "r"
+        }
+      ],
+      "required": 1969.62,
+      "slack": 787.66,
+      "startpoint": "exmem_rd_reg[1]"
+    },
+    {
+      "arrival": 1181.96,
+      "endpoint": "ifid_instr_reg[0]",
+      "path_group": "clock",
+      "path_type": "max",
+      "points": [
+        {
+          "arrival": 0.0,
+          "cell": "DFFHQNx1_ASAP7_75t_R",
+          "incr": 0.0,
+          "inst": "exmem_rd_reg[1]",
+          "net": null,
+          "pin": "CLK",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 82.81,
+          "cell": "DFFHQNx1_ASAP7_75t_R",
+          "incr": 82.81,
+          "inst": "exmem_rd_reg[1]",
+          "net": null,
+          "pin": "QN",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 116.99,
+          "cell": "XNOR2xp5_ASAP7_75t_R",
+          "incr": 34.18,
+          "inst": "U197",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 228.31,
+          "cell": "NAND5xp2_ASAP7_75t_R",
+          "incr": 111.32,
+          "inst": "U196",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 328.66,
+          "cell": "NAND2xp5_ASAP7_75t_R",
+          "incr": 100.35,
+          "inst": "U195",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 434.43,
+          "cell": "OAI222xp33_ASAP7_75t_R",
+          "incr": 105.76,
+          "inst": "U191",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 434.43,
+          "cell": "p5_alu",
+          "incr": 0.0,
+          "inst": "u_alu",
+          "net": null,
+          "pin": "b[0]",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 493.11,
+          "cell": "NAND2xp33_ASAP7_75t_R",
+          "incr": 58.68,
+          "inst": "u_alu/U87",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 522.31,
+          "cell": "OAI21xp33_ASAP7_75t_R",
+          "incr": 29.2,
+          "inst": "u_alu/U88",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 564.41,
+          "cell": "AOI322xp5_ASAP7_75t_R",
+          "incr": 42.1,
+          "inst": "u_alu/U91",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 599.97,
+          "cell": "OAI322xp33_ASAP7_75t_R",
+          "incr": 35.57,
+          "inst": "u_alu/U93",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 642.23,
+          "cell": "AOI32xp33_ASAP7_75t_R",
+          "incr": 42.25,
+          "inst": "u_alu/U94",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 676.07,
+          "cell": "OAI22xp33_ASAP7_75t_R",
+          "incr": 33.85,
+          "inst": "u_alu/U95",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 719.43,
+          "cell": "NOR4xp25_ASAP7_75t_R",
+          "incr": 43.36,
+          "inst": "u_alu/U96",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 770.81,
+          "cell": "NAND5xp2_ASAP7_75t_R",
+          "incr": 51.38,
+          "inst": "u_alu/U97",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 793.02,
+          "cell": "INVx1_ASAP7_75t_R",
+          "incr": 22.21,
+          "inst": "u_alu/U108",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 810.94,
+          "cell": "AOI22xp5_ASAP7_75t_R",
+          "incr": 17.92,
+          "inst": "u_alu/U19",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 839.8,
+          "cell": "OAI33xp33_ASAP7_75t_R",
+          "incr": 28.86,
+          "inst": "u_alu/U45",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 880.19,
+          "cell": "AND2x2_ASAP7_75t_R",
+          "incr": 40.39,
+          "inst": "u_alu/U44",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 880.19,
+          "cell": "p5_alu",
+          "incr": 0.0,
+          "inst": "u_alu",
+          "net": null,
+          "pin": "take",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 903.34,
+          "cell": "NAND2xp5_ASAP7_75t_R",
+          "incr": 23.15,
+          "inst": "U159",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 937.18,
+          "cell": "AOI31xp33_ASAP7_75t_R",
+          "incr": 33.84,
+          "inst": "U259",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 1022.33,
+          "cell": "HB1xp67_ASAP7_75t_R",
+          "incr": 85.15,
+          "inst": "U256",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 1069.67,
+          "cell": "NOR2xp33_ASAP7_75t_R",
+          "incr": 47.34,
+          "inst": "U255",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 1146.22,
+          "cell": "HB1xp67_ASAP7_75t_R",
+          "incr": 76.55,
+          "inst": "U254",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 1181.96,
+          "cell": "AOI22xp5_ASAP7_75t_R",
+          "incr": 35.74,
+          "inst": "U277",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 1181.96,
+          "cell": "DFFHQNx1_ASAP7_75t_R",
+          "incr": 0.0,
+          "inst": "ifid_instr_reg[0]",
+          "net": null,
+          "pin": "D",
+          "rise_fall": "r"
+        }
+      ],
+      "required": 1969.63,
+      "slack": 787.68,
+      "startpoint": "exmem_rd_reg[1]"
+    },
+    {
+      "arrival": 7.54,
+      "endpoint": "exmem_alu_reg[0]",
+      "path_group": "clock",
+      "path_type": "min",
+      "points": [
+        {
+          "arrival": 0.0,
+          "cell": null,
+          "incr": 0.0,
+          "inst": "",
+          "net": null,
+          "pin": "reset",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 7.54,
+          "cell": "OAI22xp5_ASAP7_75t_R",
+          "incr": 7.54,
+          "inst": "U302",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 7.54,
+          "cell": "DFFHQNx1_ASAP7_75t_R",
+          "incr": 0.0,
+          "inst": "exmem_alu_reg[0]",
+          "net": null,
+          "pin": "D",
+          "rise_fall": "f"
+        }
+      ],
+      "required": 13.61,
+      "slack": -6.07,
+      "startpoint": "reset"
+    },
+    {
+      "arrival": 7.54,
+      "endpoint": "exmem_alu_reg[1]",
+      "path_group": "clock",
+      "path_type": "min",
+      "points": [
+        {
+          "arrival": 0.0,
+          "cell": null,
+          "incr": 0.0,
+          "inst": "",
+          "net": null,
+          "pin": "reset",
+          "rise_fall": "r"
+        },
+        {
+          "arrival": 7.54,
+          "cell": "OAI22xp5_ASAP7_75t_R",
+          "incr": 7.54,
+          "inst": "U307",
+          "net": null,
+          "pin": "Y",
+          "rise_fall": "f"
+        },
+        {
+          "arrival": 7.54,
+          "cell": "DFFHQNx1_ASAP7_75t_R",
+          "incr": 0.0,
+          "inst": "exmem_alu_reg[1]",
+          "net": null,
+          "pin": "D",
+          "rise_fall": "f"
+        }
+      ],
+      "required": 13.61,
+      "slack": -6.07,
+      "startpoint": "reset"
+    }
+  ],
+  "period": 2000.0,
+  "power": {
+    "dynamic": 0.0969661,
+    "leakage": 0.0013195,
+    "total": 0.098286
+  },
+  "schema_version": 1,
+  "tns": 0.0,
+  "tool": "dc",
+  "top": "p5_core",
+  "vt_mix": {
+    "RVT": 919
+  },
+  "warnings": [],
+  "wns": 787.66
+}

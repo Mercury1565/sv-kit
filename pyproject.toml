@@ -22,7 +22,7 @@ dependencies = [
 dev = ["pytest>=8", "httpx>=0.27"]
 
 [project.scripts]
-svkit = "svkit.cli:app"
+svkit = "svkit.cli:main"
 
 [project.entry-points."svkit.adapters"]
 # third-party adapters register here: name = "module:Class"

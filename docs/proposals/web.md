@@ -15,6 +15,14 @@ None of them blocks the UI: each has a fallback today.
 
 ## 2. Small additions that would help
 
+Status (iteration 3, lead):
+- **1 and 3 are done in the backend** (`GET /api/design/signal`, the `X-Total-Count` header). The UI
+  still uses its fallbacks until the next frontend build.
+- **2 and 4 were already true:** failed sim runs carry `SimResult.reason` as `message`, and sweep
+  `group.updated` events carry `result`.
+- **5 is open:** the server cannot attribute runs to a job before it returns. Runs come from shared
+  executor threads, and sweeps create their group inside the call. It needs a group-first job API.
+
 1. **`GET /api/design/signal?path=<wave path>` → `{module, file, line}`** (Track 4). The waves view
    needs "signal → source line". Today it walks `/api/design/hierarchy` (best instance-name match
    from the wave scopes) and greps the module file returned by `/api/source` for a declaration of

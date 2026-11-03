@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from svkit.config import Config, Sources, expand
+from svkit.core.fsutil import copy_file
 
 ALWAYS_EXCLUDE = {".git", ".svkit", ".venv", "node_modules", "__pycache__"}
 
@@ -155,7 +156,7 @@ def make_workdir(cfg: Config, dest: Path) -> Path:
             if s.is_symlink():
                 os.symlink(os.readlink(s), tgt / fn)
                 continue
-            shutil.copy2(s, tgt / fn)
+            copy_file(s, tgt / fn)
     return dest
 
 

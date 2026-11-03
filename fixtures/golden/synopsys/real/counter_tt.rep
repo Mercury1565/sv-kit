@@ -1,0 +1,549 @@
+Information: Updating design information... (UID-85)
+ 
+****************************************
+Report : design
+Design : counter
+Version: V-2023.12-SP5
+Date   : Mon Nov  2 22:08:13 2026
+****************************************
+
+Design allows ideal nets on clock nets.
+
+Library(s) Used:
+
+    asap7sc7p5t_INVBUF_RVT_TT_ccs_211120 (File: /path/to/libs/asap7sc7p5t_INVBUF_RVT_TT_ccs_220122.db)
+    asap7sc7p5t_SIMPLE_RVT_TT_ccs_211120 (File: /path/to/libs/asap7sc7p5t_SIMPLE_RVT_TT_ccs_211120.db)
+    asap7sc7p5t_AO_RVT_TT_ccs_211120 (File: /path/to/libs/asap7sc7p5t_AO_RVT_TT_ccs_211120.db)
+    asap7sc7p5t_SEQ_RVT_TT_ccs_220123 (File: /path/to/libs/asap7sc7p5t_SEQ_RVT_TT_ccs_220123.db)
+
+Local Link Library:
+
+    {/path/to/libs/asap7sc7p5t_AO_RVT_TT_ccs_211120.db, /path/to/libs/asap7sc7p5t_INVBUF_RVT_TT_ccs_220122.db, /path/to/libs/asap7sc7p5t_OA_RVT_TT_ccs_211120.db, /path/to/libs/asap7sc7p5t_SEQ_RVT_TT_ccs_220123.db, /path/to/libs/asap7sc7p5t_SIMPLE_RVT_TT_ccs_211120.db}
+
+Flip-Flop Types:
+
+    No flip-flop types specified.
+
+Latch Types:
+
+    No latch types specified.
+
+Operating Conditions:
+
+
+    Operating Condition Name : PVT_0P7V_25C
+    Library : asap7sc7p5t_AO_RVT_TT_ccs_211120
+    Process :   1.00
+    Temperature :  25.00
+    Voltage :   0.70
+
+Wire Loading Model:
+
+    No wire loading specified.
+
+
+Wire Loading Model Mode: top.
+
+Timing Ranges:
+
+    No timing ranges specified.
+
+Pin Input Delays:
+
+    None specified.
+
+Pin Output Delays:
+
+    None specified.
+
+Disabled Timing Arcs:
+
+    No arcs disabled.
+
+Required Licenses:
+
+    None Required
+
+Design Parameters:
+
+    None specified.
+1
+************************************
+Report : units
+Design : counter
+Version: V-2023.12-SP5
+Date   : Mon Nov  2 22:08:13 2026
+
+************************************
+Units
+------------------------------------
+Time_unit            : 1.0e-12 Second(ps)
+Capacitive_load_unit : 1.0e-15 Farad(fF)
+Resistance_unit      : 1000 Ohm(kOhm)
+Voltage_unit         : 1 Volt
+Power_unit           : N/A
+Current_unit         : 1.0e-03 Amp(mA)
+1
+ 
+****************************************
+Report : qor
+Design : counter
+Version: V-2023.12-SP5
+Date   : Mon Nov  2 22:08:13 2026
+****************************************
+
+
+  Timing Path Group 'clock'
+  -----------------------------------
+  Levels of Logic:              13.00
+  Critical Path Length:        252.67
+  Critical Path Slack:        1723.90
+  Critical Path Clk Period:   2000.00
+  Total Negative Slack:          0.00
+  No. of Violating Paths:        0.00
+  Worst Hold Violation:          0.00
+  Total Hold Violation:          0.00
+  No. of Hold Violations:        0.00
+  -----------------------------------
+
+
+  Cell Count
+  -----------------------------------
+  Hierarchical Cell Count:          1
+  Hierarchical Port Count:         16
+  Leaf Cell Count:                 44
+  Buf/Inv Cell Count:              14
+  Buf Cell Count:                   0
+  Inv Cell Count:                  14
+  CT Buf/Inv Cell Count:            0
+  Combinational Cell Count:        35
+  Sequential Cell Count:            9
+  Macro Count:                      0
+  -----------------------------------
+
+
+  Area
+  -----------------------------------
+  Combinational Area:        2.682720
+  Noncombinational Area:     3.411720
+  Buf/Inv Area:              0.612360
+  Total Buffer Area:             0.00
+  Total Inverter Area:           0.61
+  Macro/Black Box Area:      0.000000
+  Net Area:                  0.000000
+  -----------------------------------
+  Cell Area:                 6.094440
+  Design Area:               6.094440
+
+
+  Design Rules
+  -----------------------------------
+  Total Number of Nets:            54
+  Nets With Violations:             0
+  Max Trans Violations:             0
+  Max Cap Violations:               0
+  -----------------------------------
+
+
+  Hostname: host
+
+  Compile CPU Statistics
+  -----------------------------------------
+  Resource Sharing:                    0.07
+  Logic Optimization:                  0.23
+  Mapping Optimization:                0.10
+  -----------------------------------------
+  Overall Compile Time:                1.07
+  Overall Compile Wall Clock Time:     1.32
+
+  --------------------------------------------------------------------
+
+  Design  WNS: 0.00  TNS: 0.00  Number of Violating Paths: 0
+
+
+  Design (Hold)  WNS: 0.00  TNS: 0.00  Number of Violating Paths: 0
+
+  --------------------------------------------------------------------
+
+
+1
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 2
+Design : counter
+Version: V-2023.12-SP5
+Date   : Mon Nov  2 22:08:13 2026
+****************************************
+
+Operating Conditions: PVT_0P7V_25C   Library: asap7sc7p5t_AO_RVT_TT_ccs_211120
+Wire Load Model Mode: top
+
+  Startpoint: count_reg[0]
+              (rising edge-triggered flip-flop clocked by clock)
+  Endpoint: count_reg[7]
+            (rising edge-triggered flip-flop clocked by clock)
+  Path Group: clock
+  Path Type: max
+
+  Point                                                   Incr       Path
+  --------------------------------------------------------------------------
+  clock clock (rise edge)                                 0.00       0.00
+  clock network delay (ideal)                             0.00       0.00
+  count_reg[0]/CLK (DFFASRHQNx1_ASAP7_75t_R)              0.00       0.00 r
+  count_reg[0]/QN (DFFASRHQNx1_ASAP7_75t_R)              59.81      59.81 r
+  add_17/A[0] (counter_DW01_inc_0)                        0.00      59.81 r
+  add_17/U1_1_1/CON (HAxp5_ASAP7_75t_R)                  18.45      78.26 f
+  add_17/U11/Y (INVx1_ASAP7_75t_R)                       13.13      91.39 r
+  add_17/U1_1_2/CON (HAxp5_ASAP7_75t_R)                  13.47     104.86 f
+  add_17/U9/Y (INVx1_ASAP7_75t_R)                        12.49     117.34 r
+  add_17/U1_1_3/CON (HAxp5_ASAP7_75t_R)                  13.23     130.57 f
+  add_17/U7/Y (INVx1_ASAP7_75t_R)                        12.48     143.06 r
+  add_17/U1_1_4/CON (HAxp5_ASAP7_75t_R)                  13.23     156.28 f
+  add_17/U5/Y (INVx1_ASAP7_75t_R)                        12.49     168.77 r
+  add_17/U1_1_5/CON (HAxp5_ASAP7_75t_R)                  13.23     182.00 f
+  add_17/U3/Y (INVx1_ASAP7_75t_R)                        12.50     194.51 r
+  add_17/U1_1_6/CON (HAxp5_ASAP7_75t_R)                  15.71     210.22 f
+  add_17/U13/Y (XNOR2xp5_ASAP7_75t_R)                    25.85     236.07 f
+  add_17/SUM[7] (counter_DW01_inc_0)                      0.00     236.07 f
+  U37/Y (AOI22xp5_ASAP7_75t_R)                           16.60     252.67 r
+  count_reg[7]/D (DFFASRHQNx1_ASAP7_75t_R)                0.00     252.67 r
+  data arrival time                                                252.67
+
+  clock clock (rise edge)                              2000.00    2000.00
+  clock network delay (ideal)                             0.00    2000.00
+  count_reg[7]/CLK (DFFASRHQNx1_ASAP7_75t_R)              0.00    2000.00 r
+  library setup time                                    -23.44    1976.56
+  data required time                                              1976.56
+  --------------------------------------------------------------------------
+  data required time                                              1976.56
+  data arrival time                                               -252.67
+  --------------------------------------------------------------------------
+  slack (MET)                                                     1723.90
+
+
+  Startpoint: count_reg[0]
+              (rising edge-triggered flip-flop clocked by clock)
+  Endpoint: count_reg[6]
+            (rising edge-triggered flip-flop clocked by clock)
+  Path Group: clock
+  Path Type: max
+
+  Point                                                   Incr       Path
+  --------------------------------------------------------------------------
+  clock clock (rise edge)                                 0.00       0.00
+  clock network delay (ideal)                             0.00       0.00
+  count_reg[0]/CLK (DFFASRHQNx1_ASAP7_75t_R)              0.00       0.00 r
+  count_reg[0]/QN (DFFASRHQNx1_ASAP7_75t_R)              59.81      59.81 r
+  add_17/A[0] (counter_DW01_inc_0)                        0.00      59.81 r
+  add_17/U1_1_1/CON (HAxp5_ASAP7_75t_R)                  18.45      78.26 f
+  add_17/U11/Y (INVx1_ASAP7_75t_R)                       13.13      91.39 r
+  add_17/U1_1_2/CON (HAxp5_ASAP7_75t_R)                  13.47     104.86 f
+  add_17/U9/Y (INVx1_ASAP7_75t_R)                        12.49     117.34 r
+  add_17/U1_1_3/CON (HAxp5_ASAP7_75t_R)                  13.23     130.57 f
+  add_17/U7/Y (INVx1_ASAP7_75t_R)                        12.48     143.06 r
+  add_17/U1_1_4/CON (HAxp5_ASAP7_75t_R)                  13.23     156.28 f
+  add_17/U5/Y (INVx1_ASAP7_75t_R)                        12.49     168.77 r
+  add_17/U1_1_5/CON (HAxp5_ASAP7_75t_R)                  13.23     182.00 f
+  add_17/U3/Y (INVx1_ASAP7_75t_R)                        12.50     194.51 r
+  add_17/U1_1_6/CON (HAxp5_ASAP7_75t_R)                  15.71     210.22 f
+  add_17/U1_1_6/SN (HAxp5_ASAP7_75t_R)                   12.92     223.14 r
+  add_17/U2/Y (INVx1_ASAP7_75t_R)                         9.22     232.36 f
+  add_17/SUM[6] (counter_DW01_inc_0)                      0.00     232.36 f
+  U38/Y (AOI22xp5_ASAP7_75t_R)                           14.50     246.86 r
+  count_reg[6]/D (DFFASRHQNx1_ASAP7_75t_R)                0.00     246.86 r
+  data arrival time                                                246.86
+
+  clock clock (rise edge)                              2000.00    2000.00
+  clock network delay (ideal)                             0.00    2000.00
+  count_reg[6]/CLK (DFFASRHQNx1_ASAP7_75t_R)              0.00    2000.00 r
+  library setup time                                    -23.44    1976.56
+  data required time                                              1976.56
+  --------------------------------------------------------------------------
+  data required time                                              1976.56
+  data arrival time                                               -246.86
+  --------------------------------------------------------------------------
+  slack (MET)                                                     1729.70
+
+
+1
+ 
+****************************************
+Report : timing
+        -path full
+        -delay min
+        -max_paths 2
+Design : counter
+Version: V-2023.12-SP5
+Date   : Mon Nov  2 22:08:13 2026
+****************************************
+
+Operating Conditions: PVT_0P7V_25C   Library: asap7sc7p5t_AO_RVT_TT_ccs_211120
+Wire Load Model Mode: top
+
+  Startpoint: en (input port clocked by clock)
+  Endpoint: wrap_reg (rising edge-triggered flip-flop clocked by clock)
+  Path Group: clock
+  Path Type: min
+
+  Point                                                   Incr       Path
+  --------------------------------------------------------------------------
+  clock clock (rise edge)                                 0.00       0.00
+  clock network delay (ideal)                             0.00       0.00
+  input external delay                                    0.00       0.00 f
+  en (in)                                                 0.00       0.00 f
+  U47/Y (AND5x1_ASAP7_75t_R)                             19.10      19.10 f
+  U45/Y (NAND2xp5_ASAP7_75t_R)                            8.00      27.10 r
+  wrap_reg/D (DFFASRHQNx1_ASAP7_75t_R)                    0.00      27.10 r
+  data arrival time                                                 27.10
+
+  clock clock (rise edge)                                 0.00       0.00
+  clock network delay (ideal)                             0.00       0.00
+  wrap_reg/CLK (DFFASRHQNx1_ASAP7_75t_R)                  0.00       0.00 r
+  library hold time                                      -4.67      -4.67
+  data required time                                                -4.67
+  --------------------------------------------------------------------------
+  data required time                                                -4.67
+  data arrival time                                                -27.10
+  --------------------------------------------------------------------------
+  slack (MET)                                                       31.77
+
+
+  Startpoint: wrap_reg (rising edge-triggered flip-flop clocked by clock)
+  Endpoint: wrap (output port clocked by clock)
+  Path Group: clock
+  Path Type: min
+
+  Point                                                   Incr       Path
+  --------------------------------------------------------------------------
+  clock clock (rise edge)                                 0.00       0.00
+  clock network delay (ideal)                             0.00       0.00
+  wrap_reg/CLK (DFFASRHQNx1_ASAP7_75t_R)                  0.00       0.00 r
+  wrap_reg/QN (DFFASRHQNx1_ASAP7_75t_R)                  44.37      44.37 r
+  wrap (out)                                              0.00      44.37 r
+  data arrival time                                                 44.37
+
+  clock clock (rise edge)                                 0.00       0.00
+  clock network delay (ideal)                             0.00       0.00
+  output external delay                                   0.00       0.00
+  data required time                                                 0.00
+  --------------------------------------------------------------------------
+  data required time                                                 0.00
+  data arrival time                                                -44.37
+  --------------------------------------------------------------------------
+  slack (MET)                                                       44.37
+
+
+1
+ 
+****************************************
+Report : constraint
+        -all_violators
+Design : counter
+Version: V-2023.12-SP5
+Date   : Mon Nov  2 22:08:13 2026
+****************************************
+
+This design has no violated constraints.
+
+1
+Loading db file '/path/to/libs/asap7sc7p5t_SEQ_RVT_TT_ccs_220123.db'
+Loading db file '/path/to/libs/asap7sc7p5t_SIMPLE_RVT_TT_ccs_211120.db'
+Loading db file '/path/to/libs/asap7sc7p5t_AO_RVT_TT_ccs_211120.db'
+Loading db file '/path/to/libs/asap7sc7p5t_INVBUF_RVT_TT_ccs_220122.db'
+Information: Propagating switching activity (low effort zero delay simulation). (PWR-6)
+Warning: Design has unannotated primary inputs. (PWR-414)
+Warning: Design has unannotated sequential cell outputs. (PWR-415)
+ 
+****************************************
+Report : power
+        -analysis_effort low
+Design : counter
+Version: V-2023.12-SP5
+Date   : Mon Nov  2 22:08:16 2026
+****************************************
+
+
+Library(s) Used:
+
+    asap7sc7p5t_INVBUF_RVT_TT_ccs_211120 (File: /path/to/libs/asap7sc7p5t_INVBUF_RVT_TT_ccs_220122.db)
+    asap7sc7p5t_SIMPLE_RVT_TT_ccs_211120 (File: /path/to/libs/asap7sc7p5t_SIMPLE_RVT_TT_ccs_211120.db)
+    asap7sc7p5t_AO_RVT_TT_ccs_211120 (File: /path/to/libs/asap7sc7p5t_AO_RVT_TT_ccs_211120.db)
+    asap7sc7p5t_SEQ_RVT_TT_ccs_220123 (File: /path/to/libs/asap7sc7p5t_SEQ_RVT_TT_ccs_220123.db)
+
+
+Operating Conditions: PVT_0P7V_25C   Library: asap7sc7p5t_AO_RVT_TT_ccs_211120
+Wire Load Model Mode: top
+
+
+Global Operating Voltage = 0.7  
+Power-specific unit information :
+    Voltage Units = 1V
+    Capacitance Units = 1.000000ff
+    Time Units = 1ps
+    Dynamic Power Units = 1mW    (derived from V,C,T units)
+    Leakage Power Units = 1pW
+
+
+Attributes
+----------
+i - Including register clock pin internal power
+
+
+  Cell Internal Power  =   5.9815 uW   (94%)
+  Net Switching Power  = 348.7990 nW    (6%)
+                         ---------
+Total Dynamic Power    =   6.3303 uW  (100%)
+
+Cell Leakage Power     =   4.8784 nW
+
+
+                 Internal         Switching           Leakage            Total
+Power Group      Power            Power               Power              Power   (   %    )  Attrs
+--------------------------------------------------------------------------------------------------
+io_pad             0.0000            0.0000            0.0000            0.0000  (   0.00%)
+memory             0.0000            0.0000            0.0000            0.0000  (   0.00%)
+black_box          0.0000            0.0000            0.0000            0.0000  (   0.00%)
+clock_network  5.7038e-03            0.0000            0.0000        5.7038e-03  (  90.03%)  i
+register       1.9492e-04        6.7992e-05        2.4863e+03        2.6540e-04  (   4.19%)
+sequential         0.0000            0.0000            0.0000            0.0000  (   0.00%)
+combinational  8.2843e-05        2.8081e-04        2.3913e+03        3.6604e-04  (   5.78%)
+--------------------------------------------------------------------------------------------------
+Total          5.9815e-03 mW     3.4880e-04 mW     4.8775e+03 pW     6.3352e-03 mW
+1
+ 
+****************************************
+Report : resources
+Design : counter
+Version: V-2023.12-SP5
+Date   : Mon Nov  2 22:08:16 2026
+****************************************
+
+Resource Sharing Report for design counter in file
+        /path/to/work/rtl/counter.sv
+
+===============================================================================
+|          |              |            | Contained     |                      |
+| Resource | Module       | Parameters | Resources     | Contained Operations |
+===============================================================================
+| r56      | DW01_inc     | width=8    |               | add_17               |
+===============================================================================
+
+
+Implementation Report
+===============================================================================
+|                    |                  | Current            | Set            |
+| Cell               | Module           | Implementation     | Implementation |
+===============================================================================
+| add_17             | DW01_inc         | rpl                |                |
+===============================================================================
+
+1
+ 
+****************************************
+Report : area
+Design : counter
+Version: V-2023.12-SP5
+Date   : Mon Nov  2 22:08:16 2026
+****************************************
+
+Library(s) Used:
+
+    asap7sc7p5t_INVBUF_RVT_TT_ccs_211120 (File: /path/to/libs/asap7sc7p5t_INVBUF_RVT_TT_ccs_220122.db)
+    asap7sc7p5t_SIMPLE_RVT_TT_ccs_211120 (File: /path/to/libs/asap7sc7p5t_SIMPLE_RVT_TT_ccs_211120.db)
+    asap7sc7p5t_AO_RVT_TT_ccs_211120 (File: /path/to/libs/asap7sc7p5t_AO_RVT_TT_ccs_211120.db)
+    asap7sc7p5t_SEQ_RVT_TT_ccs_220123 (File: /path/to/libs/asap7sc7p5t_SEQ_RVT_TT_ccs_220123.db)
+
+Number of ports:                           29
+Number of nets:                            70
+Number of cells:                           45
+Number of combinational cells:             35
+Number of sequential cells:                 9
+Number of macros/black boxes:               0
+Number of buf/inv:                         14
+Number of references:                       8
+
+Combinational area:                  2.682720
+Buf/Inv area:                        0.612360
+Noncombinational area:               3.411720
+Macro/Black Box area:                0.000000
+Net Interconnect area:      undefined  (No wire load specified)
+
+Total cell area:                     6.094440
+Total area:                 undefined
+
+Hierarchical area distribution
+------------------------------
+
+                                  Global cell area          Local cell area
+                                  ------------------  --------------------------- 
+Hierarchical cell                 Absolute   Percent  Combi-    Noncombi-  Black-
+                                  Total      Total    national  national   boxes   Design
+--------------------------------  ---------  -------  --------  ---------  ------  ------------------
+counter                              6.0944    100.0    1.2393     3.4117  0.0000  counter
+add_17                               1.4434     23.7    1.4434     0.0000  0.0000  counter_DW01_inc_0
+--------------------------------  ---------  -------  --------  ---------  ------  ------------------
+Total                                                   2.6827     3.4117  0.0000
+
+1
+ 
+****************************************
+Report : reference
+Design : counter
+Version: V-2023.12-SP5
+Date   : Mon Nov  2 22:08:16 2026
+****************************************
+
+Attributes:
+    b - black box (unknown)
+   bo - allows boundary optimization
+    d - dont_touch
+   mo - map_only
+    h - hierarchical
+    n - noncombinational
+    r - removable
+    s - synthetic operator
+    u - contains unmapped logic
+
+Reference          Library       Unit Area   Count    Total Area   Attributes
+-----------------------------------------------------------------------------
+AND5x1_ASAP7_75t_R asap7sc7p5t_SIMPLE_RVT_TT_ccs_211120
+                                  0.116640       2      0.233280  
+AOI22xp5_ASAP7_75t_R
+                   asap7sc7p5t_AO_RVT_TT_ccs_211120
+                                  0.087480       8      0.699840  
+DFFASRHQNx1_ASAP7_75t_R
+                   asap7sc7p5t_SEQ_RVT_TT_ccs_220123
+                                  0.379080       9      3.411720  n
+INVx1_ASAP7_75t_R  asap7sc7p5t_INVBUF_RVT_TT_ccs_211120
+                                  0.043740       2      0.087480  
+NAND2xp5_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_TT_ccs_211120
+                                  0.058320       1      0.058320  
+NOR2xp33_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_TT_ccs_211120
+                                  0.058320       2      0.116640  
+TIEHIx1_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_TT_ccs_211120
+                                  0.043740       1      0.043740  
+counter_DW01_inc_0                1.443420       1      1.443420  h
+-----------------------------------------------------------------------------
+Total 8 references                                      6.094440
+
+****************************************
+Design: counter_DW01_inc_0 
+****************************************
+Reference          Library       Unit Area   Count    Total Area   Attributes
+-----------------------------------------------------------------------------
+HAxp5_ASAP7_75t_R  asap7sc7p5t_SIMPLE_RVT_TT_ccs_211120
+                                  0.131220       6      0.787320  r
+INVx1_ASAP7_75t_R  asap7sc7p5t_INVBUF_RVT_TT_ccs_211120
+                                  0.043740      12      0.524880  
+XNOR2xp5_ASAP7_75t_R
+                   asap7sc7p5t_SIMPLE_RVT_TT_ccs_211120
+                                  0.131220       1      0.131220  
+-----------------------------------------------------------------------------
+Total 3 references                                      1.443420
+1

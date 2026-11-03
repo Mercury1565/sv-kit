@@ -41,3 +41,20 @@ Regenerate after an intentional parser change, then review `git diff`:
 ```
 SVKIT_REGEN_GOLDEN=1 python -m pytest tests/test_dc_reports.py -q
 ```
+
+## `real/` — real Design Compiler output (CAEN, 2026-11-02)
+
+**Synopsys tool output: redistribution must be checked before the repo goes public** (see "Needs
+owner" in `PROGRESS.md`). Produced by `dc_shell-t` V-2023.12-SP5 through svkit on the fixtures with the
+ASAP7 7.5-track RVT `.db` libraries (no library content is included). Absolute paths, the host and the
+user name are replaced with `/path/to/...`, `host` and `user`; the DC log starts after the tool's
+banner. Each real sample `X.rep` / `X.log` / `X.files` needs a distinct stem, because all of them map
+to `X.expected.json`.
+
+| Sample | Run |
+|---|---|
+| `counter_tt.rep` | counter, TT, 2000 ps: wrapped `report_reference` rows (name / library / numbers on three lines), ps units from `report_units` |
+| `pipe5_tt.rep` | pipe5 baseline, TT, 2000 ps: setup met, hold violated (−3.69 ps), DesignWare sub-designs in the hierarchy |
+| `pipe5_ss.rep` | pipe5 `ss_corner` experiment: SS libraries, different operating conditions |
+| `pipe5_378ps_violated.rep` | pipe5 sweep point at 378 ps: setup violated (WNS −12.39 ps, TNS −367.7 ps) |
+| `pipe5_tt_dc.log`, `pipe5_tt_with_log.files` | the DC log of the baseline run, alone and together with its report |

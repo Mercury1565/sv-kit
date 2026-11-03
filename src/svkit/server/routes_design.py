@@ -74,6 +74,14 @@ def make_router(st) -> APIRouter:
     def hierarchy() -> dict[str, Any]:
         return graph().hierarchy()
 
+    @r.get("/design/signal")
+    def signal(path: str) -> dict[str, Any]:
+        from svkit.design import graph as G
+        loc = G.graph_signal_location(graph(), path)
+        if loc is None:
+            raise HTTPException(404, f"signal {path!r} is not in the design")
+        return loc
+
     @r.get("/design/block")
     def block(module: Optional[str] = None) -> dict[str, Any]:
         g = graph()

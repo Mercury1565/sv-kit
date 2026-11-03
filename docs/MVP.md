@@ -92,7 +92,9 @@ See [§6.4](../PRODUCT.md#64-minimum-clock-period-sweep).
 **In scope**
 - The initial estimate is `T* ≈ T0 − WNS0`. From there, run a parallel grid that is bounded by license seats and refined until the bracket is smaller than `--tol`.
 - Each point is its own cached Run.
-- A point passes when setup WNS ≥ 0 and there is no hold violation.
+- A point passes when setup WNS ≥ 0 and there is no hold violation. Hold slack does not depend on
+  the period, so when the loosest point meets setup but fails hold, the sweep judges points on
+  setup alone and says so in the result.
 - Output:
   - a slack-vs-period chart (ECharts)
   - the chosen T_min

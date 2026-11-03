@@ -13,6 +13,7 @@ from svkit.adapters.synth import dc_reports as R
 from svkit.adapters.synth.dc import DcAdapter
 
 SAMPLES = Path(__file__).resolve().parents[1] / "fixtures" / "golden" / "synopsys" / "samples"
+REAL = SAMPLES.parent / "real"      # real dc_shell-t output from CAEN runs (paths stripped)
 REGEN = os.environ.get("SVKIT_REGEN_GOLDEN") == "1"
 
 
@@ -28,7 +29,8 @@ def _sample_inputs(p: Path) -> list[Path]:
     return [p]
 
 
-SAMPLE_FILES = sorted(p for p in SAMPLES.iterdir() if p.suffix in (".rpt", ".rep", ".log", ".files"))
+SAMPLE_FILES = sorted(p for d in (SAMPLES, REAL) if d.is_dir() for p in d.iterdir()
+                      if p.suffix in (".rpt", ".rep", ".log", ".files"))
 
 
 def test_every_sample_has_a_golden():
@@ -37,7 +39,7 @@ def test_every_sample_has_a_golden():
     assert REGEN or not missing, f"samples without .expected.json: {missing} (run with SVKIT_REGEN_GOLDEN=1)"
 
 
-@pytest.mark.parametrize("sample", SAMPLE_FILES, ids=lambda p: p.name)
+@pytest.mark.parametrize("sample", SAMPLE_FILES, ids=lambda p: f"{p.parent.name}/{p.name}")
 def test_golden(sample, tmp_path):
     ad = DcAdapter(_cfg(tmp_path))
     got = ad.parse(_sample_inputs(sample), top="").model_dump(mode="json")
@@ -242,3 +244,17 @@ def test_robust_to_garbage():
                        "Design : x\n****************************************\nStartpoint: a\nNo paths.\n",
                        "random text\n"], ["not a log"], top="x")
     assert r.paths == [] and r.wns is None and r.top == "x"
+
+
+def test_fatal_problems_from_real_dc_failure():
+    # dc_shell-t V-2023.12 exits 0 after these, so the adapter must catch them.
+    log = ("Error: Could not read the following target libraries:\n"
+           "syn_out/.db\n"
+           "Warning: Unable to resolve reference 'sky_and2' in 'top'. (LINK-5)\n"
+           "Warning: Module counter contains unmapped components.  The output netlist might not be "
+           "read back into the system. (VO-12)\n")
+    probs = R.fatal_problems(log)
+    assert len(probs) == 3
+    assert probs[1].startswith("unresolved cell references") and "sky_and2" in probs[1]
+    assert probs[2].startswith("the netlist contains unmapped logic") and "VO-12" in probs[2]
+    assert R.fatal_problems((SAMPLES / "dc_warnings.log").read_text()) == []

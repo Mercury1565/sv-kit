@@ -104,6 +104,10 @@ the wave file's timescale (reported by the wave API).
 * `PerfResult`: test, cycles, instrs, cpi, stalls, period, period_source, tpi (ps/instr).
 * `XTraceNode`: signal, time, value, driver{kind, file, line, text}, cause (XCause), note, children.
 * `CompareResult` / `MetricDelta`, `SweepResult` / `SweepPoint`.
+  `SweepResult.criterion` is `setup+hold` by default. It becomes `setup` when the loosest point meets
+  setup but still fails hold: hold does not depend on the period, so a looser clock cannot fix it.
+  `SweepResult.note` says why the criterion changed, or why the search stopped early (nothing passes
+  at 64× the start period).
 
 Hierarchy separator: `area_by_hier` keys and `TimingPoint.inst` use `/` (as DC and OpenSTA print it);
 waveform signal paths use `.`.
@@ -156,7 +160,7 @@ All JSON. Base `/api`. Errors: `{"detail": "..."}` with 4xx/5xx.
 | Method & path | Returns |
 |---|---|
 | `GET /api/project` | `{name, root, top, git_sha, git_dirty, flows:{sim:[..], synth:[..], sta:[..]}, knobs:[..], experiments:[..], tests:[..], adapters:{name: available}}` |
-| `GET /api/runs?kind=&group=&status=&test=&tag=&limit=&offset=` | `[RunSummary]` (Run without metrics) |
+| `GET /api/runs?kind=&group=&status=&test=&tag=&limit=&offset=` | `[RunSummary]` (Run without metrics); header `X-Total-Count` = matching runs before limit/offset |
 | `GET /api/runs/{id}` | `Run` with `metrics` |
 | `GET /api/runs/{id}/artifacts/{name}` | the file (text/binary) |
 | `GET /api/runs/{id}/log?tail=N` | `{lines:[...]}` |
@@ -177,6 +181,7 @@ All JSON. Base `/api`. Errors: `{"detail": "..."}` with 4xx/5xx.
 | `GET /api/runs/{id}/divergence` | `Divergence` (sim runs) with `time` filled if mappable; 404 if none. `cycle` N maps to the N-th (0-based) rising edge of `project.clock` strictly after `project.reset` deasserts |
 | `GET /api/design/hierarchy` | `{top, modules:{name:{ports:[...], instances:[{name, module}], file, line}}}` |
 | `GET /api/design/block?module=` | `{nodes:[{id, label, module, ports}], edges:[{src, dst, width, net}]}` (ELK-ready) |
+| `GET /api/design/signal?path=<wave path>` | `{path, module, file, line, type, width}`: declaration of a waveform signal (404 if not in the design) |
 | `GET /api/design/cone?run=&net=&depth=&path=` | `{nodes:[{id, cell, pins, on_path, delay?}], edges:[...], unresolved:[...]}` |
 | `GET /api/xtrace?run=&signal=&time=&depth=` | `XTraceNode` |
 | `GET /api/source?file=&line=&context=` | `{file, start, lines:[...]}` (only files inside the project root) |
@@ -213,4 +218,6 @@ T_min is known. Golden outputs live under `fixtures/golden/<flow>/<fixture>/`. S
   Hard cap for this server: ≤ 2 concurrent `dc_shell-t`/`vcs` across everything.
 * Synopsys tools additionally take a host-wide seat (file locks in `SVKIT_LOCK_DIR`, default
   `~/.cache/svkit/locks`; cap `SVKIT_SYNOPSYS_MAX_JOBS`, default 2) shared across processes and agents.
-* All subprocesses run `nice`d in their own session and are killed on cancel/timeout.
+* All subprocesses run `nice`d in their own session and are killed on cancel/timeout, and when the
+  `svkit` CLI gets Ctrl-C / SIGTERM or exits (`adapters.base.kill_children`). Their own session
+  means a terminal Ctrl-C never reaches them directly.

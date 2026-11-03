@@ -6,6 +6,10 @@
     P = tightest passing period overall, F = loosest failing period below P
     refine between F and P until P - F < tol
 
+Hold slack does not depend on the period (both ends of a hold check use the same edge), so
+when even the loosest point meets setup but fails hold, a looser clock cannot help: the
+sweep then judges points on setup alone and says so in `SweepResult.note`.
+
 Synthesis is non-monotonic (a tighter target can pass where a looser one failed),
 so P is always the tightest passing point seen, and failing points above P are
 ignored when choosing the bracket. Each point is its own (cached) synth Run of
@@ -23,13 +27,14 @@ from svkit.config import ConfigError
 from svkit.schemas import SweepPoint, SweepResult
 
 KNOB = "clock_period"
+MAX_GROWTH = 64        # give up when nothing passes at MAX_GROWTH x the start period
 
 
-def passed(metrics: Optional[dict[str, Any]]) -> bool:
+def passed(metrics: Optional[dict[str, Any]], *, hold: bool = True) -> bool:
     if not metrics:
         return False
-    wns, hold = metrics.get("wns"), metrics.get("hold_wns")
-    return wns is not None and wns >= 0 and (hold is None or hold >= 0)
+    wns, hold_wns = metrics.get("wns"), metrics.get("hold_wns")
+    return wns is not None and wns >= 0 and (not hold or hold_wns is None or hold_wns >= 0)
 
 
 def _quantum(tol: float) -> float:
@@ -55,6 +60,8 @@ class _Sweep:
         self.q = _quantum(self.tol)
         self.points: dict[float, SweepPoint] = {}
         self.lock = threading.Lock()
+        self.hold = True                 # False once hold is shown to be period-independent
+        self.note: Optional[str] = None
 
     # ------------------------------------------------------------ bookkeeping
     def result(self, status: str = "running") -> SweepResult:
@@ -63,7 +70,7 @@ class _Sweep:
         best = ok[0] if ok else None
         return SweepResult(group_id=self.gid, knob=KNOB, tol=self.tol, points=pts,
                            t_min=best.period if best else None, t_min_run_id=best.run_id if best else None,
-                           status=status)
+                           status=status, criterion="setup+hold" if self.hold else "setup", note=self.note)
 
     def publish(self, status: str = "running") -> SweepResult:
         res = self.result(status)
@@ -78,7 +85,7 @@ class _Sweep:
         m = run.metrics if run.status == "done" else None
         power = ((m or {}).get("power") or {}).get("total")
         p = SweepPoint(period=float(t), run_id=run.id, wns=(m or {}).get("wns"), hold_wns=(m or {}).get("hold_wns"),
-                       area_total=(m or {}).get("area_total"), power_total=power, passed=passed(m),
+                       area_total=(m or {}).get("area_total"), power_total=power, passed=passed(m, hold=self.hold),
                        note=None if run.status == "done" else (run.message or run.status))
         with self.lock:
             self.points[float(t)] = p
@@ -100,6 +107,23 @@ class _Sweep:
             return
         with ThreadPoolExecutor(max_workers=min(self.width, len(todo))) as ex:
             list(ex.map(self.run_point, todo))
+
+    def check_hold(self) -> None:
+        """Drop the hold requirement when the loosest point meets setup but still fails hold."""
+        if not self.hold or not self.points or self.bracket()[0] is not None:
+            return
+        loose = self.points[max(self.points)]
+        if loose.wns is None or loose.wns < 0 or loose.hold_wns is None or loose.hold_wns >= 0:
+            return
+        worst = min(p.hold_wns for p in self.points.values() if p.hold_wns is not None)
+        self.hold = False
+        self.note = (f"hold fails even at {loose.period:g} ps, where setup has {loose.wns:g} ps of slack "
+                     f"(worst hold WNS {worst:g} ps). A looser clock cannot fix hold, so T_min is judged on "
+                     "setup only; fix hold in the synthesis script (e.g. set_fix_hold) for a full result.")
+        with self.lock:
+            for p in self.points.values():
+                p.passed = p.wns is not None and p.wns >= 0
+            self.publish()
 
     # ------------------------------------------------------------ search
     def bracket(self) -> tuple[Optional[SweepPoint], Optional[SweepPoint]]:
@@ -171,11 +195,18 @@ def sweep_clock(runner, *, tol: float = 50, jobs: int = 2, flow: str | None = No
         if p0.wns is None:
             # no slack from the starting point (tool error): nothing to estimate from
             return sw.publish("done" if sw.result().t_min is not None else "failed")
+        sw.check_hold()
         t_star = t0 - p0.wns
         s = max(tol, 0.02 * abs(t_star))
         sw.run_grid([t_star + s * (k - (width - 1) / 2) for k in range(width)])
         rnd = 0
         while not sw.done() and len(sw.points) < max_points:
+            sw.check_hold()
+            if sw.done():
+                break
+            if sw.bracket()[0] is None and max(sw.points) > MAX_GROWTH * t0:
+                sw.note = f"no passing period up to {max(sw.points):g} ps ({MAX_GROWTH}x the start); stopped"
+                break
             before = len(sw.points)
             sw.run_grid(sw.next_grid(rnd))
             rnd += 1

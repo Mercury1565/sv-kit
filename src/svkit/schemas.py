@@ -203,3 +203,5 @@ class SweepResult(_Model):
     t_min: Optional[float] = None   # ps, tightest passing period
     t_min_run_id: Optional[str] = None
     status: Literal["running", "done", "failed"] = "running"
+    criterion: Literal["setup+hold", "setup"] = "setup+hold"   # "setup": hold failed independent of period
+    note: Optional[str] = None      # why the criterion changed or the search stopped early

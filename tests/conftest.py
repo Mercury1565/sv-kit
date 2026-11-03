@@ -4,6 +4,8 @@ from pathlib import Path
 
 import pytest
 
+from svkit.core.fsutil import copy_tree
+
 REPO = Path(__file__).resolve().parents[1]
 FIXTURES = REPO / "fixtures"
 
@@ -12,6 +14,10 @@ _EXTRA = [Path.home() / "tools" / "bin", Path.home() / "tools" / "oss-cad-suite"
 os.environ["PATH"] = os.pathsep.join([str(p) for p in _EXTRA if p.is_dir()] + [os.environ.get("PATH", "")])
 
 os.environ.pop("VERILATOR_ROOT", None)  # a stale host install breaks the oss-cad-suite verilator
+# RHEL 9 hosts (CAEN) lack perl's FindBin, which the oss-cad-suite verilator wrapper needs.
+_PERL5 = Path.home() / "tools" / "perl5"
+if _PERL5.is_dir():
+    os.environ["PERL5LIB"] = os.pathsep.join(filter(None, [str(_PERL5), os.environ.get("PERL5LIB")]))
 HAVE_OSS = all(shutil.which(t) for t in ("verilator", "yosys", "sta"))
 HAVE_SYNOPSYS = all(shutil.which(t) for t in ("vcs", "dc_shell-t"))
 
@@ -31,9 +37,9 @@ def fixture_copy(tmp_path):
     """Copy a fixture project into tmp so runs never write into the repo."""
     def _copy(name: str) -> Path:
         dst = tmp_path / name
-        shutil.copytree(FIXTURES / name, dst, ignore=shutil.ignore_patterns(".svkit", "obj_dir", "build"))
+        copy_tree(FIXTURES / name, dst, ignore=shutil.ignore_patterns(".svkit", "obj_dir", "build"))
         lib = FIXTURES / "lib"
         if lib.is_dir() and not (tmp_path / "lib").exists():
-            shutil.copytree(lib, tmp_path / "lib")
+            copy_tree(lib, tmp_path / "lib")
         return dst
     return _copy

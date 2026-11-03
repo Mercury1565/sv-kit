@@ -378,15 +378,30 @@ def lookup_type(cfg: Config, signal_path: str) -> Optional[dict[str, Any]]:
     return graph_lookup_type(g, signal_path)
 
 
-def graph_lookup_type(g: DesignGraph, signal_path: str) -> Optional[dict[str, Any]]:
+def _signal_aligner(g: DesignGraph) -> PathAligner:
     al = g.__dict__.get("_type_aligner")
     if al is None:
         al = PathAligner(g.signals.keys())
         g.__dict__["_type_aligner"] = al
-    p = al.map(signal_path)
+    return al
+
+
+def graph_lookup_type(g: DesignGraph, signal_path: str) -> Optional[dict[str, Any]]:
+    p = _signal_aligner(g).map(signal_path)
     if p is None:
         return None
     return g.types.get(p) or {"kind": "plain"}
+
+
+def graph_signal_location(g: DesignGraph, signal_path: str) -> Optional[dict[str, Any]]:
+    """Where a waveform signal is declared: ``{path, module, file, line, type, width}``, or None if the
+    signal is unknown to the design. ``path`` is the design-graph name the waveform path maps to."""
+    p = _signal_aligner(g).map(signal_path)
+    if p is None:
+        return None
+    sig = g.signals[p]
+    return {"path": p, "module": g.instances.get(sig.scope, {}).get("module"), "file": sig.file,
+            "line": sig.line, "type": sig.type, "width": sig.width}
 
 
 # ------------------------------------------------------------------ extractor

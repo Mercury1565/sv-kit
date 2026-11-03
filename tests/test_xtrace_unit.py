@@ -6,6 +6,7 @@ import pytest
 
 from svkit import config as C
 from svkit.analysis import xtrace as X
+from svkit.core.fsutil import copy_tree
 from svkit.core.rundb import RunDB
 from svkit.design import expr as E
 from svkit.design import graph as G
@@ -108,7 +109,7 @@ def test_print_tree(mem_graph):
 
 def test_trace_run_uses_latest_sim_run_with_waves(tmp_path):
     proj = tmp_path / "xbug_input"
-    shutil.copytree(FIX / "xbug_input", proj)
+    copy_tree(FIX / "xbug_input", proj)
     cfg = C.load(proj)
     db = RunDB.for_project(proj)
     with pytest.raises(LookupError):

@@ -14,8 +14,12 @@ def test_api_runs(tmp_path):
     db.update_run(r.id, artifacts={"sim.log": "sim.log"}, metrics={"tool": "verilator", "test": "t1"})
     c = TestClient(create_app(cfg))
     assert c.get("/api/project").json()["name"] == "demo"
-    runs = c.get("/api/runs").json()
+    resp = c.get("/api/runs")
+    runs = resp.json()
     assert runs[0]["id"] == r.id and "metrics" not in runs[0]
+    db.create_run("synth", "yosys", status="done")
+    assert c.get("/api/runs", params={"limit": 1}).headers["X-Total-Count"] == "2"
+    assert c.get("/api/runs", params={"kind": "sim"}).headers["X-Total-Count"] == "1"
     assert c.get(f"/api/runs/{r.id}").json()["metrics"]["test"] == "t1"
     assert c.get(f"/api/runs/{r.id}/artifacts/sim.log").text == "hello\n"
     assert c.get(f"/api/runs/{r.id}/artifacts/../../runs.sqlite").status_code == 404

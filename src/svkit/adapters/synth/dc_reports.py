@@ -539,6 +539,35 @@ _REF_ROW = re.compile(
     rf"^\s*(\S+)\s+(?:([A-Za-z_][\w.\-]*)\s+)?({_NUM})\s+(\d+)\s+({_NUM})\s*(.*)$")
 
 
+def _join_ref_rows(lines: list[str]) -> list[str]:
+    """Rejoin wrapped report_reference rows. Long names push the rest of a row onto indented
+    continuation lines: `name` / `library` / numbers, or `name library` / numbers."""
+    out: list[str] = []
+    in_table = False
+    pend: Optional[str] = None
+    for ln in lines:
+        if pend is not None:
+            if ln.strip() and ln[:1].isspace() and not _DASHES.match(ln):
+                pend = pend.rstrip() + " " + ln.strip()
+                if _REF_ROW.match(pend):
+                    out.append(pend)
+                    pend = None
+                continue
+            out.append(pend)
+            pend = None
+        if _DASHES.match(ln):
+            in_table = bool(out) and out[-1].strip().startswith("Reference")
+        toks = ln.split()
+        if (in_table and toks and not ln[:1].isspace() and len(toks) <= 2
+                and not _DASHES.match(ln) and not any(_NUM_RE.match(t) for t in toks)):
+            pend = ln
+            continue
+        out.append(ln)
+    if pend is not None:
+        out.append(pend)
+    return out
+
+
 def parse_reference(text: str, top: Optional[str] = None) -> dict[str, Any]:
     """report_reference [-hierarchy] -> {"cells": {cell: flattened count}, "designs": {design: [rows]},
     "unexpanded": [hier refs without a section]}.
@@ -548,7 +577,7 @@ def parse_reference(text: str, top: Optional[str] = None) -> dict[str, Any]:
     designs: dict[str, list[dict]] = {}
     order: list[str] = []
     cur: Optional[str] = None
-    for ln in _join_wrapped(text.splitlines()):
+    for ln in _join_ref_rows(text.splitlines()):
         if (m := re.match(r"^\s*Design\s*:\s*(\S+)", ln)):
             cur = m.group(1)
             if cur not in designs:
@@ -711,6 +740,25 @@ def _iter_messages(text: str) -> Iterable[tuple[str, str]]:
             j += 1
         yield sev, re.sub(r"\s+", " ", body)
         i = j
+
+
+# DC keeps going (and exits 0) after these, writing a netlist whose QoR numbers are meaningless.
+_FATAL = [
+    (re.compile(r"Could not read the following target librar"), "a target library could not be read"),
+    (re.compile(r"contains unmapped components"), "the netlist contains unmapped logic"),
+    (re.compile(r"Unable to resolve reference|\(LINK-5\)"), "unresolved cell references (black boxes)"),
+]
+
+
+def fatal_problems(text: str) -> list[str]:
+    """DC log -> one line per problem that invalidates the run, e.g.
+    "the netlist contains unmapped logic: Module counter contains unmapped components. (VO-12)"."""
+    out: dict[str, str] = {}
+    for _sev, body in _iter_messages(text):
+        for rx, what in _FATAL:
+            if what not in out and rx.search(body):
+                out[what] = f"{what}: {body}"
+    return list(out.values())
 
 
 def parse_log(text: str) -> LogResult:

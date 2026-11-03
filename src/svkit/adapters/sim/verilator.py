@@ -29,6 +29,7 @@ from svkit.adapters.perf.regex import parse_perf
 from svkit.config import Config, SimFlow
 from svkit.core import golden as G
 from svkit.core import project as P
+from svkit.core.fsutil import copy_file
 from svkit.schemas import Msg, Severity, SimResult
 
 _BUILD_LOCKS: dict[str, threading.Lock] = {}
@@ -92,6 +93,25 @@ def _fresh(p: Path, t0: float) -> bool:
         return False
 
 
+def newest_source_mtime(cfg) -> float:
+    """mtime of the newest design / testbench source or header."""
+    files = P.resolve_sources(cfg) + P.resolve_sources(cfg, cfg.project.tb_sources)
+    files += [h for d in P.include_dirs(cfg) if d.is_dir() for h in d.iterdir() if h.suffix in (".svh", ".vh")]
+    return max((f.stat().st_mtime for f in files if f.is_file()), default=0.0)
+
+
+def output_current(ctx: RunContext, flow: SimFlow, p: Path, t0: float, warnings: list[Msg]) -> bool:
+    """Written by this run, or (wrap mode) left alone by a build that judged it up to date: still
+    newer than every source, like make's own rule. Older files are stale leftovers."""
+    if _fresh(p, t0):
+        return True
+    if flow.mode != "wrap" or not p.is_file() or p.stat().st_mtime < newest_source_mtime(ctx.cfg):
+        return False
+    warnings.append(Msg(severity=Severity.info, code="UPTODATE",
+                        text=f"{p.name} was not rewritten (the build found it up to date); using it"))
+    return True
+
+
 def _abs(base: Path, rel: str) -> Path:
     p = Path(rel)
     return p if p.is_absolute() else base / p
@@ -122,7 +142,7 @@ def finish_sim(ctx: RunContext, flow: SimFlow, test: str, *, tool: str, cwd: Pat
     if wave is None:   # no template: newest vcd/fst written by this run in cwd
         cands = [p for ext in ("*.vcd", "*.fst") for p in cwd.glob(ext) if _fresh(p, t0)]
         wave = max(cands, key=lambda p: p.stat().st_mtime) if cands else None
-    if wave is not None and _fresh(wave, t0):
+    if wave is not None and output_current(ctx, flow, wave, t0, warnings):
         lim = cfg.waves.max_size_mb
         if lim and wave.stat().st_size > lim * 1024 * 1024:
             warnings.append(Msg(text=f"waveform {wave} larger than {lim} MB, not archived"))
@@ -146,7 +166,7 @@ def finish_sim(ctx: RunContext, flow: SimFlow, test: str, *, tool: str, cwd: Pat
     if flow.golden:
         actual = _abs(cwd, T(flow.golden.actual))
         expected = _abs(cfg.root, T(flow.golden.expected))
-        if actual.is_file() and _fresh(actual, t0):
+        if actual.is_file() and output_current(ctx, flow, actual, t0, warnings):
             ctx.keep(actual, actual.name)
         elif actual.exists():   # stale file from an earlier run: treat as not produced
             actual = actual.with_name(actual.name + ".svkit-missing")
@@ -290,7 +310,7 @@ class VerilatorAdapter(SimAdapter):
                                 extra_env=extra_env)
                     if rc != 0 or not (tmp / "Vsim").is_file():
                         # keep the log for the user, drop the half-built tree
-                        shutil.copy2(tmp / "build.log", ctx.run_dir / "build.log")
+                        copy_file(tmp / "build.log", ctx.run_dir / "build.log")
                         shutil.rmtree(tmp, ignore_errors=True)
                         return binary, ctx.run_dir / "build.log", False
                     shutil.rmtree(tmp / "obj", ignore_errors=True)   # only the executable is needed

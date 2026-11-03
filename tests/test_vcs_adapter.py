@@ -183,6 +183,22 @@ def test_wrap_stale_outputs_are_not_trusted(wrap_project, fake_vcs):
     assert any(w["code"] == "WAVES" for w in run.metrics["warnings"])
 
 
+def test_wrap_up_to_date_outputs_are_used(wrap_project, fake_vcs):
+    # the build left last run's outputs alone (make: up to date) and they are newer than every source
+    src_t, out_t = time.time() - 7200, time.time() - 3600
+    os.utime(wrap_project / "rtl" / "core.sv", (src_t, src_t))
+    out = wrap_project / "out"
+    out.mkdir()
+    (out / "nothing.wb").write_text("@@ 10 r1=5\n@@ 20 r2=6\n")
+    (out / "nothing.vpd").write_text("$timescale 1ns $end\n$enddefinitions $end\n#0\n")
+    for f in out.iterdir():
+        os.utime(f, (out_t, out_t))
+    run = Runner(C.load(wrap_project)).sim("nothing", use_cache=False)
+    assert run.status == "passed", run.message
+    assert run.metrics["waves"] == "waves.vcd"
+    assert sum(w["code"] == "UPTODATE" for w in run.metrics["warnings"]) == 2
+
+
 def test_wrap_define_knob_exported(wrap_project, fake_vcs):
     run = Runner(C.load(wrap_project)).sim("good", sets={"clock_period": 4000}, use_cache=False)
     log = (wrap_project / ".svkit" / "runs" / run.id / "sim.log").read_text()

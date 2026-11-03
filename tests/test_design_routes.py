@@ -7,6 +7,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from svkit import config as C
+from svkit.core.fsutil import copy_tree
 from svkit.core.rundb import RunDB
 from svkit.server.app import create_app
 
@@ -18,7 +19,7 @@ D = Path(__file__).parent / "data" / "design"
 @pytest.fixture
 def client(tmp_path):
     proj = tmp_path / "xbug_mem"
-    shutil.copytree(REPO / "fixtures" / "xbug_mem", proj)
+    copy_tree(REPO / "fixtures" / "xbug_mem", proj)
     db = RunDB.for_project(proj)
     sim = db.create_run("sim", "vcs", test="smoke", status="failed")
     shutil.copy(GOLD / "xbug_mem" / "waves.vcd", db.runs_dir / sim.id / "waves.vcd")
@@ -44,6 +45,15 @@ def test_hierarchy_and_block(client):
     assert "u_rf" in {n["id"] for n in b["nodes"]} and b["edges"]
     assert client.get("/api/design/block").json()["module"] == "xm_top"
     assert client.get("/api/design/block", params={"module": "nope"}).status_code == 404
+
+
+
+def test_signal_location(client):
+    # a waveform path (testbench-rooted) maps onto its declaration in the design
+    loc = client.get("/api/design/signal", params={"path": "tb_xm.dut.lut_out"}).json()
+    assert loc["module"] == "xm_top" and loc["file"] == "rtl/xm_top.sv" and loc["width"] == 8
+    assert isinstance(loc["line"], int) and loc["line"] > 0
+    assert client.get("/api/design/signal", params={"path": "tb_xm.no_such_signal"}).status_code == 404
 
 
 def test_cone(client):

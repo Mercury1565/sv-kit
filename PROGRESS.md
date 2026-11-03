@@ -1,14 +1,14 @@
 # svkit progress
 
 ## Owner summary
-- **Phase:** Phases 0–3 are implemented and pass on the open-source flow. **~65 % to MVP.** Remaining: real VCS/DC validation, a dogfood run, an X-trace sim path for the OSS flow, hardening and README.
-- **Continuing on CAEN:** step-by-step handoff in [`docs/CAEN.md`](docs/CAEN.md) (transfer, env, Synopsys tests, real goldens, dogfood).
-- **Demoable (OSS flow, any fixture copy):** `svkit sim --all`, `svkit synth --matrix` (compare table), `svkit sweep clock` (T_min), `svkit xtrace`, `svkit serve` (Runs, Tests, Synthesis, Compare, Sweep, Waves, Perf, Design, X-Trace views).
+- **Phase:** Phases 0–3 implemented. **Both flows now run on real tools** (VCS + DC on CAEN; Verilator + Yosys + OpenSTA on the dev host). **~85 % to MVP.** Remaining: a frontend rebuild (sweep note, new API endpoints; needs Node), browser click-through of every view, web proposal 5, the Icarus decision, and the OSS flow on CAEN (blocked on OpenSTA).
+- **Dogfood checkpoint (EECS 470 copy in `~/svkit-work/dogfood`):** `svkit init` needs **no hand edits**. 21/21 tests pass on VCS, the DC matrix runs (TT/SS/FF), and the clock sweep finds **T_min = 4708 ps** (14 DC runs). TPI uses it, and the dashboard API works on the real CPU.
+- **Demoable on CAEN:** `cd ~/svkit-work/dogfood && svkit serve`, then `ssh -L 8470:localhost:8470 <caen host>` from your laptop.
 - **Needs owner:**
-  1. **Dev host is not CAEN.** No Synopsys tools or dogfood repo here; the VCS/DC adapters are tested only against hand-written report samples and fake tools. Real VCS/DC runs and the dogfood checkpoint need a CAEN session.
+  1. **OpenSTA on CAEN:** installing it (micromamba + `litex-hub::openroad` into `~/tools`) was blocked by the permission classifier as running downloaded code. Approve it, or install it yourself, to run the OSS flow and its tests on CAEN.
   2. **X-trace parity on the OSS flow:** Verilator is 2-state, so it never shows X. Recommend pulling an Icarus sim adapter into the MVP (scope change vs decision #18).
-  3. Synopsys-generated goldens (none committed yet) need a redistribution check before the repo goes public.
-  4. Git hosting, remote and license are still open (#7, #12).
+  3. **Synopsys-generated goldens are now committed** (`fixtures/golden/synopsys/real/`, paths and banner stripped). Their redistribution needs a check before the repo goes public.
+  4. Git hosting, remote and license (#7, #12): the repo now has a GitHub `origin` (`Mercury1565/sv-kit`), presumably yours. Nothing has been pushed by me; confirm and record the decision.
 ---
 
 ## Iteration 1 — 2026-11-02 — Contracts and core skeleton
@@ -71,4 +71,64 @@ cp -r fixtures/pipe5 fixtures/lib /tmp/x/ && cd /tmp/x/pipe5
 export PATH=~/tools/bin:~/tools/oss-cad-suite/bin:$PATH; unset VERILATOR_ROOT
 svkit sim --all --flow verilator; svkit synth --matrix --flow yosys; svkit sweep clock --tol 20 --jobs 4
 svkit serve   # http://127.0.0.1:8470 ; remote: ssh -L 8470:localhost:8470 <host>
+```
+
+## Iteration 3 — 2026-11-02 — Real VCS/DC on CAEN, dogfood checkpoint, README
+**Status:** done
+**What works now:**
+- `pytest -m synopsys` passes on real VCS X-2025.06 and DC V-2023.12 (counter, pipe5), with ASAP7 RVT libraries.
+- pipe5 on VCS matches the Verilator results exactly: the same divergence line and cycle for the planted failing test, and the same perf counts.
+- DC matrix (baseline / SS / RVT-only) and DC clock sweep on pipe5: T_min = 428 ps at tol 50, in 9 points.
+- Real DC goldens: 4 reports + 1 log in `fixtures/golden/synopsys/real/`, cross-checked against the raw report text (WNS, area, power).
+- Dogfood (copy of the 470 repo):
+  - `svkit init` writes a correct config: `make {test}.out output_correct/{test}.wb`, `build_cmd`, waves, golden, the DC netlist and log, `ss_corner`/`ff_corner` experiments found from the library glob, the ASAP7 Vt map, and perf regexes learned from the testbench's `$fdisplay` format.
+  - 21/21 tests pass on VCS.
+  - The DC matrix runs at about 40 s per run.
+  - DC clock sweep: T_min = 4708 ps (bracket 4672 fail / 4708 pass, tol 50). There were 14 points, from 40 s each at loose periods to about 8 min near T_min. Slack scales with period here (the project's I/O delays track the clock), so the T0 − WNS estimate undershoots and the grid refines from there.
+  - TPI for `fib`: CPI 0.905 × 4708 ps = 4260 ps/instr (period source: the sweep).
+  - The API works on the real CPU: hierarchy, block diagram, waves meta/search on a 5.4 µs VCD, perf/TPI, compare, and a gate cone with the critical path (32 cells, 0 unresolved points).
+- README: install, quick start, the full `svkit.toml` reference, how to add an adapter, development, known limitations.
+- Install test: a wheel built from a clean copy installs into a fresh venv with no Node; `svkit serve` serves `/api/project` and the dashboard.
+- Tests: 201 passed, 15 skipped (OpenSTA-dependent) on CAEN, including the real VCS/DC end-to-end tests.
+- Web API proposals 1 and 3: `GET /api/design/signal` (wave path → declaration file/line, via the DesignGraph) and an `X-Total-Count` header on `GET /api/runs`. The UI adopts them at the next frontend build.
+**Decisions made (and why):**
+- **CIFS homes:** `shutil.copy2`/`copytree` fail with EAGAIN on `listxattr`. Added `svkit.core.fsutil` (copies without xattrs, keeps mode and mtime) and used it everywhere.
+- **The VCS adapter now creates output dirs** before running (shared `prepare_outputs`, as Verilator already did). The testbench `$fopen("output/...")` failed when `output/` was excluded from the copy.
+- **DC "success" with unmapped logic, unresolved references or an unreadable target library is an error.** DC exits 0 in these cases and writes a netlist of generic cells.
+- **report_reference parsing:** rows wrapped over 2–3 lines (name / library / numbers) are rejoined. Real ASAP7 names are long enough to wrap, so `cells_by_type` and `vt_mix` were empty.
+- **Sweep:** if the loosest point meets setup but fails hold, the criterion becomes setup-only, with `SweepResult.criterion` and a `note`. The search also stops at 64× the start period. Real DC on pipe5 has −3.69 ps hold at every period (no `set_fix_hold`), and the sweep had grown the period to 3e20 ps before it was stopped.
+- **Wrap mode:** an output the build did not rewrite (make: up to date) counts if it is newer than every source, with an info note. Older outputs are still stale. Re-running `sim --all` had failed every test that make skipped.
+- **`init`:**
+  - whole-line Makefile comments are ignored (`# make cpu.vg` became the netlist path)
+  - goldens come from a `%.check: out/%.x ref/%.x` rule even when the reference dir is generated
+  - sim-running pattern rules are preferred over `%.simv` / `%.verdi`
+  - the DC log path comes from `cd dir && … | tee log`
+  - corner experiments are found by globbing the library pattern with other corners
+  - the Vt map comes from `-lib_cell` names
+  - perf regexes handle number-before-label
+  - a note warns about `-xprop=tmerge`
+- OSS CAD Suite on CAEN was only partly extracted; it was re-extracted. RHEL 9 lacks Perl `FindBin`, so the core module is in `~/tools/perl5` (`PERL5LIB`), and conftest sets it.
+- DC option B (toy Liberty via `read_lib`) does not work on CAEN. See `docs/CAEN.md`; option A (real `.db`) is the documented path.
+- **Tool processes are stopped on Ctrl-C / SIGTERM / exit.** Tools run in their own session, so a Ctrl-C on `svkit sweep` never reached `dc_shell`, which kept running and kept its license. `RunContext.sh` now tracks live process groups and `svkit.cli:main` (the console entry point now) kills them. Checked end to end: SIGTERM to `svkit sim` stops the tool, and svkit exits 143.
+- The DC adapter tests no longer read the ambient `SVKIT_DC_*` variables, which a CAEN shell exports for the real-DC tests.
+**Known gaps / risks:**
+- **Golden-diff jump on the dogfood:** `.wb` is a final memory image sorted by address, with no time or cycle, so the waveform cursor cannot be placed. svkit still reports the first differing line. Projects whose outputs carry a cycle work (`golden.time_regex`).
+- **The web UI does not show `SweepResult.note` / `criterion` yet.** There is no usable Node on CAEN to rebuild the frontend; the CLI prints the note.
+- **The OSS flow was not run on CAEN** (no OpenSTA here); it was validated on the dev host in iteration 2.
+- **Toy library LC compliance:** clock-pin power tables and RN recovery/removal arcs need fixing before option B can work. This changes OSS power goldens, so it needs a host with `sta`.
+- **Hold on the dogfood:** `470synth.tcl` reports only max-delay paths, so `hold_wns` is not reported and the sweep judges setup only by construction.
+- Browser click-through still not done (no browser on CAEN from this session).
+**Next iteration plan:**
+- Owner decisions: OpenSTA install on CAEN, Icarus adapter, golden redistribution, remote/license.
+- Web proposal 5 (early `run_ids` on `job.updated`) needs a group-first job API.
+- With Node available: show the sweep note/criterion in the Sweep view, and implement the web API proposals (`/api/design/signal`, `X-Total-Count`, early `run_ids`).
+- Fix the toy Liberty for LC, regenerate OSS goldens, and enable DC option B.
+- Browser click-through of every view on the dogfood.
+**How to see it:**
+```
+cd ~/svkit-work/dogfood
+svkit runs ls                  # sims, matrix, sweep points
+svkit serve                    # laptop: ssh -L 8470:localhost:8470 <caen host>, open http://localhost:8470
+# Synopsys tests (CAEN): source the ASAP7 env block from docs/CAEN.md §2, then
+.venv/bin/pytest -m synopsys
 ```

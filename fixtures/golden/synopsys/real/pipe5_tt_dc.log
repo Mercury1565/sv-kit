@@ -1,0 +1,286 @@
+# svkit fixture Design Compiler driver — generic template (fixtures/synopsys_common/syn_run.tcl).
+# A fixture copies this file verbatim to synopsys/syn_run.tcl. `dc_shell-t -f synopsys/syn_run.tcl`
+# sources the fixture's knob-editable script ($SVKIT_SYN_SCRIPT, default synopsys/syn.tcl), then
+# compiles and writes one combined report $syn_out/<top>.rep plus the netlist $syn_out/<top>.vg.
+if {[info exists ::env(SVKIT_SYN_SCRIPT)] && $::env(SVKIT_SYN_SCRIPT) ne ""} {
+    source $::env(SVKIT_SYN_SCRIPT)
+} else {
+    source synopsys/syn.tcl
+}
+Running PRESTO HDLC
+Compiling source file /path/to/work/rtl/p5_pkg.sv
+Compiling source file /path/to/work/rtl/p5_regfile.sv
+Compiling source file /path/to/work/rtl/p5_alu.sv
+Compiling source file /path/to/work/rtl/p5_hazard.sv
+Compiling source file /path/to/work/rtl/p5_core.sv
+Presto compilation completed successfully.
+Loading db file '/path/to/libs/asap7sc7p5t_AO_RVT_TT_ccs_211120.db'
+Information: Using CCS timing libraries. (TIM-024)
+Loading db file '/path/to/libs/asap7sc7p5t_INVBUF_RVT_TT_ccs_220122.db'
+Loading db file '/path/to/libs/asap7sc7p5t_OA_RVT_TT_ccs_211120.db'
+Loading db file '/path/to/libs/asap7sc7p5t_SEQ_RVT_TT_ccs_220123.db'
+Loading db file '/path/to/libs/asap7sc7p5t_SIMPLE_RVT_TT_ccs_211120.db'
+Loading db file '/path/to/synopsys/libraries/syn/gtech.db'
+Loading db file '/path/to/synopsys/libraries/syn/standard.sldb'
+  Loading link library 'asap7sc7p5t_AO_RVT_TT_ccs_211120'
+  Loading link library 'asap7sc7p5t_INVBUF_RVT_TT_ccs_211120'
+  Loading link library 'asap7sc7p5t_OA_RVT_TT_ccs_211120'
+  Loading link library 'asap7sc7p5t_SEQ_RVT_TT_ccs_220123'
+  Loading link library 'asap7sc7p5t_SIMPLE_RVT_TT_ccs_211120'
+  Loading link library 'gtech'
+Running PRESTO HDLC
+
+Inferred memory devices in process
+	in routine p5_core line 109 in file
+		'/path/to/work/rtl/p5_core.sv'.
+===============================================================================
+|    Register Name    |   Type    | Width | Bus | MB | AR | AS | SR | SS | ST |
+===============================================================================
+|   memwb_data_reg    | Flip-flop |   8   |  Y  | N  | N  | N  | N  | N  | N  |
+|       pc_reg        | Flip-flop |   8   |  Y  | N  | N  | N  | N  | N  | N  |
+|   fetch_stop_reg    | Flip-flop |   1   |  N  | N  | N  | N  | N  | N  | N  |
+|   ifid_valid_reg    | Flip-flop |   1   |  N  | N  | N  | N  | N  | N  | N  |
+|   ifid_instr_reg    | Flip-flop |  16   |  Y  | N  | N  | N  | N  | N  | N  |
+|     ifid_pc_reg     | Flip-flop |   8   |  Y  | N  | N  | N  | N  | N  | N  |
+|   idex_valid_reg    | Flip-flop |   1   |  N  | N  | N  | N  | N  | N  | N  |
+|   exmem_valid_reg   | Flip-flop |   1   |  N  | N  | N  | N  | N  | N  | N  |
+|   memwb_valid_reg   | Flip-flop |   1   |  N  | N  | N  | N  | N  | N  | N  |
+|   memwb_halt_reg    | Flip-flop |   1   |  N  | N  | N  | N  | N  | N  | N  |
+|     halted_reg      | Flip-flop |   1   |  N  | N  | N  | N  | N  | N  | N  |
+|     idex_op_reg     | Flip-flop |   4   |  Y  | N  | N  | N  | N  | N  | N  |
+|     idex_rd_reg     | Flip-flop |   3   |  Y  | N  | N  | N  | N  | N  | N  |
+|     idex_ra_reg     | Flip-flop |   3   |  Y  | N  | N  | N  | N  | N  | N  |
+|     idex_rb_reg     | Flip-flop |   3   |  Y  | N  | N  | N  | N  | N  | N  |
+|   idex_writes_reg   | Flip-flop |   1   |  N  | N  | N  | N  | N  | N  | N  |
+|     idex_a_reg      | Flip-flop |   8   |  Y  | N  | N  | N  | N  | N  | N  |
+|     idex_b_reg      | Flip-flop |   8   |  Y  | N  | N  | N  | N  | N  | N  |
+|    idex_imm_reg     | Flip-flop |   8   |  Y  | N  | N  | N  | N  | N  | N  |
+|     idex_pc_reg     | Flip-flop |   8   |  Y  | N  | N  | N  | N  | N  | N  |
+|    exmem_op_reg     | Flip-flop |   4   |  Y  | N  | N  | N  | N  | N  | N  |
+|    exmem_rd_reg     | Flip-flop |   3   |  Y  | N  | N  | N  | N  | N  | N  |
+|  exmem_writes_reg   | Flip-flop |   1   |  N  | N  | N  | N  | N  | N  | N  |
+|    exmem_alu_reg    | Flip-flop |   8   |  Y  | N  | N  | N  | N  | N  | N  |
+|   exmem_sdata_reg   | Flip-flop |   8   |  Y  | N  | N  | N  | N  | N  | N  |
+|  memwb_writes_reg   | Flip-flop |   1   |  N  | N  | N  | N  | N  | N  | N  |
+|    memwb_rd_reg     | Flip-flop |   3   |  Y  | N  | N  | N  | N  | N  | N  |
+===============================================================================
+Presto compilation completed successfully. (p5_core)
+Elaborated 1 design.
+Current design is now 'p5_core'.
+Information: Building the design 'p5_regfile'. (HDL-193)
+
+Inferred memory devices in process
+	in routine p5_regfile line 15 in file
+		'/path/to/work/rtl/p5_regfile.sv'.
+===============================================================================
+|    Register Name    |   Type    | Width | Bus | MB | AR | AS | SR | SS | ST |
+===============================================================================
+|      regs_reg       | Flip-flop |  64   |  Y  | N  | N  | N  | N  | N  | N  |
+===============================================================================
+Statistics for MUX_OPs
+======================================================
+| block name/line  | Inputs | Outputs | # sel inputs |
+======================================================
+|  p5_regfile/23   |   8    |    8    |      3       |
+|  p5_regfile/24   |   8    |    8    |      3       |
+======================================================
+Presto compilation completed successfully. (p5_regfile)
+Information: Building the design 'p5_hazard'. (HDL-193)
+Presto compilation completed successfully. (p5_hazard)
+Information: Building the design 'p5_alu'. (HDL-193)
+
+Statistics for case statements in always block at line 15 in file
+	'/path/to/work/rtl/p5_alu.sv'
+===============================================
+|           Line           |  full/ parallel  |
+===============================================
+|            18            |    auto/auto     |
+===============================================
+Presto compilation completed successfully. (p5_alu)
+Current design is 'p5_core'.
+
+  Linking design 'p5_core'
+  Using the following designs and libraries:
+  --------------------------------------------------------------------------
+  * (4 designs)               /path/to/work/p5_core.db, etc
+  asap7sc7p5t_AO_RVT_TT_ccs_211120 (library) /path/to/libs/asap7sc7p5t_AO_RVT_TT_ccs_211120.db
+  asap7sc7p5t_INVBUF_RVT_TT_ccs_211120 (library) /path/to/libs/asap7sc7p5t_INVBUF_RVT_TT_ccs_220122.db
+  asap7sc7p5t_OA_RVT_TT_ccs_211120 (library) /path/to/libs/asap7sc7p5t_OA_RVT_TT_ccs_211120.db
+  asap7sc7p5t_SEQ_RVT_TT_ccs_220123 (library) /path/to/libs/asap7sc7p5t_SEQ_RVT_TT_ccs_220123.db
+  asap7sc7p5t_SIMPLE_RVT_TT_ccs_211120 (library) /path/to/libs/asap7sc7p5t_SIMPLE_RVT_TT_ccs_211120.db
+
+svkit_compile
+CPU Load: 44%, Ram Free: 1 GB, Swap Free: 8 GB, Work Disk Free: 9425 GB, Tmp Disk Free: 27 GB
+Information: Evaluating DesignWare library utilization. (UISN-27)
+
+============================================================================
+| DesignWare Building Block Library  |         Version         | Available |
+============================================================================
+| Basic DW Building Blocks           | V-2023.12-DWBB_202312.5 |     *     |
+| Licensed DW Building Blocks        |                         |           |
+============================================================================
+
+====================================================================================================
+| Flow Information                                                                                 |
+----------------------------------------------------------------------------------------------------
+| Flow         | Design Compiler                                                                   |
+====================================================================================================
+| Design Information                                      | Value                                  |
+====================================================================================================
+| Number of Scenarios                                     | 0                                      |
+| Leaf Cell Count                                         | 570                                    |
+| Number of User Hierarchies                              | 3                                      |
+| Sequential Cell Count                                   | 185                                    |
+| Macro Count                                             | 0                                      |
+| Number of Power Domains                                 | 0                                      |
+| Number of Path Groups                                   | 2                                      |
+| Number of VT Class                                      | 0                                      |
+| Number of Clocks                                        | 1                                      |
+| Number of Dont Touch Cells                              | 79                                     |
+| Number of Dont Touch Nets                               | 0                                      |
+| Number of Size Only Cells                               | 0                                      |
+| Design with UPF Data                                    | false                                  |
+====================================================================================================
+
+Information: There are 8 potential problems in your design. Please run 'check_design' for more information. (LINT-99)
+
+
+
+  Beginning Pass 1 Mapping
+  ------------------------
+  Processing 'p5_alu'
+Warning: Target library does not contain any 2-1 multiplexor. (OPT-853)
+  Processing 'p5_hazard'
+  Processing 'p5_regfile'
+Warning: Target library does not contain any 2-1 multiplexor. (OPT-853)
+  Processing 'p5_core'
+
+  Updating timing information
+Information: Updating design information... (UID-85)
+
+  Beginning Implementation Selection
+  ----------------------------------
+  Processing 'p5_core_DW01_inc_0'
+  Processing 'p5_core_DW01_add_0'
+Warning: Target library does not contain any 2-1 multiplexor. (OPT-853)
+  Processing 'p5_alu_DW01_add_0_DW01_add_1'
+  Processing 'p5_alu_DW01_sub_0'
+  Processing 'p5_alu_DW01_add_1_DW01_add_2'
+  Processing 'p5_alu_DW01_cmp6_0_DW01_cmp6_8'
+
+  Beginning Mapping Optimizations  (Medium effort)
+  -------------------------------
+LNC WARNING: Found output_to_output lib arc on HAxp5_ASAP7_75t_R.
+  Mapping Optimization (Phase 1)
+
+                                  TOTAL                                      
+   ELAPSED            WORST NEG   SETUP    DESIGN                            
+    TIME      AREA      SLACK     COST    RULE COST         ENDPOINT         
+  --------- --------- --------- --------- --------- -------------------------
+    0:00:03     132.7      0.00       0.0       0.0                          
+    0:00:03     132.7      0.00       0.0       0.0                          
+    0:00:03     132.7      0.00       0.0       0.0                          
+    0:00:03     132.7      0.00       0.0       0.0                          
+    0:00:03     132.7      0.00       0.0       0.0                          
+    0:00:03     123.1      0.00       0.0       0.0                          
+    0:00:03     123.1      0.00       0.0       0.0                          
+    0:00:03     123.1      0.00       0.0       0.0                          
+    0:00:03     123.1      0.00       0.0       0.0                          
+    0:00:03     123.1      0.00       0.0       0.0                          
+    0:00:03     123.1      0.00       0.0       0.0                          
+    0:00:03     123.1      0.00       0.0       0.0                          
+    0:00:03     123.1      0.00       0.0       0.0                          
+
+
+
+  Beginning Delay Optimization Phase
+  ----------------------------------
+
+                                  TOTAL                                      
+   ELAPSED            WORST NEG   SETUP    DESIGN                            
+    TIME      AREA      SLACK     COST    RULE COST         ENDPOINT         
+  --------- --------- --------- --------- --------- -------------------------
+    0:00:03     123.1      0.00       0.0       0.0                          
+    0:00:03     123.1      0.00       0.0       0.0                          
+    0:00:03     123.1      0.00       0.0       0.0                          
+    0:00:03     123.1      0.00       0.0       0.0                          
+    0:00:03     123.1      0.00       0.0       0.0                          
+
+
+  Beginning Area-Recovery Phase  (cleanup)
+  -----------------------------
+
+                                  TOTAL                                      
+   ELAPSED            WORST NEG   SETUP    DESIGN                            
+    TIME      AREA      SLACK     COST    RULE COST         ENDPOINT         
+  --------- --------- --------- --------- --------- -------------------------
+    0:00:03     123.1      0.00       0.0       0.0                          
+    0:00:03     123.1      0.00       0.0       0.0                          
+    0:00:03     116.8      0.00       0.0       0.0                          
+    0:00:03     116.8      0.00       0.0       0.0                          
+    0:00:03     116.8      0.00       0.0       0.0                          
+    0:00:03     116.8      0.00       0.0       0.0                          
+    0:00:03     116.8      0.00       0.0       0.0                          
+    0:00:03     116.8      0.00       0.0       0.0                          
+    0:00:03     116.8      0.00       0.0       0.0                          
+    0:00:03     116.8      0.00       0.0       0.0                          
+    0:00:03     116.8      0.00       0.0       0.0                          
+    0:00:03     116.8      0.00       0.0       0.0                          
+    0:00:03     116.7      0.00       0.0       0.0                          
+
+
+Note: Symbol # after min delay cost means estimated hold TNS across all active scenarios 
+
+
+  Optimization Complete
+  ---------------------
+CPU Load: 43%, Ram Free: 0 GB, Swap Free: 8 GB, Work Disk Free: 9424 GB, Tmp Disk Free: 27 GB
+Information: Total number of MV cells in the design.
+----------------------------------------------------------------------------------------------------
+ MV Cells                                           Total Number                                   
+----------------------------------------------------------------------------------------------------
+ Level Shifter:                                     0                                             
+ Enable Level Shifter:                              0                                             
+ Isolation Cell:                                    0                                             
+ Retention Cell:                                    0                                             
+ Retention Clamp Cell:                              0                                             
+ Switch Cell:                                       0                                             
+ Always-On Cell:                                    0                                             
+ Repeater Cell:                                     0                                             
+
+----------------------------------------------------------------------------------------------------
+Unmapped MV Cells 
+----------------------------------------------------------------------------------------------------
+0 Isolation Cells are unmapped 
+0 Retention Clamp Cells are unmapped 
+----------------------------------------------------------------------------------------------------
+1
+set rep $syn_out/$top.rep
+syn_out/p5_core.rep
+file delete -force $rep
+foreach cmd {
+    {report_design}
+    {report_units}
+    {report_qor}
+    {report_timing -path full -delay_type max -max_paths 2}
+    {report_timing -path full -delay_type min -max_paths 2}
+    {report_constraints -all_violators}
+    {report_power}
+    {report_resources -hierarchy}
+    {report_area -hierarchy}
+    {report_reference -hierarchy}
+} {
+    if {[catch {redirect -append $rep $cmd} err]} { echo "Warning: $cmd failed: $err (SVKIT-10)" }
+}
+write -format verilog -hierarchy -output $syn_out/$top.vg
+Writing verilog file '/path/to/work/syn_out/p5_core.vg'.
+Warning: Verilog 'assign' or 'tran' statements are written out. (VO-4)
+1
+exit
+
+Memory usage for this session 283 Mbytes.
+Memory usage for this session including child processes 283 Mbytes.
+CPU usage for this session 12 seconds ( 0.00 hours ).
+Elapsed time for this session 17 seconds ( 0.00 hours ).
+
+Thank you...

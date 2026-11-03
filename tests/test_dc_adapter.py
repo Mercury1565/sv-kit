@@ -88,6 +88,9 @@ def fake_dc(tmp_path, monkeypatch):
     monkeypatch.setenv("FAKE_DC_CALLS", str(tmp_path / "dc_calls.txt"))
     monkeypatch.setenv("SVKIT_LOCK_DIR", str(tmp_path / "locks"))
     monkeypatch.delenv("FAKE_DC_FAIL", raising=False)
+    for v in ("SVKIT_DC_TIME_UNIT", "SVKIT_DC_TARGET_LIB", "SVKIT_DC_LIBERTY", "SVKIT_DC_LINK_LIB",
+              "SVKIT_DC_SEARCH_PATH"):   # a CAEN shell exports these for the real-DC tests
+        monkeypatch.delenv(v, raising=False)
     return tmp_path / "dc_calls.txt"
 
 

@@ -151,7 +151,10 @@ def sweep_clock(tol: float = typer.Option(50.0, help="bracket tolerance (ps)"), 
         typer.secho(f"config error: {e}", fg="red", err=True)
         raise typer.Exit(EXIT_CONFIG)
     for p in res.points:
-        typer.echo(f"  {p.period:>10.1f} ps  WNS={_n(p.wns):>8}  {'PASS' if p.passed else 'fail'}  {p.run_id}")
+        typer.echo(f"  {p.period:>10.1f} ps  WNS={_n(p.wns):>8}  hold={_n(p.hold_wns):>8}  "
+                   f"{'PASS' if p.passed else 'fail'}  {p.run_id}")
+    if res.note:
+        typer.secho(f"note: {res.note}", fg="yellow")
     if res.t_min is None:
         typer.secho("no passing period found", fg="red")
         raise typer.Exit(EXIT_FAIL)
@@ -220,8 +223,20 @@ def serve(port: Optional[int] = typer.Option(None), host: Optional[str] = typer.
 
 
 def main() -> None:  # pragma: no cover
+    """Console entry point: tools run in their own sessions, so stop them on Ctrl-C / SIGTERM / exit."""
+    import atexit
+    import signal
+    from svkit.adapters.base import kill_children
+
+    def on_signal(signum, frame):
+        kill_children()
+        raise SystemExit(128 + signum)
+
+    signal.signal(signal.SIGINT, on_signal)
+    signal.signal(signal.SIGTERM, on_signal)
+    atexit.register(kill_children)
     app()
 
 
 if __name__ == "__main__":  # pragma: no cover
-    sys.exit(app())
+    main()

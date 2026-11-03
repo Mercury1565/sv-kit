@@ -230,6 +230,10 @@ class DcAdapter(SynthAdapter):
         net_name = None
         if netlist is not None and netlist.is_file():
             net_name = ctx.keep(netlist, "netlist.v")
+        fatal = [f for lp in logs for f in R.fatal_problems(lp.read_text(errors="replace"))]
+        if fatal:
+            raise RuntimeError("DC did not produce a usable mapped netlist: " + "; ".join(fatal)
+                               + " (see synth.log)")
 
         corner = ctx.plan.values.get("corner")
         res = R.parse_texts([p.read_text(errors="replace") for p in reports],

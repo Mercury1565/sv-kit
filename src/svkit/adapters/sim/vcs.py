@@ -30,11 +30,13 @@ from pathlib import Path
 from typing import Any, Optional
 
 from svkit.adapters.base import RunContext, SimAdapter
+from svkit.adapters.sim.verilator import output_current, prepare_outputs
 from svkit.adapters.synopsys import synopsys_seat
 from svkit.adapters.waves import vpd as V
 from svkit.config import SimFlow
 from svkit.core import golden as G
 from svkit.core import project as P
+from svkit.core.fsutil import copy_file
 from svkit.schemas import Msg, Severity, SimResult
 
 BASE_COMPILE_ARGS = ["-sverilog", "-full64", "-timescale=1ns/1ps", "-debug_access+all", "+vcs+lic+wait"]
@@ -138,6 +140,7 @@ class VcsAdapter(SimAdapter):
     def run(self, ctx: RunContext, flow: SimFlow, test: str) -> SimResult:
         cwd = ctx.workdir / flow.cwd
         res = SimResult(tool="vcs", test=test)
+        prepare_outputs(ctx, flow, test, cwd)
         t0 = time.time()
         with synopsys_seat(ctx.cancel, ctx.log):
             if flow.mode == "builtin":
@@ -176,7 +179,7 @@ class VcsAdapter(SimAdapter):
             expected = Path(P.tmpl(flow.golden.expected, self.cfg, test=test))
             if not expected.is_absolute():
                 expected = self.cfg.root / expected
-        if actual is not None and actual.exists() and not _fresh(actual, t0):
+        if actual is not None and actual.exists() and not output_current(ctx, flow, actual, t0, res.warnings):
             res.passed, res.reason = False, f"expected output {actual} was not produced (stale file from an earlier run)"
         else:
             passed, reason, div = G.evaluate(exit_code=rc, log_text=log_text, pass_regex=flow.pass_regex,
@@ -185,7 +188,7 @@ class VcsAdapter(SimAdapter):
             res.passed, res.reason, res.divergence = passed, reason, div
             if failures and res.passed is not False:
                 res.passed, res.reason = False, failures[0]
-        if actual is not None and actual.is_file() and _fresh(actual, t0):
+        if actual is not None and actual.is_file() and output_current(ctx, flow, actual, t0, []):
             ctx.keep(actual, actual.name if actual.name not in ctx.artifacts else f"actual.{actual.name}")
 
         # ---- sim time in wave ticks
@@ -278,7 +281,7 @@ class VcsAdapter(SimAdapter):
                 if rc != 0 or not (tmp / "simv").is_file():
                     failed = ctx.run_dir / "compile.log"
                     if clog.is_file():
-                        shutil.copy2(clog, failed)
+                        copy_file(clog, failed)
                     else:
                         failed.write_text("")
                     shutil.rmtree(tmp, ignore_errors=True)
@@ -313,7 +316,7 @@ class VcsAdapter(SimAdapter):
             src = max(cands, key=lambda p: p.stat().st_mtime) if cands else None
         if src is None:
             return
-        if not src.is_file() or not _fresh(src, t0):
+        if not src.is_file() or not output_current(ctx, flow, src, t0, res.warnings):
             res.warnings.append(Msg(severity=Severity.warning, code="WAVES",
                                     text=f"waveform {src.name} was not produced by this run"))
             return

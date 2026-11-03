@@ -130,6 +130,24 @@ def test_hold_and_error_points(tmp_path):
     assert all(not p.passed for p in errs)
 
 
+def test_period_independent_hold_falls_back_to_setup(tmp_path):
+    # real DC on pipe5/ASAP7: hold WNS is -3.69 ps at every period, so nothing ever "passes";
+    # the sweep used to grow the period without bound
+    r = FakeRunner(_cfg(tmp_path), lambda t: t - 830, hold_fn=lambda t: -3.69)
+    res = S.sweep_clock(r, tol=50, jobs=2)
+    _check_bracket(res, 830, 50)
+    assert res.criterion == "setup" and "hold" in res.note and "-3.69" in res.note
+    assert max(p.period for p in res.points) <= 2000 and len(res.points) <= 10
+    assert r.db.get_group(res.group_id).result["criterion"] == "setup"
+
+
+def test_never_passing_stops_at_growth_cap(tmp_path):
+    r = FakeRunner(_cfg(tmp_path), lambda t: -1.0)
+    res = S.sweep_clock(r, tol=50, jobs=2, max_points=40)
+    assert res.status == "failed" and res.t_min is None and len(res.points) < 40
+    assert res.criterion == "setup+hold" and "no passing period" in res.note
+
+
 def test_license_seats_cap_parallelism(tmp_path):
     r = FakeRunner(_cfg(tmp_path, seats=1), lambda t: t - 1234, delay=0.01)
     res = S.sweep_clock(r, tol=50, jobs=4)

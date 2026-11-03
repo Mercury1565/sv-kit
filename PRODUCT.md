@@ -382,3 +382,6 @@ XTraceNode:  signal, time, value, driver{kind, file, line}, cause?, children[]
 | 2026-11-02 | Flows run in `wrap` mode (user's command) by default; adapters also offer `builtin` mode | Projects without a build (and the fixtures) still work; svkit never writes build files into the user's repo |
 | 2026-11-02 | Golden-diff jump uses `golden.time_regex` (time or cycle) on the first mismatching line | Generic; works for any output format that prints a time or cycle |
 | 2026-11-02 | OSS fixtures use an original toy Liberty library | Deterministic T_min, no PDK licensing questions |
+| 2026-11-02 | Sweep falls back to a setup-only criterion when hold fails at the loosest point, and records why | Hold slack is period-independent; real DC flows without `set_fix_hold` otherwise never pass and the search grows without bound |
+| 2026-11-02 | In wrap mode, an output the build left untouched counts if it is newer than every source | Make skips up-to-date targets; older files are still treated as stale |
+| 2026-11-02 | DC runs with unmapped logic, unresolved references or an unreadable target library are errors | DC exits 0 after these, and their QoR numbers are meaningless |

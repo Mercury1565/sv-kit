@@ -1,0 +1,51 @@
+{
+  "area_by_hier": {},
+  "area_total": null,
+  "area_unit": "um^2",
+  "cell_count": null,
+  "cells_by_type": {},
+  "corner": null,
+  "extra": {
+    "log_counts": {
+      "error": 0,
+      "information": 8,
+      "warning": 4
+    },
+    "removed_registers": [],
+    "reports": [],
+    "time_unit": "ns",
+    "time_unit_source": "default"
+  },
+  "hold_tns": null,
+  "hold_wns": null,
+  "netlist": null,
+  "paths": [],
+  "period": null,
+  "power": {
+    "dynamic": null,
+    "leakage": null,
+    "total": null
+  },
+  "schema_version": 1,
+  "tns": null,
+  "tool": "dc",
+  "top": "",
+  "vt_mix": {},
+  "warnings": [
+    {
+      "code": "OPT-853",
+      "file": null,
+      "line": null,
+      "severity": "warning",
+      "text": "Target library does not contain any 2-1 multiplexor. (x3)"
+    },
+    {
+      "code": "VO-4",
+      "file": null,
+      "line": null,
+      "severity": "warning",
+      "text": "Verilog 'assign' or 'tran' statements are written out."
+    }
+  ],
+  "wns": null
+}

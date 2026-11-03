@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import os
 import shutil
+import signal
 import subprocess
 import threading
 from abc import ABC, abstractmethod
@@ -20,6 +21,7 @@ from pathlib import Path
 from typing import Any, Callable, ClassVar, Literal, Optional
 
 from svkit.config import Config, SimFlow, StaFlow, SynthFlow
+from svkit.core.fsutil import copy_file
 from svkit.schemas import SimResult, SynthResult, TimingPath
 
 AdapterKind = Literal["sim", "synth", "sta"]
@@ -74,7 +76,7 @@ class RunContext:
         name = name or src.name
         dst = self.run_dir / name
         if src.resolve() != dst.resolve():
-            shutil.copy2(src, dst)
+            copy_file(src, dst)
         self.artifacts[name] = name
         return name
 
@@ -87,6 +89,8 @@ class RunContext:
                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
                                 errors="replace", start_new_session=True,
                                 preexec_fn=lambda: os.nice(5))
+        with _LIVE_LOCK:
+            _LIVE.add(proc.pid)
         fh = open(log_file, "a") if log_file else None
         timer = None
         if timeout:
@@ -108,10 +112,32 @@ class RunContext:
                 fh.close()
             if proc.poll() is None:
                 _kill(proc)
+            with _LIVE_LOCK:
+                _LIVE.discard(proc.pid)
+
+
+# process groups of tools started by RunContext.sh() that are still running
+_LIVE: set[int] = set()
+_LIVE_LOCK = threading.Lock()
+
+
+def kill_children() -> int:
+    """SIGTERM every tool process group still running. Each tool runs in its own session, so a
+    Ctrl-C or SIGTERM aimed at svkit never reaches it (a dc_shell would keep its license).
+    Returns how many groups were signalled."""
+    with _LIVE_LOCK:
+        pgids = list(_LIVE)
+    n = 0
+    for pg in pgids:
+        try:
+            os.killpg(pg, signal.SIGTERM)
+            n += 1
+        except ProcessLookupError:
+            pass
+    return n
 
 
 def _kill(proc: subprocess.Popen) -> None:
-    import signal
     if proc.poll() is None:
         try:
             os.killpg(proc.pid, signal.SIGTERM)

@@ -205,10 +205,9 @@ class RunDB:
             tags = [r["tag"] for r in c.execute("SELECT tag FROM tags WHERE run_id = ? ORDER BY tag", (run_id,))]
         return Run(**self._row(row), tags=tags)
 
-    def list_runs(self, *, kind: str | None = None, group_id: str | None = None,
-                  status: str | None = None, test: str | None = None, tag: str | None = None,
-                  limit: int = 200, offset: int = 0) -> list[Run]:
-        q, args = ["SELECT * FROM runs WHERE 1=1"], []
+    @staticmethod
+    def _run_filter(kind, group_id, status, test, tag) -> tuple[list[str], list]:
+        q, args = ["WHERE 1=1"], []
         for col, val in (("kind", kind), ("group_id", group_id), ("status", status), ("test", test)):
             if val is not None:
                 q.append(f"AND {col} = ?")
@@ -216,6 +215,19 @@ class RunDB:
         if tag is not None:
             q.append("AND id IN (SELECT run_id FROM tags WHERE tag = ?)")
             args.append(tag)
+        return q, args
+
+    def count_runs(self, *, kind: str | None = None, group_id: str | None = None,
+                   status: str | None = None, test: str | None = None, tag: str | None = None) -> int:
+        q, args = self._run_filter(kind, group_id, status, test, tag)
+        with self._conn() as c:
+            return c.execute("SELECT COUNT(*) FROM runs " + " ".join(q), args).fetchone()[0]
+
+    def list_runs(self, *, kind: str | None = None, group_id: str | None = None,
+                  status: str | None = None, test: str | None = None, tag: str | None = None,
+                  limit: int = 200, offset: int = 0) -> list[Run]:
+        q, args = self._run_filter(kind, group_id, status, test, tag)
+        q.insert(0, "SELECT * FROM runs")
         q.append("ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?")
         args += [limit, offset]
         with self._conn() as c:
