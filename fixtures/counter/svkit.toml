@@ -1,0 +1,64 @@
+# svkit project file for the `counter` fixture (a mini user project).
+# Both flows are described: open-source (Verilator / Yosys / OpenSTA) and Synopsys (VCS / DC).
+# The first flow of each kind is the default; pick another with `--flow`.
+
+[project]
+name = "counter"
+top = "counter"
+tb_top = "counter_tb"
+sources = { glob = ["rtl/*.sv"] }
+tb_sources = { glob = ["tb/*.sv"] }
+clock = "clock"
+reset = { name = "reset", active = "high" }
+workdir_exclude = ["output", "build", "syn_out"]
+
+# ---------------------------------------------------------------- simulation
+[flows.sim.verilator]
+mode = "builtin"                       # svkit compiles rtl + tb with Verilator 5 --binary --timing
+waves = "output/{test}.vcd"
+golden = { actual = "output/{test}.out", expected = "expected/{test}.out", time_regex = '^@(\d+)', time_unit = "cycle" }
+tests = { names = ["basic", "enable", "clear"] }
+
+[flows.sim.vcs]
+mode = "wrap"                          # the project's own Makefile target
+cmd = "make sim-vcs TEST={test}"
+waves = "output/{test}.vcd"
+golden = { actual = "output/{test}.out", expected = "expected/{test}.out", time_regex = '^@(\d+)', time_unit = "cycle" }
+tests = { names = ["basic", "enable", "clear"] }
+
+# ---------------------------------------------------------------- synthesis / timing
+[flows.synth.yosys]
+mode = "builtin"                       # generated yosys script: synth + dfflibmap + abc on [library]
+sta = "opensta"
+
+[flows.synth.dc]
+mode = "wrap"
+cmd = "make syn-dc"
+script = "synopsys/syn.tcl"
+reports = ["syn_out/{top}.rep"]
+netlist = "syn_out/{top}.vg"
+log = "syn_out/{top}-synth.out"
+license_seats = 1
+
+[flows.sta.opensta]
+max_paths = 5
+
+# ---------------------------------------------------------------- knobs / experiments
+[knobs]
+# ps; written to clock_period.txt (read by the Makefile, exported as CLOCK_PERIOD) and used
+# directly by the builtin yosys/opensta flow.
+clock_period = { file = "clock_period.txt", unit = "ps", default = 2000 }
+# library corner: DC script variable `corner`; the open-source flow picks [library].corners[corner]
+corner = { tcl_var = "corner", default = "tt" }
+# cell-name globs synthesis must not use (yosys: dfflibmap/abc -dont_use; DC: set_dont_use)
+dont_use = { tcl_var = "svkit_dont_use", default = "" }
+
+[experiments]
+baseline = {}
+ss_corner = { corner = "ss" }
+rvt_only = { dont_use = "*_L" }
+
+[library]
+vt_suffix = { "_R" = "RVT", "_L" = "LVT" }
+liberty = ["../lib/svkit_tiny.lib"]
+corners = { tt = ["../lib/svkit_tiny.lib"], ss = ["../lib/svkit_tiny_ss.lib"] }

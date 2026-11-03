@@ -1,0 +1,421 @@
+OpenSTA 2.5.0 2e59563717 Copyright (c) 2024, Parallax Software, Inc.
+License GPLv3: GNU GPL version 3 <http://gnu.org/licenses/gpl.html>
+
+This is free software, and you are free to change and redistribute it
+under certain conditions; type `show_copying' for details. 
+This program comes with ABSOLUTELY NO WARRANTY; for details type `show_warranty'.
+@@svkit units
+ time 1ns
+ capacitance 1fF
+ resistance 1kohm
+ voltage 1v
+ current 1mA
+ power 1nW
+ distance 1um
+@@svkit clocks
+clock svkit_clk 0.200000
+@@svkit max
+Startpoint: _094_ (rising edge-triggered flip-flop clocked by svkit_clk)
+Endpoint: _099_ (rising edge-triggered flip-flop clocked by svkit_clk)
+Path Group: svkit_clk
+Path Type: max
+
+      Cap      Slew     Delay      Time   Description
+-------------------------------------------------------------------------------
+             0.0000    0.0000    0.0000   clock svkit_clk (rise edge)
+                       0.0000    0.0000   clock network delay (ideal)
+             0.0000    0.0000    0.0000 ^ _094_/CLK (DFFR_R)
+   5.1000    0.0304    0.0602    0.0602 ^ _094_/Q (DFFR_R)
+                                          count[2] (net)
+             0.0304    0.0000    0.0602 ^ _069_/B (NAND2_L)
+   1.2000    0.0111    0.0199    0.0801 v _069_/Y (NAND2_L)
+                                          _020_ (net)
+             0.0111    0.0000    0.0801 v _089_/A (NOR2_L)
+   2.2000    0.0141    0.0205    0.1006 ^ _089_/Y (NOR2_L)
+                                          _024_ (net)
+             0.0141    0.0000    0.1006 ^ _090_/B (AND2_L)
+   6.0000    0.0255    0.0328    0.1334 ^ _090_/Y (AND2_L)
+                                          _025_ (net)
+             0.0255    0.0000    0.1334 ^ _051_/A (AND2_L)
+   3.8000    0.0189    0.0318    0.1652 ^ _051_/Y (AND2_L)
+                                          _030_ (net)
+             0.0189    0.0000    0.1652 ^ _070_/A2 (OAI21_L)
+   1.3000    0.0114    0.0237    0.1890 v _070_/Y (OAI21_L)
+                                          _040_ (net)
+             0.0114    0.0000    0.1890 v _071_/B (AOI21_L)
+   1.0000    0.0105    0.0218    0.2107 ^ _071_/Y (AOI21_L)
+                                          _016_ (net)
+             0.0105    0.0000    0.2107 ^ _099_/D (DFFR_R)
+                                 0.2107   data arrival time
+
+             0.0000    0.2000    0.2000   clock svkit_clk (rise edge)
+                       0.0000    0.2000   clock network delay (ideal)
+                       0.0000    0.2000   clock reconvergence pessimism
+                                 0.2000 ^ _099_/CLK (DFFR_R)
+                      -0.0300    0.1700   library setup time
+                                 0.1700   data required time
+-------------------------------------------------------------------------------
+                                 0.1700   data required time
+                                -0.2107   data arrival time
+-------------------------------------------------------------------------------
+                                -0.0407   slack (VIOLATED)
+
+
+Startpoint: _094_ (rising edge-triggered flip-flop clocked by svkit_clk)
+Endpoint: _097_ (rising edge-triggered flip-flop clocked by svkit_clk)
+Path Group: svkit_clk
+Path Type: max
+
+      Cap      Slew     Delay      Time   Description
+-------------------------------------------------------------------------------
+             0.0000    0.0000    0.0000   clock svkit_clk (rise edge)
+                       0.0000    0.0000   clock network delay (ideal)
+             0.0000    0.0000    0.0000 ^ _094_/CLK (DFFR_R)
+   5.1000    0.0304    0.0602    0.0602 ^ _094_/Q (DFFR_R)
+                                          count[2] (net)
+             0.0304    0.0000    0.0602 ^ _069_/B (NAND2_L)
+   1.2000    0.0111    0.0199    0.0801 v _069_/Y (NAND2_L)
+                                          _020_ (net)
+             0.0111    0.0000    0.0801 v _089_/A (NOR2_L)
+   2.2000    0.0141    0.0205    0.1006 ^ _089_/Y (NOR2_L)
+                                          _024_ (net)
+             0.0141    0.0000    0.1006 ^ _090_/B (AND2_L)
+   6.0000    0.0255    0.0328    0.1334 ^ _090_/Y (AND2_L)
+                                          _025_ (net)
+             0.0255    0.0000    0.1334 ^ _050_/B (NAND2_L)
+   1.6000    0.0123    0.0195    0.1529 v _050_/Y (NAND2_L)
+                                          _029_ (net)
+             0.0123    0.0000    0.1529 v _064_/B (XOR2_L)
+   1.2000    0.0111    0.0343    0.1872 v _064_/Y (XOR2_L)
+                                          _037_ (net)
+             0.0111    0.0000    0.1872 v _065_/B (NOR2_L)
+   1.0000    0.0105    0.0187    0.2059 ^ _065_/Y (NOR2_L)
+                                          _014_ (net)
+             0.0105    0.0000    0.2059 ^ _097_/D (DFFR_R)
+                                 0.2059   data arrival time
+
+             0.0000    0.2000    0.2000   clock svkit_clk (rise edge)
+                       0.0000    0.2000   clock network delay (ideal)
+                       0.0000    0.2000   clock reconvergence pessimism
+                                 0.2000 ^ _097_/CLK (DFFR_R)
+                      -0.0300    0.1700   library setup time
+                                 0.1700   data required time
+-------------------------------------------------------------------------------
+                                 0.1700   data required time
+                                -0.2059   data arrival time
+-------------------------------------------------------------------------------
+                                -0.0359   slack (VIOLATED)
+
+
+Startpoint: _094_ (rising edge-triggered flip-flop clocked by svkit_clk)
+Endpoint: _100_ (rising edge-triggered flip-flop clocked by svkit_clk)
+Path Group: svkit_clk
+Path Type: max
+
+      Cap      Slew     Delay      Time   Description
+-------------------------------------------------------------------------------
+             0.0000    0.0000    0.0000   clock svkit_clk (rise edge)
+                       0.0000    0.0000   clock network delay (ideal)
+             0.0000    0.0000    0.0000 ^ _094_/CLK (DFFR_R)
+   5.1000    0.0304    0.0602    0.0602 ^ _094_/Q (DFFR_R)
+                                          count[2] (net)
+             0.0304    0.0000    0.0602 ^ _069_/B (NAND2_L)
+   1.2000    0.0111    0.0199    0.0801 v _069_/Y (NAND2_L)
+                                          _020_ (net)
+             0.0111    0.0000    0.0801 v _089_/A (NOR2_L)
+   2.2000    0.0141    0.0205    0.1006 ^ _089_/Y (NOR2_L)
+                                          _024_ (net)
+             0.0141    0.0000    0.1006 ^ _090_/B (AND2_L)
+   6.0000    0.0255    0.0328    0.1334 ^ _090_/Y (AND2_L)
+                                          _025_ (net)
+             0.0255    0.0000    0.1334 ^ _051_/A (AND2_L)
+   3.8000    0.0189    0.0318    0.1652 ^ _051_/Y (AND2_L)
+                                          _030_ (net)
+             0.0189    0.0000    0.1652 ^ _052_/B (NAND2_L)
+   1.2000    0.0111    0.0176    0.1828 v _052_/Y (NAND2_L)
+                                          _031_ (net)
+             0.0111    0.0000    0.1828 v _053_/B (NOR2_L)
+   1.0000    0.0105    0.0187    0.2015 ^ _053_/Y (NOR2_L)
+                                          _000_ (net)
+             0.0105    0.0000    0.2015 ^ _100_/D (DFFR_R)
+                                 0.2015   data arrival time
+
+             0.0000    0.2000    0.2000   clock svkit_clk (rise edge)
+                       0.0000    0.2000   clock network delay (ideal)
+                       0.0000    0.2000   clock reconvergence pessimism
+                                 0.2000 ^ _100_/CLK (DFFR_R)
+                      -0.0300    0.1700   library setup time
+                                 0.1700   data required time
+-------------------------------------------------------------------------------
+                                 0.1700   data required time
+                                -0.2015   data arrival time
+-------------------------------------------------------------------------------
+                                -0.0315   slack (VIOLATED)
+
+
+Startpoint: _094_ (rising edge-triggered flip-flop clocked by svkit_clk)
+Endpoint: _096_ (rising edge-triggered flip-flop clocked by svkit_clk)
+Path Group: svkit_clk
+Path Type: max
+
+      Cap      Slew     Delay      Time   Description
+-------------------------------------------------------------------------------
+             0.0000    0.0000    0.0000   clock svkit_clk (rise edge)
+                       0.0000    0.0000   clock network delay (ideal)
+             0.0000    0.0000    0.0000 ^ _094_/CLK (DFFR_R)
+   5.1000    0.0304    0.0602    0.0602 v _094_/Q (DFFR_R)
+                                          count[2] (net)
+             0.0304    0.0000    0.0602 v _069_/B (NAND2_L)
+   1.2000    0.0111    0.0199    0.0801 ^ _069_/Y (NAND2_L)
+                                          _020_ (net)
+             0.0111    0.0000    0.0801 ^ _089_/A (NOR2_L)
+   2.2000    0.0141    0.0205    0.1006 v _089_/Y (NOR2_L)
+                                          _024_ (net)
+             0.0141    0.0000    0.1006 v _090_/B (AND2_L)
+   6.0000    0.0255    0.0328    0.1334 v _090_/Y (AND2_L)
+                                          _025_ (net)
+             0.0255    0.0000    0.1334 v _066_/A2 (AOI21_L)
+   1.3000    0.0114    0.0251    0.1585 ^ _066_/Y (AOI21_L)
+                                          _038_ (net)
+             0.0114    0.0000    0.1585 ^ _067_/B (OAI21_L)
+   1.0000    0.0105    0.0218    0.1803 v _067_/Y (OAI21_L)
+                                          _039_ (net)
+             0.0105    0.0000    0.1803 v _068_/A (INV_L)
+   1.0000    0.0105    0.0126    0.1929 ^ _068_/Y (INV_L)
+                                          _015_ (net)
+             0.0105    0.0000    0.1929 ^ _096_/D (DFFR_R)
+                                 0.1929   data arrival time
+
+             0.0000    0.2000    0.2000   clock svkit_clk (rise edge)
+                       0.0000    0.2000   clock network delay (ideal)
+                       0.0000    0.2000   clock reconvergence pessimism
+                                 0.2000 ^ _096_/CLK (DFFR_R)
+                      -0.0300    0.1700   library setup time
+                                 0.1700   data required time
+-------------------------------------------------------------------------------
+                                 0.1700   data required time
+                                -0.1929   data arrival time
+-------------------------------------------------------------------------------
+                                -0.0229   slack (VIOLATED)
+
+
+Startpoint: _094_ (rising edge-triggered flip-flop clocked by svkit_clk)
+Endpoint: _098_ (rising edge-triggered flip-flop clocked by svkit_clk)
+Path Group: svkit_clk
+Path Type: max
+
+      Cap      Slew     Delay      Time   Description
+-------------------------------------------------------------------------------
+             0.0000    0.0000    0.0000   clock svkit_clk (rise edge)
+                       0.0000    0.0000   clock network delay (ideal)
+             0.0000    0.0000    0.0000 ^ _094_/CLK (DFFR_R)
+   5.1000    0.0304    0.0602    0.0602 v _094_/Q (DFFR_R)
+                                          count[2] (net)
+             0.0304    0.0000    0.0602 v _069_/B (NAND2_L)
+   1.2000    0.0111    0.0199    0.0801 ^ _069_/Y (NAND2_L)
+                                          _020_ (net)
+             0.0111    0.0000    0.0801 ^ _089_/A (NOR2_L)
+   2.2000    0.0141    0.0205    0.1006 v _089_/Y (NOR2_L)
+                                          _024_ (net)
+             0.0141    0.0000    0.1006 v _049_/B (AND2_L)
+   2.6000    0.0153    0.0277    0.1283 v _049_/Y (AND2_L)
+                                          _028_ (net)
+             0.0153    0.0000    0.1283 v _074_/A2 (AOI21_L)
+   1.3000    0.0114    0.0230    0.1513 ^ _074_/Y (AOI21_L)
+                                          _043_ (net)
+             0.0114    0.0000    0.1513 ^ _076_/B (AOI21_L)
+   1.2000    0.0111    0.0221    0.1734 v _076_/Y (AOI21_L)
+                                          _045_ (net)
+             0.0111    0.0000    0.1734 v _077_/B (NOR2_L)
+   1.0000    0.0105    0.0187    0.1921 ^ _077_/Y (NOR2_L)
+                                          _017_ (net)
+             0.0105    0.0000    0.1921 ^ _098_/D (DFFR_R)
+                                 0.1921   data arrival time
+
+             0.0000    0.2000    0.2000   clock svkit_clk (rise edge)
+                       0.0000    0.2000   clock network delay (ideal)
+                       0.0000    0.2000   clock reconvergence pessimism
+                                 0.2000 ^ _098_/CLK (DFFR_R)
+                      -0.0300    0.1700   library setup time
+                                 0.1700   data required time
+-------------------------------------------------------------------------------
+                                 0.1700   data required time
+                                -0.1921   data arrival time
+-------------------------------------------------------------------------------
+                                -0.0221   slack (VIOLATED)
+
+
+@@svkit min
+Startpoint: reset (input port clocked by svkit_clk)
+Endpoint: _092_ (removal check against rising-edge clock svkit_clk)
+Path Group: asynchronous
+Path Type: min
+
+      Cap      Slew     Delay      Time   Description
+-------------------------------------------------------------------------------
+             0.0000    0.0000    0.0000   clock svkit_clk (rise edge)
+                       0.0000    0.0000   clock network delay (ideal)
+                       0.0000    0.0000 v input external delay
+   9.0000    0.0000    0.0000    0.0000 v reset (in)
+                                          reset (net)
+             0.0000    0.0000    0.0000 v _083_/A (INV_L)
+   1.0000    0.0105    0.0105    0.0105 ^ _083_/Y (INV_L)
+                                          _004_ (net)
+             0.0105    0.0000    0.0105 ^ _092_/RN (DFFR_R)
+                                 0.0105   data arrival time
+
+             0.0000    0.0000    0.0000   clock svkit_clk (rise edge)
+                       0.0000    0.0000   clock network delay (ideal)
+                       0.0000    0.0000   clock reconvergence pessimism
+                                 0.0000 ^ _092_/CLK (DFFR_R)
+                       0.0100    0.0100   library removal time
+                                 0.0100   data required time
+-------------------------------------------------------------------------------
+                                 0.0100   data required time
+                                -0.0105   data arrival time
+-------------------------------------------------------------------------------
+                                 0.0005   slack (MET)
+
+
+Startpoint: reset (input port clocked by svkit_clk)
+Endpoint: _093_ (removal check against rising-edge clock svkit_clk)
+Path Group: asynchronous
+Path Type: min
+
+      Cap      Slew     Delay      Time   Description
+-------------------------------------------------------------------------------
+             0.0000    0.0000    0.0000   clock svkit_clk (rise edge)
+                       0.0000    0.0000   clock network delay (ideal)
+                       0.0000    0.0000 v input external delay
+   9.0000    0.0000    0.0000    0.0000 v reset (in)
+                                          reset (net)
+             0.0000    0.0000    0.0000 v _084_/A (INV_L)
+   1.0000    0.0105    0.0105    0.0105 ^ _084_/Y (INV_L)
+                                          _003_ (net)
+             0.0105    0.0000    0.0105 ^ _093_/RN (DFFR_R)
+                                 0.0105   data arrival time
+
+             0.0000    0.0000    0.0000   clock svkit_clk (rise edge)
+                       0.0000    0.0000   clock network delay (ideal)
+                       0.0000    0.0000   clock reconvergence pessimism
+                                 0.0000 ^ _093_/CLK (DFFR_R)
+                       0.0100    0.0100   library removal time
+                                 0.0100   data required time
+-------------------------------------------------------------------------------
+                                 0.0100   data required time
+                                -0.0105   data arrival time
+-------------------------------------------------------------------------------
+                                 0.0005   slack (MET)
+
+
+Startpoint: reset (input port clocked by svkit_clk)
+Endpoint: _094_ (removal check against rising-edge clock svkit_clk)
+Path Group: asynchronous
+Path Type: min
+
+      Cap      Slew     Delay      Time   Description
+-------------------------------------------------------------------------------
+             0.0000    0.0000    0.0000   clock svkit_clk (rise edge)
+                       0.0000    0.0000   clock network delay (ideal)
+                       0.0000    0.0000 v input external delay
+   9.0000    0.0000    0.0000    0.0000 v reset (in)
+                                          reset (net)
+             0.0000    0.0000    0.0000 v _085_/A (INV_L)
+   1.0000    0.0105    0.0105    0.0105 ^ _085_/Y (INV_L)
+                                          _002_ (net)
+             0.0105    0.0000    0.0105 ^ _094_/RN (DFFR_R)
+                                 0.0105   data arrival time
+
+             0.0000    0.0000    0.0000   clock svkit_clk (rise edge)
+                       0.0000    0.0000   clock network delay (ideal)
+                       0.0000    0.0000   clock reconvergence pessimism
+                                 0.0000 ^ _094_/CLK (DFFR_R)
+                       0.0100    0.0100   library removal time
+                                 0.0100   data required time
+-------------------------------------------------------------------------------
+                                 0.0100   data required time
+                                -0.0105   data arrival time
+-------------------------------------------------------------------------------
+                                 0.0005   slack (MET)
+
+
+Startpoint: reset (input port clocked by svkit_clk)
+Endpoint: _095_ (removal check against rising-edge clock svkit_clk)
+Path Group: asynchronous
+Path Type: min
+
+      Cap      Slew     Delay      Time   Description
+-------------------------------------------------------------------------------
+             0.0000    0.0000    0.0000   clock svkit_clk (rise edge)
+                       0.0000    0.0000   clock network delay (ideal)
+                       0.0000    0.0000 v input external delay
+   9.0000    0.0000    0.0000    0.0000 v reset (in)
+                                          reset (net)
+             0.0000    0.0000    0.0000 v _086_/A (INV_L)
+   1.0000    0.0105    0.0105    0.0105 ^ _086_/Y (INV_L)
+                                          _001_ (net)
+             0.0105    0.0000    0.0105 ^ _095_/RN (DFFR_R)
+                                 0.0105   data arrival time
+
+             0.0000    0.0000    0.0000   clock svkit_clk (rise edge)
+                       0.0000    0.0000   clock network delay (ideal)
+                       0.0000    0.0000   clock reconvergence pessimism
+                                 0.0000 ^ _095_/CLK (DFFR_R)
+                       0.0100    0.0100   library removal time
+                                 0.0100   data required time
+-------------------------------------------------------------------------------
+                                 0.0100   data required time
+                                -0.0105   data arrival time
+-------------------------------------------------------------------------------
+                                 0.0005   slack (MET)
+
+
+Startpoint: reset (input port clocked by svkit_clk)
+Endpoint: _096_ (removal check against rising-edge clock svkit_clk)
+Path Group: asynchronous
+Path Type: min
+
+      Cap      Slew     Delay      Time   Description
+-------------------------------------------------------------------------------
+             0.0000    0.0000    0.0000   clock svkit_clk (rise edge)
+                       0.0000    0.0000   clock network delay (ideal)
+                       0.0000    0.0000 v input external delay
+   9.0000    0.0000    0.0000    0.0000 v reset (in)
+                                          reset (net)
+             0.0000    0.0000    0.0000 v _081_/A (INV_L)
+   1.0000    0.0105    0.0105    0.0105 ^ _081_/Y (INV_L)
+                                          _006_ (net)
+             0.0105    0.0000    0.0105 ^ _096_/RN (DFFR_R)
+                                 0.0105   data arrival time
+
+             0.0000    0.0000    0.0000   clock svkit_clk (rise edge)
+                       0.0000    0.0000   clock network delay (ideal)
+                       0.0000    0.0000   clock reconvergence pessimism
+                                 0.0000 ^ _096_/CLK (DFFR_R)
+                       0.0100    0.0100   library removal time
+                                 0.0100   data required time
+-------------------------------------------------------------------------------
+                                 0.0100   data required time
+                                -0.0105   data arrival time
+-------------------------------------------------------------------------------
+                                 0.0005   slack (MET)
+
+
+@@svkit summary
+worst slack -0.0407
+tns -0.1748
+@@svkit summary_min
+worst slack 0.0005
+@@svkit power
+Group                  Internal  Switching    Leakage      Total
+                          Power      Power      Power      Power (Watts)
+----------------------------------------------------------------
+Sequential           1.4400e-04 2.8806e-06 5.4000e-08 1.4693e-04  87.0%
+Combinational        1.2995e-05 8.5426e-06 4.6080e-07 2.1999e-05  13.0%
+Clock                0.0000e+00 0.0000e+00 0.0000e+00 0.0000e+00   0.0%
+Macro                0.0000e+00 0.0000e+00 0.0000e+00 0.0000e+00   0.0%
+Pad                  0.0000e+00 0.0000e+00 0.0000e+00 0.0000e+00   0.0%
+----------------------------------------------------------------
+Total                1.5700e-04 1.1423e-05 5.1480e-07 1.6893e-04 100.0%
+                          92.9%       6.8%       0.3%
+@@svkit end

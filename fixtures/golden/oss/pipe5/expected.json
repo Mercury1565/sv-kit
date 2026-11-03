@@ -1,0 +1,58 @@
+{
+  "fixture": "pipe5",
+  "flow": "yosys+opensta",
+  "library": "svkit_tiny (tt)",
+  "default_clock_period_ps": 2000,
+  "t_min_note": "tightest integer clock_period (ps) with setup WNS >= 0 and hold WNS >= 0; abc -D follows the period; pass/fail was monotonic over 50..2000 ps",
+  "t_min_ps": 683,
+  "area_total": 2993.0,
+  "cell_count": 1148,
+  "wns_at_default_ps": 1317.4,
+  "power_total_mw": 0.45913,
+  "vt_mix": {
+    "LVT": 965,
+    "RVT": 183
+  },
+  "area_by_hier": {
+    "": 2993.0,
+    "u_alu": 361.0,
+    "u_hz": 49.5,
+    "u_rf": 1110.5
+  },
+  "tests": {
+    "sum": "passed",
+    "hazards": "passed",
+    "memcopy": "passed",
+    "fib": "passed",
+    "ldst_fwd": "failed"
+  },
+  "failing_test": {
+    "name": "ldst_fwd",
+    "divergence_line": 8,
+    "divergence_cycle": 10,
+    "expected": "@11 M[31]=5a",
+    "actual": "@10 M[31]=30"
+  },
+  "perf": {
+    "sum": {
+      "cycles": 57,
+      "instrs": 35
+    },
+    "hazards": {
+      "cycles": 26,
+      "instrs": 19
+    },
+    "memcopy": {
+      "cycles": 130,
+      "instrs": 96
+    },
+    "fib": {
+      "cycles": 100,
+      "instrs": 77
+    },
+    "ldst_fwd": {
+      "cycles": 16,
+      "instrs": 11
+    }
+  }
+}

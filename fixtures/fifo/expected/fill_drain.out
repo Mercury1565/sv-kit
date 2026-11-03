@@ -1,0 +1,22 @@
+@2 push=1 din=10 pop=0 dout=00 level=0 full=0 empty=1 ovf=0 unf=0
+@3 push=1 din=11 pop=0 dout=00 level=1 full=0 empty=0 ovf=0 unf=0
+@4 push=1 din=12 pop=0 dout=00 level=2 full=0 empty=0 ovf=0 unf=0
+@5 push=1 din=13 pop=0 dout=00 level=3 full=0 empty=0 ovf=0 unf=0
+@6 push=1 din=14 pop=0 dout=00 level=4 full=0 empty=0 ovf=0 unf=0
+@7 push=1 din=15 pop=0 dout=00 level=5 full=0 empty=0 ovf=0 unf=0
+@8 push=1 din=16 pop=0 dout=00 level=6 full=0 empty=0 ovf=0 unf=0
+@9 push=1 din=17 pop=0 dout=00 level=7 full=0 empty=0 ovf=0 unf=0
+@10 push=1 din=18 pop=0 dout=00 level=8 full=1 empty=0 ovf=0 unf=0
+@11 push=1 din=19 pop=0 dout=00 level=8 full=1 empty=0 ovf=1 unf=0
+@12 push=0 din=00 pop=1 dout=10 level=8 full=1 empty=0 ovf=1 unf=0
+@13 push=0 din=00 pop=1 dout=11 level=7 full=0 empty=0 ovf=0 unf=0
+@14 push=0 din=00 pop=1 dout=12 level=6 full=0 empty=0 ovf=0 unf=0
+@15 push=0 din=00 pop=1 dout=13 level=5 full=0 empty=0 ovf=0 unf=0
+@16 push=0 din=00 pop=1 dout=14 level=4 full=0 empty=0 ovf=0 unf=0
+@17 push=0 din=00 pop=1 dout=15 level=3 full=0 empty=0 ovf=0 unf=0
+@18 push=0 din=00 pop=1 dout=16 level=2 full=0 empty=0 ovf=0 unf=0
+@19 push=0 din=00 pop=1 dout=17 level=1 full=0 empty=0 ovf=0 unf=0
+@20 push=0 din=00 pop=1 dout=00 level=0 full=0 empty=1 ovf=0 unf=0
+@21 push=0 din=00 pop=1 dout=00 level=0 full=0 empty=1 ovf=0 unf=1
+@22 push=0 din=00 pop=0 dout=00 level=0 full=0 empty=1 ovf=0 unf=1
+done
