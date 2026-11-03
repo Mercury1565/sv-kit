@@ -273,6 +273,12 @@ function WaveWorkspace({ runId, meta, query }: { runId: string; meta: WaveMeta; 
     [selRow, cursor, view.t0, runId, ts],
   );
 
+  const goEdge = (edge: -1 | 1) => {
+    setStatus(null);
+    setCursor(edge < 0 ? meta.t_start : meta.t_end);
+    rendRef.current?.toEdge(edge);
+  };
+
   const onKey = (e: React.KeyboardEvent) => {
     const r = rendRef.current;
     if (!r) return;
@@ -301,6 +307,12 @@ function WaveWorkspace({ runId, meta, query }: { runId: string; meta: WaveMeta; 
         break;
       case "x":
         jump("x", 1);
+        break;
+      case "Home":
+        goEdge(-1);
+        break;
+      case "End":
+        goEdge(1);
         break;
       case "X":
         jump("x", -1);
@@ -437,11 +449,17 @@ function WaveWorkspace({ runId, meta, query }: { runId: string; meta: WaveMeta; 
             <button onClick={() => rendRef.current?.fit()} title="Zoom to fit (f)">
               Fit
             </button>
+            <button onClick={() => goEdge(-1)} title="Go to start (Home)">
+              ⇤ start
+            </button>
             <button onClick={() => jump("change", -1)} disabled={!selRow} title="Previous change of selected signal (←)">
               ◀ change
             </button>
             <button onClick={() => jump("change", 1)} disabled={!selRow} title="Next change of selected signal (→)">
               change ▶
+            </button>
+            <button onClick={() => goEdge(1)} title="Go to end (End)">
+              end ⇥
             </button>
             <button onClick={() => jump("x", 1)} disabled={!selRow} title="Next X/Z of selected signal (x; shift+x for previous)">
               next X
@@ -482,7 +500,7 @@ function WaveWorkspace({ runId, meta, query }: { runId: string; meta: WaveMeta; 
               setScrollTop(st);
               rendRef.current?.setScroll(st);
             }}
-            aria-label="Waveform. Keys: + − zoom, f fit, ←/→ prev/next change, x next X, ↑/↓ select, m marker, Delete remove"
+            aria-label="Waveform. Keys: + − zoom, f fit, ←/→ prev/next change, Home/End start/end, x next X, ↑/↓ select, m marker, Delete remove"
           >
             <div className="wgrid-inner" style={{ height: Math.max(rows.length * ROW_H, gridH) }}>
               <div className="wsticky" style={{ height: gridH }}>

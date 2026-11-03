@@ -165,6 +165,13 @@ export class WaveRenderer {
     this.setView(this.bounds.lo, this.bounds.hi);
   }
 
+  /** Keep the zoom and pan to the start (-1) or the end (1) of the dump. */
+  toEdge(edge: -1 | 1): void {
+    const span = this.view.t1 - this.view.t0;
+    if (edge < 0) this.setView(this.bounds.lo, this.bounds.lo + span);
+    else this.setView(this.bounds.hi - span, this.bounds.hi);
+  }
+
   zoom(factor: number, atX?: number): void {
     const at = atX === undefined ? (this.cursor !== null && this.cursor >= this.view.t0 && this.cursor <= this.view.t1 ? this.cursor : (this.view.t0 + this.view.t1) / 2) : xToT(atX, this.view);
     this.view = zoomView(this.view, factor, at, this.bounds.lo, this.bounds.hi, Math.max(1e-6, 4 / Math.max(1, this.w)));
