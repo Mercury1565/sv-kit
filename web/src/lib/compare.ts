@@ -1,0 +1,75 @@
+import type { MetricDelta, Verdict } from "../api/types";
+import { DASH, fmtNum, fmtPct, fmtSigned, isNum } from "./format";
+
+export interface CompareCell {
+  value: string;
+  delta: string | null; // null for the baseline column
+  pct: string | null;
+  verdict: Verdict;
+  glyph: "▲" | "▼" | "=" | "";
+  /** Accessible text, e.g. "−30 (−3.7%), worse". */
+  title: string;
+}
+
+/** Digits per metric so deltas line up and never print float noise. */
+export function metricDigits(m: MetricDelta): number {
+  if (m.metric.startsWith("power")) return 3;
+  if (m.metric === "cell_count" || m.metric.startsWith("vt_mix")) return 0;
+  return 1;
+}
+
+export function compareCell(m: MetricDelta, i: number): CompareCell {
+  const digits = metricDigits(m);
+  const v = m.values[i];
+  const verdict = (m.verdict[i] ?? "na") as Verdict;
+  const value = isNum(v) ? fmtNum(v, digits) : v === null || v === undefined ? DASH : fmtNum(v, digits);
+  if (i === 0) {
+    return { value, delta: null, pct: null, verdict: "na", glyph: "", title: `${value} (baseline)` };
+  }
+  const d = m.deltas[i];
+  const p = m.pct[i];
+  const delta = isNum(d) ? fmtSigned(d, digits) : DASH;
+  const pct = isNum(p) ? fmtPct(p, 1) : null;
+  // ▲ = better, ▼ = worse: glyph carries the meaning, color only reinforces it.
+  const glyph = verdict === "better" ? "▲" : verdict === "worse" ? "▼" : verdict === "same" ? "=" : "";
+  const title = `${value}; Δ ${delta}${pct ? ` (${pct})` : ""}; ${verdict === "na" ? "not comparable" : verdict}`;
+  return { value, delta, pct, verdict, glyph, title };
+}
+
+/** Move run `idx` to the front: the API treats the first id as baseline. */
+export function withBaseline(ids: string[], idx: number): string[] {
+  if (idx <= 0 || idx >= ids.length) return ids.slice();
+  return [ids[idx], ...ids.slice(0, idx), ...ids.slice(idx + 1)];
+}
+
+/**
+ * Client-side delta computation (used by the mock layer, mirrors the backend rule:
+ * delta = v - v0, pct = delta / |v0| * 100, verdict by `better`).
+ */
+export function computeDelta(metric: string, better: MetricDelta["better"], values: (number | null)[], unit?: string | null): MetricDelta {
+  const v0 = values[0];
+  const deltas: (number | null)[] = [];
+  const pct: (number | null)[] = [];
+  const verdict: Verdict[] = [];
+  values.forEach((v, i) => {
+    if (i === 0) {
+      deltas.push(isNum(v) ? 0 : null);
+      pct.push(isNum(v) ? 0 : null);
+      verdict.push("na");
+      return;
+    }
+    if (!isNum(v) || !isNum(v0)) {
+      deltas.push(null);
+      pct.push(null);
+      verdict.push("na");
+      return;
+    }
+    const d = v - v0;
+    deltas.push(d);
+    pct.push(v0 !== 0 ? (d / Math.abs(v0)) * 100 : null);
+    if (better === "none") verdict.push("na");
+    else if (Math.abs(d) < 1e-9) verdict.push("same");
+    else verdict.push((better === "higher" ? d > 0 : d < 0) ? "better" : "worse");
+  });
+  return { metric, unit: unit ?? null, better, values, deltas, pct, verdict };
+}
