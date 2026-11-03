@@ -341,6 +341,8 @@ def build(cfg: Config, *, with_tb: bool = True, use_cache: bool = True) -> Desig
                 pass
         g = _Extractor(cfg, design_files(cfg, with_tb)).run()
         g.source_hash = hsh
+        if not use_cache:
+            return g
         _MEM_CACHE[key] = g
         try:
             cache_f.parent.mkdir(parents=True, exist_ok=True)
