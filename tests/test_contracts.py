@@ -133,3 +133,26 @@ def test_schemas():
                    children=[XTraceNode(signal="top.b", time=5, value="x")])
     assert XTraceNode.model_validate_json(n.model_dump_json()) == n
     assert SynthResult(tool="t", top="x", wns=1, hold_wns=-1).met is False
+
+
+def test_rundb_opened_concurrently(tmp_path):
+    # overlapping `svkit` processes / threads open the same fresh Run DB at once; the old one-shot
+    # `PRAGMA journal_mode=WAL` failed with "database is locked" in some of these races
+    import threading
+    from svkit.core.rundb import RunDB
+    for rnd in range(30):
+        start, errs, ids = threading.Barrier(8), [], []
+
+        def open_and_write(d=tmp_path / f"p{rnd}" / ".svkit"):
+            try:
+                start.wait()
+                ids.append(RunDB(d).create_run("sim", "vcs", test="t").id)
+            except Exception as e:      # noqa: BLE001 - collected for the assert
+                errs.append(e)
+        ts = [threading.Thread(target=open_and_write) for _ in range(8)]
+        for t in ts:
+            t.start()
+        for t in ts:
+            t.join(60)
+        assert not errs, (rnd, errs)
+        assert len(set(ids)) == 8

@@ -220,3 +220,34 @@ def test_init_generated_goldens_and_dc_details(tmp_path):
     assert cfg.library.vt_suffix == {"_R": "RVT", "_L": "LVT", "_SL": "SLVT"}
     assert cfg.experiments["ss_corner"] == {"corner": "SS"}
     assert any("tmerge" in n for n in notes)
+
+
+def test_init_check_rule_that_builds_its_reference(tmp_path):
+    """A check rule whose recipe writes the reference and diffs it (no reference dir on disk):
+    `%.check: output/%.out programs/build/%.sq` + `ref > $<.correct` + `diff $< $<.correct`."""
+    root = tmp_path / "lab"
+    _w(root / "Makefile", """\
+        build/simv: verilog/core.sv test/core_test.sv
+        \tvcs -sverilog $^ -o $@
+        output/%.out: programs/build/%.mem build/simv | output
+        \tbuild/simv +MEMORY=./$< +OUTPUT=./output/$*
+        \t-rm ucli.key
+        ./%.out: output/%.out ;
+        %.cpi %.wb %.fmem: %.out ;
+        %.check: output/%.out programs/build/%.sq
+        \t$(REFSIM) programs/build/$*.sq > $<.correct
+        \tdiff $< $<.correct
+        .PHONY: %.check
+        """)
+    _w(root / "verilog" / "core.sv", "module core(input logic clock, input logic reset); endmodule\n")
+    _w(root / "test" / "core_test.sv", "module core_test; logic clock, reset;\n"
+                                       "  core dut(.clock(clock), .reset(reset)); endmodule\n")
+    for t in ("p1", "p2"):
+        _w(root / "programs" / f"{t}.hsq", "halt\n")
+
+    out, notes = I.init(root)
+    vcs = C.load(out).flows.sim["vcs"]
+    assert vcs.cmd == "make {test}.check"
+    assert vcs.golden.actual == "output/{test}.out" and vcs.golden.expected == "output/{test}.out.correct"
+    assert vcs.waves == "output/{test}.vcd" and vcs.tests.glob == "programs/*.hsq"
+    assert any("golden mismatch" in n for n in notes)

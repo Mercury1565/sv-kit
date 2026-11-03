@@ -323,6 +323,36 @@ def _check_rule(s: Scan) -> Optional[tuple[str, str]]:
     return None
 
 
+def _check_recipe(s: Scan) -> Optional[tuple[str, str, str]]:
+    """(check target, actual, expected) from a check rule whose recipe makes the reference itself
+    and diffs it, e.g. `%.check: output/%.out` + `ref > $<.correct` + `diff $< $<.correct`.
+    Running that target is then the per-test command: it simulates, builds the reference, diffs."""
+    lines = _joined_lines(s)
+    for i, line in enumerate(lines):
+        m = re.match(r"^(\S*%\S*)\s*::?(?!=)\s*([^;#]*)", line)
+        if not m or line.startswith("\t") or not CHECK_WORDS.search(m.group(1)):
+            continue
+        pre = m.group(2).split()
+        recipe = []
+        for ln in lines[i + 1:]:
+            if not ln.startswith("\t"):
+                break
+            recipe.append(ln.strip().lstrip("@-+"))
+        sub = lambda t: (t.replace("$<", pre[0] if pre else "$<").replace("$*", "%").replace("$(*)", "%"))
+        made = {sub(r) for ln in recipe for r in re.findall(r">\s*([^\s;&|]+)", ln)}
+        for ln in recipe:
+            dm = re.match(r"diff\b(?:\s+-\S+)*\s+(\S+)\s+(\S+)", ln)
+            if not dm:
+                continue
+            a, e = sub(dm.group(1)), sub(dm.group(2))
+            if a in made and e not in made:
+                a, e = e, a
+            if e in made and "%" in a and "%" in e and "$" not in a + e:
+                return (m.group(1).removeprefix("./").replace("%", "{test}"),
+                        a.replace("%", "{test}"), e.replace("%", "{test}"))
+    return None
+
+
 def _tee_log(s: Scan, top: Optional[str]) -> Optional[str]:
     """Where a dc_shell recipe tees its log, relative to the project root (`cd synth && ... | tee x`)."""
     for line in _joined_lines(s):
@@ -462,7 +492,12 @@ def infer(root: Path) -> tuple[str, list[str]]:
             break
     rule = _check_rule(s)
     golden_build = None          # make target that generates the expected file (make skips it when fresh)
-    if rule and (golden_dir is None or Path(rule[1]).parent == Path(_rel(golden_dir, root))):
+    check_cmd = None             # a check target that simulates, builds the reference and diffs
+    if rule is None and golden_dir is None and (cr := _check_recipe(s)):
+        check_cmd, rule = "make " + cr[0], (cr[1], cr[2])
+        golden_ext = "".join(Path(cr[2]).suffixes)
+        golden_dir = root / Path(cr[2]).parent
+    elif rule and (golden_dir is None or Path(rule[1]).parent == Path(_rel(golden_dir, root))):
         golden_ext, golden_dir = Path(rule[1]).suffix, root / Path(rule[1]).parent
         if any(t.startswith(f"{Path(rule[1]).parent}/%") for t in s.make_targets):
             golden_build = rule[1]
@@ -525,6 +560,10 @@ def infer(root: Path) -> tuple[str, list[str]]:
         sim_flows.append(("verilator", sim_cmd("verilator") if has_verilator else None))
     for fname, cmd in sim_flows:
         g.add("", f"[flows.sim.{fname}]")
+        if cmd and check_cmd:
+            cmd = check_cmd
+            notes.append(f"the reference output is made by `{check_cmd}`, so that is the per-test command; "
+                         "a failing diff is reported as a golden mismatch")
         if cmd and golden_build:
             cmd += " " + golden_build
             notes.append(f"make generates {_rel(golden_dir, root)}/: the sim command also builds {golden_build}")

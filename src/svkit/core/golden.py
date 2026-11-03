@@ -43,8 +43,17 @@ def first_divergence(actual: Path, expected: Path, golden: Golden) -> Optional[D
 def evaluate(*, exit_code: int, log_text: str, pass_regex: str | None, fail_regex: str | None,
              actual: Path | None, expected: Path | None, golden: Golden | None
              ) -> tuple[Optional[bool], Optional[str], Optional[Divergence]]:
-    """Returns (passed, reason, divergence). passed=None when nothing decides it."""
+    """Returns (passed, reason, divergence). passed=None when nothing decides it.
+
+    A non-zero exit always fails, but if the output still differs from golden the mismatch is
+    reported (with its divergence): check targets like `make t.check` exit non-zero precisely
+    because of that difference."""
     if exit_code != 0:
+        if golden is not None and actual is not None and expected is not None \
+                and actual.is_file() and expected.is_file():
+            d = first_divergence(actual, expected, golden)
+            if d:
+                return False, f"golden mismatch at line {d.line} (exit code {exit_code})", d
         return False, f"exit code {exit_code}", None
     if fail_regex and re.search(fail_regex, log_text, re.MULTILINE):
         return False, f"log matched fail_regex {fail_regex!r}", None

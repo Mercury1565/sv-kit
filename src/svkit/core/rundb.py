@@ -108,6 +108,22 @@ class Group:
 _JSON_COLS = {"knobs", "metrics", "artifacts", "params", "result"}
 
 
+def _wal(c: sqlite3.Connection, tries: int = 300) -> None:
+    """Switch to WAL once (the mode persists in the file). SQLite can refuse the switch with
+    "database is locked" while another connection opens the same new DB, without honouring the
+    busy timeout, so retry; overlapping `svkit` processes hit this."""
+    for _ in range(tries):
+        try:
+            if c.execute("PRAGMA journal_mode").fetchone()[0].lower() != "wal":
+                c.execute("PRAGMA journal_mode=WAL")
+            return
+        except sqlite3.OperationalError as e:
+            if "locked" not in str(e) and "busy" not in str(e):
+                raise
+            time.sleep(0.1)
+    raise sqlite3.OperationalError(f"could not enable WAL on the Run DB after {tries} tries (database is locked)")
+
+
 class RunDB:
     """Thread-safe (one connection per thread) access to the Run DB."""
 
@@ -133,7 +149,7 @@ class RunDB:
         if c is None:
             c = sqlite3.connect(self.path, timeout=30, isolation_level=None)
             c.row_factory = sqlite3.Row
-            c.execute("PRAGMA journal_mode=WAL")
+            _wal(c)
             c.execute("PRAGMA foreign_keys=ON")
             self._local.c = c
         yield c

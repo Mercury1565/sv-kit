@@ -111,6 +111,11 @@ svkit serve   # http://127.0.0.1:8470 ; remote: ssh -L 8470:localhost:8470 <host
 - DC option B (toy Liberty via `read_lib`) does not work on CAEN. See `docs/CAEN.md`; option A (real `.db`) is the documented path.
 - **Tool processes are stopped on Ctrl-C / SIGTERM / exit.** Tools run in their own session, so a Ctrl-C on `svkit sweep` never reached `dc_shell`, which kept running and kept its license. `RunContext.sh` now tracks live process groups and `svkit.cli:main` (the console entry point now) kills them. Checked end to end: SIGTERM to `svkit sim` stops the tool, and svkit exits 143.
 - The DC adapter tests no longer read the ambient `SVKIT_DC_*` variables, which a CAEN shell exports for the real-DC tests.
+- Follow-up (2026-11-03, after the tag), from the owner's lab7 project (a second real project; copy in `~/svkit-work/lab7`):
+  - **Overlapping runs of one test raced:** three `sim --all` started 20 s apart deleted each other's `output/<t>.vpd`, so 7 tests failed with `exit code 2`. In-place sims now hold a per-test lock (`.svkit/locks/sim-<flow>-<test>.lock`); a second run waits.
+  - **Opening a fresh Run DB from several processes at once** could fail with "database is locked" (the WAL switch ignores the busy timeout). It now retries.
+  - **A non-zero exit plus a golden mismatch** is reported as the mismatch, with its divergence, plus the exit code. Check targets exit non-zero because their diff failed.
+  - **`init` reads check rules that build their own reference** (`ref > $<.correct` + `diff $< $<.correct`): the per-test command becomes `make {test}.check`, with golden and waves set. Before, lab7 "passed" on make's exit code alone.
 - Follow-up (2026-11-03, after the tag): project copies skip CIFS `.__smbXXXX` placeholders (left by a delete-while-open; listed, but opening fails). A stale one in a lab project made every `svkit synth` fail with FileNotFoundError.
 **Known gaps / risks:**
 - **Golden-diff jump on the dogfood:** `.wb` is a final memory image sorted by address, with no time or cycle, so the waveform cursor cannot be placed. svkit still reports the first differing line. Projects whose outputs carry a cycle work (`golden.time_regex`).

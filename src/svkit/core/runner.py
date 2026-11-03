@@ -3,14 +3,17 @@ work dirs, license-seat caps and live events. Used by the CLI and the server.
 """
 from __future__ import annotations
 
+import fcntl
 import os
+import re
 import shutil
 import threading
 import time
 import traceback
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Iterator, Optional
 
 from svkit.adapters import registry
 from svkit.adapters.base import RunContext, SimAdapter, SynthAdapter
@@ -88,6 +91,30 @@ class Runner:
         self._emit_status(run.id, status, message)
         return self.db.get_run(run.id)
 
+    @contextmanager
+    def _test_lock(self, flow: str, test: str, ctx: RunContext, poll_s: float = 0.2) -> Iterator[None]:
+        """Serialize in-place runs of one test, across threads and svkit processes on this host:
+        concurrent `make t.out` in one tree delete each other's outputs mid-run."""
+        d = self.db.state_dir / "locks"
+        d.mkdir(parents=True, exist_ok=True)
+        safe = re.sub(r"[^\w.-]", "_", test)
+        fh = open(d / f"sim-{flow}-{safe}.lock", "a+")
+        try:
+            waited = False
+            while True:
+                try:
+                    fcntl.flock(fh.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    break
+                except OSError:
+                    if not waited:
+                        ctx.log(f"[svkit] waiting: another run of {test} is using the same output files")
+                        waited = True
+                    if ctx.cancel.wait(poll_s):
+                        raise RuntimeError("cancelled while waiting for another run of the same test")
+            yield
+        finally:
+            fh.close()
+
     # ------------------------------------------------------------- sim
     def sim(self, test: str, *, flow: str | None = None, group_id: str | None = None,
             sets: dict[str, Any] | None = None, use_cache: bool = True) -> Run:
@@ -119,7 +146,11 @@ class Runner:
         self.db.update_run(run.id, status="running", started_at=t0)
         self._emit_status(run.id, "running")
         try:
-            res = adapter.run(ctx, fl, test)
+            if workdir == self.cfg.root:      # in place: same-test runs share output files
+                with self._test_lock(name, test, ctx):
+                    res = adapter.run(ctx, fl, test)
+            else:
+                res = adapter.run(ctx, fl, test)
             status = "passed" if res.passed else ("failed" if res.passed is False else "done")
             return self._finish(run, ctx, t0, status, res.model_dump(mode="json"), 0, res.reason)
         except Exception as e:  # adapter crash -> error run, never kills the caller

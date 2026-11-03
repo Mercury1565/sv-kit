@@ -274,3 +274,23 @@ def test_builtin_compile_error(builtin_project, fake_vcs):
     ind = next(w for w in run.metrics["warnings"] if w["code"] == "IND")
     assert (ind["file"], ind["line"]) == ("rtl/core.sv", 3)
     assert not list((builtin_project / ".svkit" / "build").glob("vcs-*/simv"))
+
+
+def test_concurrent_runs_of_one_test_do_not_race(tmp_path, fake_vcs):
+    # a wrap command that, like `make t.out` + VPD conversion, writes then deletes a shared file;
+    # two overlapping runs of the same test used to delete it under each other (rm: exit 2)
+    import threading
+    root = tmp_path / "race"
+    (root / "rtl").mkdir(parents=True)
+    (root / "rtl" / "core.sv").write_text("module core; endmodule\n")
+    _exe(root / "run.sh", '#!/bin/sh\nmkdir -p out\necho x > "out/$1.vpd"\nsleep 0.5\nrm "out/$1.vpd"\n')
+    (root / "svkit.toml").write_text('[project]\nname = "r"\ntop = "core"\nsources = { glob = ["rtl/*.sv"] }\n'
+                                     '[flows.sim.vcs]\ncmd = "sh run.sh {test}"\ntests = { names = ["t"] }\n')
+    cfg = C.load(root)
+    runs = []
+    ts = [threading.Thread(target=lambda: runs.append(Runner(cfg).sim("t", use_cache=False))) for _ in range(2)]
+    for t in ts:
+        t.start()
+    for t in ts:
+        t.join(30)
+    assert [r.status for r in runs] == ["passed", "passed"], [r.message for r in runs]
