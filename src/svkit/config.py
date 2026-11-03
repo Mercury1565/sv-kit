@@ -115,6 +115,7 @@ class SynthFlow(_M):
     log: Optional[str] = None
     license_seats: int = 0               # 0 = unlimited; caps concurrent runs of this adapter
     sta: Optional[str] = None            # name of an [flows.sta.<x>] entry (open-source flows)
+    append_before: Optional[str] = None  # regex anchor for experiment `tcl_append` (e.g. '^\\s*compile'); None = end
     timeout_s: int = 6 * 3600
     args: list[str] = Field(default_factory=list)
     env: dict[str, str] = Field(default_factory=dict)

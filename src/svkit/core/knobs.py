@@ -65,13 +65,17 @@ def render_value(knob: Knob, value: Any, *, name: str = "") -> str:
     return expand(knob.format, value=value)
 
 
-def plan(cfg: Config, values: dict[str, Any], *, stage: str = "synth") -> KnobPlan:
-    """Turn knob values into a KnobPlan for `stage` ('sim' | 'synth' | 'sta')."""
+def plan(cfg: Config, values: dict[str, Any], *, stage: str = "synth",
+         append_before: str | None = None) -> KnobPlan:
+    """Turn knob values into a KnobPlan for `stage` ('sim' | 'synth' | 'sta').
+
+    `append_before` (the flow's anchor regex) is where experiment-level `tcl_append`
+    text goes; None = end of script."""
     p = KnobPlan(values=dict(values))
     for name, value in values.items():
         if name == "tcl_append":
             for text in ([value] if isinstance(value, str) else value):
-                p.tcl_append.append((None, text))
+                p.tcl_append.append((append_before, text))
             continue
         if name == "env":
             p.env.update({k: str(v) for k, v in dict(value).items()})

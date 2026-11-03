@@ -49,13 +49,13 @@ Summary:
 |---|---|
 | `[project]` | `name`, `top`, `tb_top`, `sources`/`tb_sources` (`glob`, `filelist`, `exclude`), `include`, `defines`, `clock`, `reset`, `workdir_exclude` |
 | `[flows.sim.<adapter>]` | `mode = "wrap"` (run `cmd`, the user's build) or `"builtin"` (adapter compiles sources). `waves`, `log`, `golden`, `tests`, `pass_regex`, `fail_regex`, `isolate` |
-| `[flows.synth.<adapter>]` | `mode`, `cmd`, `script` (user's TCL/ys), `reports`, `netlist`, `log`, `license_seats`, `sta` (name of an STA flow) |
+| `[flows.synth.<adapter>]` | `mode`, `cmd`, `script` (user's TCL/ys), `reports`, `netlist`, `log`, `license_seats`, `sta` (name of an STA flow), `append_before` (anchor regex for experiment `tcl_append`) |
 | `[flows.sta.<adapter>]` | `mode`, `sdc`, `max_paths` |
 | `[knobs]` | `name = { <mechanism> = ..., unit?, format?, default?, applies_to? }` |
 | `[experiments]` | `name = { knob = value, ..., tcl_append? = "...", env? = {...} }` |
 | `[perf]` | `source = { regex_file, cycles, instrs, stalls? }` |
 | `[library]` | `vt_suffix = { suffix = class }`, `liberty = [...]`, `corners = { name = [libs] }` |
-| `[tools]` | executable overrides: `sta = "/path/to/sta"` |
+| `[tools]` | executable overrides: `sta`, `yosys`, `verilator`, `vcs`, `dc_shell-t`, `vpd2vcd`, `fsdb2vcd` |
 
 **Templates.** String fields like `cmd`, `waves`, `golden.actual` accept `{test}`, `{top}`, `{root}`,
 `{workdir}`, `{run_dir}`; knob mechanisms accept `{value}`. Unknown placeholders are left intact.
@@ -104,6 +104,9 @@ the wave file's timescale (reported by the wave API).
 * `PerfResult`: test, cycles, instrs, cpi, stalls, period, period_source, tpi (ps/instr).
 * `XTraceNode`: signal, time, value, driver{kind, file, line, text}, cause (XCause), note, children.
 * `CompareResult` / `MetricDelta`, `SweepResult` / `SweepPoint`.
+
+Hierarchy separator: `area_by_hier` keys and `TimingPoint.inst` use `/` (as DC and OpenSTA print it);
+waveform signal paths use `.`.
 
 Vt mix rule: a cell counts as class C if its name ends with a `[library].vt_suffix` key mapping to C
 (longest suffix wins); otherwise `"other"`.
@@ -208,4 +211,6 @@ T_min is known. Golden outputs live under `fixtures/golden/<flow>/<fixture>/`. S
 
 * License seats: `license_seats` per synth flow → process-wide semaphore per adapter.
   Hard cap for this server: ≤ 2 concurrent `dc_shell-t`/`vcs` across everything.
+* Synopsys tools additionally take a host-wide seat (file locks in `SVKIT_LOCK_DIR`, default
+  `~/.cache/svkit/locks`; cap `SVKIT_SYNOPSYS_MAX_JOBS`, default 2) shared across processes and agents.
 * All subprocesses run `nice`d in their own session and are killed on cancel/timeout.

@@ -109,6 +109,7 @@ class Runner:
             workdir = P.make_workdir(self.cfg, self.work_root / run.id)
             K.apply_files(plan, workdir)
         ctx = self._ctx(run, name, workdir, plan)
+        ctx.env.update(fl.env)
         self.db.update_run(run.id, status="running", started_at=t0)
         self._emit_status(run.id, "running")
         try:
@@ -151,7 +152,7 @@ class Runner:
         adapter = registry.get(name, self.cfg)
         assert isinstance(adapter, SynthAdapter)
         values = K.resolve(self.cfg, experiment=experiment, sets=sets)
-        plan = K.plan(self.cfg, values, stage="synth")
+        plan = K.plan(self.cfg, values, stage="synth", append_before=fl.append_before)
         sha, dirty = P.git_info(self.cfg.root)
         src = P.source_hash(self.cfg, P.flow_files(self.cfg, fl.script))
         key = P.cache_key("synth", name, src, values)
@@ -175,6 +176,7 @@ class Runner:
             if fl.script:
                 K.prepare_script(plan, fl.script, workdir)
             ctx = self._ctx(run, name, workdir, plan)
+            ctx.env.update(fl.env)
             t0 = time.time()
             self.db.update_run(run.id, status="running", started_at=t0)
             self._emit_status(run.id, "running")
