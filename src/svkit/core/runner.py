@@ -38,6 +38,33 @@ def seats(adapter: str, n: int) -> threading.BoundedSemaphore | None:
         return s
 
 
+def missing_tools(adapter) -> list[str]:
+    return [adapter.cfg.tool(t) for t in adapter.tools if not shutil.which(adapter.cfg.tool(t))]
+
+
+def tools_hint(adapter, flow_name: str) -> str:
+    miss = missing_tools(adapter)
+    if not miss:
+        return ""
+    return (f"flow '{flow_name}' needs {', '.join(miss)}, which is not on PATH on this host. Load the tool's "
+            f"environment, set [tools] in svkit.toml, or pick another flow (--flow).")
+
+
+def require_tools(adapter, flow_name: str, mode: str) -> None:
+    """Builtin flows invoke the tool themselves: fail fast when it is missing. Wrap flows run the
+    user's command, which may call the tool by absolute path, so only hint on failure."""
+    if mode == "builtin" and (h := tools_hint(adapter, flow_name)):
+        raise ConfigError(h)
+
+
+def _tail(path: Path, n: int = 8) -> str:
+    try:
+        lines = path.read_text(errors="replace").splitlines()
+    except OSError:
+        return ""
+    return "\n".join(lines[-n:])
+
+
 def run_summary(r: Run) -> dict[str, Any]:
     d = r.to_dict()
     d.pop("metrics", None)
@@ -121,6 +148,7 @@ class Runner:
         name, fl = self.cfg.sim_flow(flow)
         adapter = registry.get(name, self.cfg)
         assert isinstance(adapter, SimAdapter)
+        require_tools(adapter, name, fl.mode)
         values = {k: v for k, v in (sets or {}).items()}
         plan = K.plan(self.cfg, values, stage="sim")
         sha, dirty = P.git_info(self.cfg.root)
@@ -173,6 +201,8 @@ class Runner:
         if not tests:
             raise ConfigError("no tests found (set [flows.sim.<x>].tests)")
         name, fl = self.cfg.sim_flow(flow)
+        adapter = registry.get(name, self.cfg)
+        require_tools(adapter, name, fl.mode)
         if not fl.parallel:
             jobs = 1
         g = self.db.create_group("sim-all", {"flow": flow, "tests": tests})
@@ -181,11 +211,14 @@ class Runner:
             ctx = RunContext(cfg=self.cfg, root=self.cfg.root, workdir=self.cfg.root,
                              run_dir=self.db.state_dir, run_id=g.id, flow_name=name,
                              env={**os.environ, **fl.env})
-            rc = ctx.sh(P.tmpl(fl.build_cmd, self.cfg), cwd=self.cfg.root / fl.cwd,
-                        log_file=self.db.state_dir / f"build-{g.id}.log")
+            blog = self.db.state_dir / f"build-{g.id}.log"
+            rc = ctx.sh(P.tmpl(fl.build_cmd, self.cfg), cwd=self.cfg.root / fl.cwd, log_file=blog)
             if rc != 0:
-                self.db.update_group(g.id, status="failed", result={"error": f"build_cmd exit {rc}"})
-                raise ConfigError(f"build_cmd failed (exit {rc}); see .svkit/build-{g.id}.log")
+                tail = _tail(blog)
+                self.db.update_group(g.id, status="failed", result={"error": f"build_cmd exit {rc}", "log_tail": tail})
+                hint = tools_hint(adapter, name)
+                raise ConfigError(f"build_cmd `{fl.build_cmd}` failed (exit {rc}); see .svkit/build-{g.id}.log"
+                                  + (f"\n{hint}" if hint else "") + (f"\n{tail}" if tail else ""))
         with ThreadPoolExecutor(max_workers=max(1, jobs)) as ex:
             runs = list(ex.map(lambda t: self.sim(t, flow=flow, group_id=g.id, use_cache=use_cache), tests))
         status = "done" if all(r.status in ("passed", "done") for r in runs) else "failed"
@@ -201,6 +234,7 @@ class Runner:
         name, fl = self.cfg.synth_flow(flow)
         adapter = registry.get(name, self.cfg)
         assert isinstance(adapter, SynthAdapter)
+        require_tools(adapter, name, fl.mode)
         values = K.resolve(self.cfg, experiment=experiment, sets=sets)
         plan = K.plan(self.cfg, values, stage="synth", append_before=fl.append_before)
         sha, dirty = P.git_info(self.cfg.root)
