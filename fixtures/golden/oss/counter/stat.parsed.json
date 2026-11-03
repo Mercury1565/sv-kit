@@ -1,0 +1,40 @@
+{
+ "schema_version": 1,
+ "tool": "yosys",
+ "top": "counter",
+ "period": null,
+ "corner": null,
+ "wns": null,
+ "tns": null,
+ "hold_wns": null,
+ "hold_tns": null,
+ "area_total": 128.5,
+ "area_unit": "um^2",
+ "area_by_hier": {
+  "": 128.5
+ },
+ "cell_count": 55,
+ "cells_by_type": {
+  "AND2_L": 7,
+  "AOI21_L": 7,
+  "DFFR_R": 9,
+  "INV_L": 12,
+  "NAND2_L": 5,
+  "NOR2_L": 8,
+  "OAI21_L": 5,
+  "OR2_L": 1,
+  "XOR2_L": 1
+ },
+ "vt_mix": {},
+ "power": {
+  "dynamic": null,
+  "leakage": null,
+  "total": null
+ },
+ "paths": [],
+ "warnings": [],
+ "netlist": null,
+ "extra": {
+  "sequential_area": 54.0
+ }
+}

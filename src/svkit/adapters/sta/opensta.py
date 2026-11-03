@@ -222,7 +222,7 @@ def parse_power(text: str) -> Power:
         return Power()
     internal, switching, leakage, total = (_num(x) for x in m.groups())
     dyn = (internal or 0.0) + (switching or 0.0) if internal is not None or switching is not None else None
-    cv = lambda v: v * unit if v is not None else None
+    cv = lambda v: round(v * unit, 9) if v is not None else None
     return Power(dynamic=cv(dyn), leakage=cv(leakage), total=cv(total))
 
 

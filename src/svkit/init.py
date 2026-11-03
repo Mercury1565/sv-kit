@@ -138,6 +138,11 @@ def scan(root: Path) -> Scan:
     for cand in ("Makefile", "makefile", "GNUmakefile"):
         if (root / cand).is_file():
             s.make_text = (root / cand).read_text(errors="replace")
+            # follow plain `include file.mk` lines (one level, project-local files only)
+            for inc in re.findall(r"^-?include\s+([^\s$]+)\s*$", s.make_text, re.M):
+                f = root / inc
+                if f.is_file() and f.resolve().is_relative_to(root.resolve()):
+                    s.make_text += "\n" + f.read_text(errors="replace")
             s.make_targets, s.make_vars = parse_makefile(s.make_text)
             break
     return s
@@ -291,7 +296,8 @@ def infer(root: Path) -> tuple[str, list[str]]:
     dc_scripts = []
     for f in tcl_files:
         t = f.read_text(errors="replace")
-        if re.search(r"^\s*compile(_ultra)?\b", t, re.M) and re.search(r"report_|write\s+-f|write_file|link\b", t):
+        if re.search(r"^\s*compile(_ultra)?\b", t, re.M) and re.search(
+                r"report_|write\s+-f|write_file|\blink\b|create_clock|target_library", t):
             dc_scripts.append(f)
     has_vcs = bool(re.search(r"\bvcs\b", mt))
     has_verilator = "verilator" in mt
@@ -532,7 +538,7 @@ def infer(root: Path) -> tuple[str, list[str]]:
         knob_lines.append(f"clock_period = {{ env = {_q(period_env)}, unit = \"ps\" }}   # TODO: unit / default")
     tcl_vars: dict[str, str] = {}
     for f in dc_scripts:
-        for mm in re.finditer(r"^\s*set\s+(\w+)\s+(\S+)\s*$", f.read_text(errors="replace"), re.M):
+        for mm in re.finditer(r"^[^#\n]*?\bset\s+(\w+)\s+([^\s{}\[\]$;]+)", f.read_text(errors="replace"), re.M):
             tcl_vars.setdefault(mm.group(1), mm.group(2))
     corner_var = next((v for v in tcl_vars if re.search(r"corner|process|pvt", v, re.I)), None)
     if corner_var:

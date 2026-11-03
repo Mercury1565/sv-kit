@@ -22,6 +22,7 @@ tests = { names = ["basic", "enable", "clear"] }
 [flows.sim.vcs]
 mode = "wrap"                          # the project's own Makefile target
 cmd = "make sim-vcs TEST={test}"
+log = "vcs_out/{test}.log"
 waves = "output/{test}.vcd"
 golden = { actual = "output/{test}.out", expected = "expected/{test}.out", time_regex = '^@(\d+)', time_unit = "cycle" }
 tests = { names = ["basic", "enable", "clear"] }
@@ -37,7 +38,7 @@ cmd = "make syn-dc"
 script = "synopsys/syn.tcl"
 reports = ["syn_out/{top}.rep"]
 netlist = "syn_out/{top}.vg"
-log = "syn_out/{top}-synth.out"
+log = "syn_out/{top}.log"
 license_seats = 1
 
 [flows.sta.opensta]
@@ -49,16 +50,18 @@ max_paths = 5
 # directly by the builtin yosys/opensta flow.
 clock_period = { file = "clock_period.txt", unit = "ps", default = 2000 }
 # library corner: DC script variable `corner`; the open-source flow picks [library].corners[corner]
-corner = { tcl_var = "corner", default = "tt" }
+corner = { tcl_var = "corner", default = "TT" }
 # cell-name globs synthesis must not use (yosys: dfflibmap/abc -dont_use; DC: set_dont_use)
 dont_use = { tcl_var = "svkit_dont_use", default = "" }
+# DC only: replace the compile command, e.g. --set compile_cmd=compile_ultra
+compile_cmd = { tcl_replace = '^compile\b.*$', with = "{value}" }
 
 [experiments]
 baseline = {}
-ss_corner = { corner = "ss" }
-rvt_only = { dont_use = "*_L" }
+ss_corner = { corner = "SS" }
+rvt_only = { dont_use = "*_L", tcl_append = "set_dont_use [get_lib_cells */*_L]" }   # yosys: dont_use; DC: tcl_append
 
 [library]
 vt_suffix = { "_R" = "RVT", "_L" = "LVT" }
 liberty = ["../lib/svkit_tiny.lib"]
-corners = { tt = ["../lib/svkit_tiny.lib"], ss = ["../lib/svkit_tiny_ss.lib"] }
+corners = { TT = ["../lib/svkit_tiny.lib"], SS = ["../lib/svkit_tiny_ss.lib"] }
