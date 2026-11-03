@@ -1,0 +1,21 @@
+// Hand-written DC-style hierarchical netlist (original), for reader/cone tests.
+module sub_SIZE2 ( a, b, s, y );
+  input [1:0] a;
+  input b, s;
+  output y;
+  wire   n1;
+  NAND2_X1_R U3 ( .A1(a[0]), .A2(a[1]), .ZN(n1) );
+  MUX2_X1_L U4 ( .I0(n1), .I1(b), .S(s), .Z(y) );
+endmodule
+
+module dc_top ( clk, in, sel, out );
+  input [1:0] in;
+  input clk, sel;
+  output out;
+  wire   \data_q[0] , \data_q[1] , n5, n6;
+  DFFR_X1_R \data_reg[0]  ( .D(in[0]), .CK(clk), .Q(\data_q[0] ), .QN() );
+  DFFR_X1_R \data_reg[1]  ( .D(in[1]), .CK(clk), .Q(\data_q[1] ), .QN() );
+  sub_SIZE2 u_sub ( .a({\data_q[1] , \data_q[0] }), .b(1'b1), .s(sel), .y(n5) );
+  INV_X1_R U9 ( .I(n5), .ZN(n6) );
+  DFFR_X1_R out_reg ( .D(n6), .CK(clk), .Q(out) );
+endmodule

@@ -1,0 +1,13 @@
+{
+  "fixture": "xbug_mem",
+  "waves": "waves.vcd",
+  "simulator": "iverilog -g2012 (4-state); times are VCD ticks (1ps)",
+  "cases": [
+    {"signal": "tb_xm.rd_out", "time": 75001, "root": "tb_xm.dut.u_rf.regs[5]", "cause": "uninit_memory",
+     "only": true, "min_depth": 6, "why": "regs[5] is read (raddr=5) but never written"},
+    {"signal": "tb_xm.lut_out", "time": 85001, "root": "tb_xm.dut.lut[6]", "cause": "index_out_of_range",
+     "only": true, "why": "ptr=6 indexes the 6-entry lut"},
+    {"signal": "tb_xm.lut_out", "time": 95001, "root": "tb_xm.dut.lut[7]", "cause": "index_out_of_range",
+     "only": true, "why": "ptr=7 indexes the 6-entry lut"}
+  ]
+}

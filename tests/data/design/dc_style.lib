@@ -1,0 +1,26 @@
+/* Minimal original Liberty fragment for pin directions (not a real library). */
+library (svkit_test) {
+  cell (NAND2_X1_R) {
+    area : 1.0;
+    pin (A1) { direction : input; }
+    pin (A2) { direction : input; }
+    pin (ZN) { direction : output; function : "!(A1 & A2)"; }
+  }
+  cell (MUX2_X1_L) {
+    pin (I0) { direction : input; }
+    pin (I1) { direction : input; }
+    pin (S) { direction : input; }
+    pin (Z) { direction : output; }
+  }
+  cell (INV_X1_R) {
+    pin (I) { direction : input; }
+    pin (ZN) { direction : output; }
+  }
+  cell (DFFR_X1_R) {
+    ff (IQ, IQN) { next_state : "D"; clocked_on : "CK"; }
+    pin (D) { direction : input; }
+    pin (CK) { direction : input; clock : true; }
+    pin (Q) { direction : output; }
+    pin (QN) { direction : output; }
+  }
+}

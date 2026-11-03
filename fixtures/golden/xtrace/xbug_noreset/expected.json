@@ -1,0 +1,14 @@
+{
+  "fixture": "xbug_noreset",
+  "waves": "waves.vcd",
+  "simulator": "iverilog -g2012 (4-state); times are VCD ticks (1ps)",
+  "cases": [
+    {"signal": "tb_xn.out_data", "time": 35001, "root": "tb_xn.dut.u_scaler.stage1_q", "cause": "no_reset",
+     "only": true, "min_depth": 7,
+     "why": "stage1_q has no reset and is not loaded until in_valid; X crosses stage2_q, u_scaler port, out_q"},
+    {"signal": "tb_xn.out_flag", "time": 65001, "root": "tb_xn.dut.mode_q", "cause": "no_reset",
+     "only": true, "why": "mode_q is never assigned"},
+    {"signal": "tb_xn.dut.u_scaler.stage2_q", "time": 50000, "root": "tb_xn.dut.u_scaler.stage1_q",
+     "cause": "no_reset", "only": true}
+  ]
+}

@@ -1,0 +1,74 @@
+{
+ "startpoint": "acc_reg[3]/C",
+ "endpoint": "par_reg/D",
+ "path_group": "clk",
+ "path_type": "max",
+ "slack": 889.0,
+ "required": 970.0,
+ "arrival": 81.0,
+ "points": [
+  {
+   "inst": "acc_reg[3]",
+   "pin": "C",
+   "cell": "$_DFF_P_",
+   "incr": 0.0,
+   "arrival": 0.0,
+   "rise_fall": null,
+   "net": null
+  },
+  {
+   "inst": "acc_reg[3]",
+   "pin": "Q",
+   "cell": "$_DFF_P_",
+   "incr": 35.0,
+   "arrival": 35.0,
+   "rise_fall": null,
+   "net": "acc[3]"
+  },
+  {
+   "inst": "_30_",
+   "pin": "A",
+   "cell": "$_XNOR_",
+   "incr": 2.0,
+   "arrival": 37.0,
+   "rise_fall": null,
+   "net": "acc[3]"
+  },
+  {
+   "inst": "_30_",
+   "pin": "Y",
+   "cell": "$_XNOR_",
+   "incr": 20.0,
+   "arrival": 57.0,
+   "rise_fall": null,
+   "net": "nxt[3]"
+  },
+  {
+   "inst": "_34_",
+   "pin": "A",
+   "cell": "$_XNOR_",
+   "incr": 2.0,
+   "arrival": 59.0,
+   "rise_fall": null,
+   "net": "nxt[3]"
+  },
+  {
+   "inst": "_34_",
+   "pin": "Y",
+   "cell": "$_XNOR_",
+   "incr": 20.0,
+   "arrival": 79.0,
+   "rise_fall": null,
+   "net": "_00_"
+  },
+  {
+   "inst": "par_reg",
+   "pin": "D",
+   "cell": "$_DFF_P_",
+   "incr": 2.0,
+   "arrival": 81.0,
+   "rise_fall": null,
+   "net": "_00_"
+  }
+ ]
+}

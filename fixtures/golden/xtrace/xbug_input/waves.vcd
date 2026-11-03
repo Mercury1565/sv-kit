@@ -1,0 +1,126 @@
+$date
+	Mon Nov  2 17:02:03 2026
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1ps
+$end
+$scope module tb_xi $end
+$var wire 8 ! result [7:0] $end
+$var wire 4 " cfg [3:0] $end
+$var reg 1 # cfg_drive $end
+$var reg 4 $ cfg_val [3:0] $end
+$var reg 1 % clk $end
+$var reg 8 & data [7:0] $end
+$var reg 1 ' rst $end
+$scope module dut $end
+$var wire 4 ( cfg [3:0] $end
+$var wire 1 % clk $end
+$var wire 8 ) data [7:0] $end
+$var wire 8 * result [7:0] $end
+$var wire 1 ' rst $end
+$var wire 8 + mixed [7:0] $end
+$var reg 8 , res_q [7:0] $end
+$scope module u_mix $end
+$var wire 4 - cfg [3:0] $end
+$var wire 1 % clk $end
+$var wire 8 . data [7:0] $end
+$var wire 8 / mixed [7:0] $end
+$var wire 1 ' rst $end
+$var reg 4 0 cfg_q [3:0] $end
+$var reg 8 1 mix [7:0] $end
+$upscope $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+#0
+$dumpvars
+bx 1
+bx 0
+bx /
+b111100 .
+bz -
+bx ,
+bx +
+bx *
+b111100 )
+bz (
+1'
+b111100 &
+0%
+b101 $
+0#
+bz "
+bx !
+$end
+#5000
+b111100 +
+b111100 /
+b111100 1
+b0 0
+b0 !
+b0 *
+b0 ,
+1%
+#10000
+0%
+#15000
+1%
+#16000
+0'
+#20000
+0%
+#25000
+bx +
+bx /
+bx 1
+bz 0
+b111101 !
+b111101 *
+b111101 ,
+1%
+#30000
+0%
+#35000
+bx !
+bx *
+bx ,
+1%
+#40000
+0%
+#45000
+1%
+#50000
+0%
+#55000
+1%
+#56000
+b101 "
+b101 (
+b101 -
+1#
+#60000
+0%
+#65000
+b1101001 +
+b1101001 /
+b1101001 1
+b101 0
+1%
+#70000
+0%
+#75000
+b1101010 !
+b1101010 *
+b1101010 ,
+1%
+#80000
+0%
+#85000
+1%
+#90000
+0%
+#95000
+1%
