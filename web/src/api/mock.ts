@@ -256,7 +256,7 @@ function buildState(dataset: Dataset): MockState {
     st.project = {
       ...st.project,
       name: "aleksandra_wisniewska_kowalczyk_out_of_order_superscalar_rv64gc_core_v2_final",
-      root: "/home/aleksandra/very/deep/directory/structure/for/coursework/eecs470/projects/out_of_order_superscalar",
+      root: "/home/user/very/deep/directory/structure/for/coursework/projects/out_of_order_superscalar",
       git_sha: null,
       git_dirty: null,
       tests: WORST_TESTS,

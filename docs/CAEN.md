@@ -12,7 +12,7 @@ Status at handoff (2026-11-02, tag `iter-2`): about 65 % to MVP.
 
 On the dev host:
 ```
-cd ~/Desktop/sv-kit && git bundle create /tmp/svkit.bundle --all
+cd /path/to/sv-kit && git bundle create /tmp/svkit.bundle --all
 scp /tmp/svkit.bundle <uniqname>@login.engin.umich.edu:~/
 ```
 On CAEN:
@@ -117,9 +117,9 @@ svkit serve                                     # from your laptop: ssh -L 8470:
 Stop the server (Ctrl-C) before leaving.
 
 ### 3e. Dogfood checkpoint (MVP criterion 5)
-The original repo `/home/hermong/eecs470/470_proj-f26.group4` is **read-only**: no edits and no git writes.
+The original repo is **read-only**: no edits and no git writes.
 ```
-mkdir -p ~/svkit-work && cp -r /home/hermong/eecs470/470_proj-f26.group4 ~/svkit-work/dogfood
+mkdir -p ~/svkit-work && cp -r /path/to/your/project ~/svkit-work/dogfood
 cd ~/svkit-work/dogfood && svkit init       # then review the generated svkit.toml
 svkit sim --all; svkit synth --matrix; svkit sweep clock --jobs 2; svkit serve
 ```

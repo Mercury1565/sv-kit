@@ -352,7 +352,7 @@ XTraceNode:  signal, time, value, driver{kind, file, line}, cause?, children[]
 
 ## 12. Open questions
 
-- [x] Repo location: `/home/hermong/svkit`.
+- [x] Repo location: its own repository, separate from any course repo.
 - [ ] Final name (`svkit` is a working title) and git hosting (GitHub? public/private).
 - [ ] License (MIT / Apache-2.0?): deferred until the repo goes public.
 - [x] Minimum Python version: 3.11 (decided).
@@ -371,7 +371,7 @@ XTraceNode:  signal, time, value, driver{kind, file, line}, cause?, children[]
 | 2026-11-02 | Synopsys and open-source flows equally from day one | Toolkit must be generic; adapters + normalized schemas keep the UI single |
 | 2026-11-02 | MVP includes X tracer, synthesis dashboard, clock sweep, waves + CPI | All four are the core pain points |
 | 2026-11-02 | Python core, React/TS frontend | pyslang + wellen ecosystem; easy install on shared servers |
-| 2026-11-02 | Project lives at `/home/hermong/svkit` | Separate from any course repo; the tool is generic |
+| 2026-11-02 | Project lives in its own repository | Separate from any course repo; the tool is generic |
 | 2026-11-02 | Open-source tools from OSS CAD Suite in `~/tools/oss-cad-suite` | No OSS EDA tools on CAEN; one prebuilt bundle, no root needed |
 | 2026-11-02 | MVP scope written up in `docs/MVP.md` | One place for what v1 ships, what it defers, and acceptance criteria |
 | 2026-11-02 | OpenSTA is in the MVP | Yosys has no timing; sweep, WNS, and the critical path need it for open-source parity |

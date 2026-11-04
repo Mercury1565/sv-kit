@@ -15,7 +15,7 @@ The MVP covers the four core pain points from the decision log:
 
 Block and gate diagrams are included because the gate view hosts the critical-path highlight, and the block view reuses the same DesignGraph as the tracer.
 
-**The MVP is done when** the loop below works end to end on the fixture corpus under **both** flows (VCS + DC and Verilator + Yosys + OpenSTA) **and** on the dogfood project (`/home/hermong/eecs470/470_proj-f26.group4`):
+**The MVP is done when** the loop below works end to end on the fixture corpus under **both** flows (VCS + DC and Verilator + Yosys + OpenSTA) **and** on the dogfood project (a copy of a real course project):
 
 1. `svkit init` writes a `svkit.toml` that needs at most minor hand edits.
 2. `svkit sim --all` records one Run per test with pass/fail against golden.

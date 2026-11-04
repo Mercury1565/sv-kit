@@ -28,7 +28,7 @@ And the follow-up:
 | 1 | Main interface | **Local web app + CLI** now; **TUI later** (author likes the TUI idea) | Confirmed |
 | 2 | Toolchains | **Synopsys (VCS/Verdi/DC) and open-source (Verilator/Icarus/Yosys/OpenSTA) equally from day one** | Confirmed |
 | 3 | MVP features | **All four:** X-propagation tracer, synthesis report dashboard + compare, clock-period sweep, waveform viewer + CPI/TPI | Confirmed |
-| 4 | Project location | **`/home/hermong/svkit`** (a separate project, not part of any course repo) | Confirmed |
+| 4 | Project location | **Its own repository** (a separate project, not part of any course repo) | Confirmed |
 | 5 | Open-source EDA tools | Author delegated: "use your best judgement". **OSS CAD Suite (2026-11-02 build) installed to `~/tools/oss-cad-suite`** | Done |
 | 6 | Name | `svkit`, working title | Open |
 | 7 | Git hosting (GitHub? public/private) | not answered yet | Open |
@@ -62,7 +62,7 @@ And the follow-up:
 
 ## 4. First dogfood target: EECS 470 project 3 (5-stage LC2K pipeline)
 
-Path: `/home/hermong/eecs470/470_proj-f26.group4`. svkit must stay generic, but this repo is a realistic first test. Facts `svkit init` should detect:
+The path to the original stays out of this repo. svkit must stay generic, but this repo is a realistic first test. Facts `svkit init` should detect:
 
 - **Makefile targets:**
   - `make <prog>.out` (sim on `build/simv`), `.hsyn` / `.syn` (half and full gate-level sim)
