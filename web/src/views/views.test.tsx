@@ -1,5 +1,5 @@
 import { describe, expect, it, afterEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { httpTransport, setTransport } from "../api/client";
 import { MockBackend } from "../api/mock";
 import type { RunSummary, XTraceNode } from "../api/types";
@@ -92,6 +92,26 @@ describe("app shell", () => {
     await waitFor(() => expect(screen.getByText("No runs yet")).toBeTruthy());
     expect(screen.getByText("new-project")).toBeTruthy();
     expect(document.body.textContent).toContain("svkit sim <test>");
+  });
+
+  it("sidebar has an icon per view and collapses to icons only (button or [), remembered", async () => {
+    setTransport(new MockBackend("empty"), true);
+    localStorage.removeItem("svkit.sidebar.collapsed");
+    const { App } = await import("../App");
+    const { container, unmount } = render(<App />);
+    const links = () => Array.from(container.querySelectorAll(".nav a"));
+    expect(links()).toHaveLength(8);
+    expect(links().every((a) => a.querySelector("svg.nav-icon"))).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: "Collapse sidebar" }));
+    expect(container.querySelector(".app")!.classList.contains("nav-collapsed")).toBe(true);
+    expect(links()[2].getAttribute("aria-label")).toBe("Waves"); // label still reachable when hidden
+    expect(localStorage.getItem("svkit.sidebar.collapsed")).toBe("1");
+    unmount();
+    const again = render(<App />);
+    expect(again.container.querySelector(".app")!.classList.contains("nav-collapsed")).toBe(true);
+    fireEvent.keyDown(window, { key: "[" });
+    expect(again.container.querySelector(".app")!.classList.contains("nav-collapsed")).toBe(false);
+    localStorage.removeItem("svkit.sidebar.collapsed");
   });
 });
 

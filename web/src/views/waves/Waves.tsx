@@ -12,6 +12,8 @@ import { Hierarchy, type AddSignal } from "./Hierarchy";
 import { locateSignal } from "./locate";
 import { ROW_H, WaveRenderer, type RenderRow } from "./renderer";
 import { onThemeChange } from "../../lib/theme";
+import { Splitter } from "../../components/Splitter";
+import { CANVAS_MIN, COL_MIN, useColumns } from "./columns";
 
 interface Sig {
   path: string;
@@ -120,6 +122,9 @@ function WaveWorkspace({ runId, meta, query }: { runId: string; meta: WaveMeta; 
   const [marker, setMarker] = useState<number | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [view, setView] = useState<View>({ t0: meta.t_start, t1: meta.t_end, width: 1 });
+  const cols = useColumns();
+  const wavesRef = useRef<HTMLDivElement>(null);
+  const mainW = () => (wavesRef.current?.querySelector(".waves-main") as HTMLElement | null)?.clientWidth;
   const [scrollTop, setScrollTop] = useState(0);
   const [gridH, setGridH] = useState(400);
   const [dataVer, setDataVer] = useState(0);
@@ -450,8 +455,21 @@ function WaveWorkspace({ runId, meta, query }: { runId: string; meta: WaveMeta; 
 
   return (
     <div style={{ display: "flex", height: "100%", minHeight: 0 }}>
-      <div className="waves" style={{ flex: "1 1 auto", minWidth: 0 }}>
+      <div
+        className="waves"
+        ref={wavesRef}
+        style={{ flex: "1 1 auto", minWidth: 0, ["--side-w" as string]: `${cols.w.side}px`, ["--names-w" as string]: `${cols.w.names}px`, ["--vals-w" as string]: `${cols.w.vals}px` }}
+      >
         <Hierarchy run={runId} onAdd={addSignals} />
+        <Splitter
+          label="Signal tree width"
+          value={cols.w.side}
+          min={COL_MIN.side}
+          max={() => (wavesRef.current?.clientWidth ?? 1600) - cols.w.names - cols.w.vals - CANVAS_MIN}
+          onChange={(v) => cols.set("side", v)}
+          onReset={() => cols.reset("side")}
+          style={{ left: `calc(var(--side-w) - 3px)` }}
+        />
         <div className="waves-main">
           <div className="wtool">
             <span className="mono small ellipsis" title={meta.file} style={{ maxWidth: 220 }}>
@@ -501,6 +519,25 @@ function WaveWorkspace({ runId, meta, query }: { runId: string; meta: WaveMeta; 
               </button>
             </div>
           )}
+          <div className="wbody">
+          <Splitter
+            label="Signal name column width"
+            value={cols.w.names}
+            min={COL_MIN.names}
+            max={() => (mainW() ?? 1400) - cols.w.vals - CANVAS_MIN}
+            onChange={(v) => cols.set("names", v)}
+            onReset={() => cols.reset("names")}
+            style={{ left: `calc(var(--names-w) - 3px)` }}
+          />
+          <Splitter
+            label="Value column width"
+            value={cols.w.vals}
+            min={COL_MIN.vals}
+            max={() => (mainW() ?? 1400) - cols.w.names - CANVAS_MIN}
+            onChange={(v) => cols.set("vals", v)}
+            onReset={() => cols.reset("vals")}
+            style={{ left: `calc(var(--names-w) + var(--vals-w) - 3px)` }}
+          />
           <div className="wheader">
             <div>Signals ({sigs.length})</div>
             <div>Value @ cursor</div>
@@ -637,6 +674,7 @@ function WaveWorkspace({ runId, meta, query }: { runId: string; meta: WaveMeta; 
                 <Empty title="No signals yet">Pick signals from the hierarchy or search on the left.</Empty>
               </div>
             )}
+          </div>
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
 import type { Project } from "./api/types";
 import { Logo } from "./components/Logo";
-import { lazy, Suspense, useEffect, type ReactNode } from "react";
+import { Suspense, lazy, type ReactNode, useEffect, useRef, useState } from "react";
 import { isMock } from "./api/client";
 import { mockDataset } from "./api/dataset";
 import { Loading, ErrorState, Empty } from "./components/States";
@@ -11,6 +11,7 @@ import { RunsView } from "./views/Runs";
 import { RunDetail } from "./views/RunDetail";
 import { TestsView } from "./views/Tests";
 import { ThemeSwitch } from "./components/ThemeSwitch";
+import { NavIcon } from "./components/NavIcon";
 
 const WavesView = lazy(() => import("./views/waves/Waves"));
 const DesignView = lazy(() => import("./views/Design"));
@@ -89,17 +90,50 @@ export function BackendChips({ backends }: { backends: NonNullable<Project["back
   );
 }
 
-function Sidebar({ active }: { active: string }) {
+const COLLAPSE_KEY = "svkit.sidebar.collapsed";
+
+function loadCollapsed(): boolean {
+  try {
+    return localStorage.getItem(COLLAPSE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function Sidebar({ active, collapsed, onToggle }: { active: string; collapsed: boolean; onToggle: () => void }) {
   return (
     <nav className="sidebar" aria-label="Views">
       <div className="nav">
         {NAV.map(([k, label], i) => (
-          <a key={k} href={`#/${k}`} className={active === k ? "active" : ""} aria-current={active === k ? "page" : undefined}>
-            {label}
+          <a
+            key={k}
+            href={`#/${k}`}
+            className={active === k ? "active" : ""}
+            aria-current={active === k ? "page" : undefined}
+            title={collapsed ? `${label} (${i + 1})` : undefined}
+            aria-label={collapsed ? label : undefined}
+          >
+            <NavIcon name={k} />
+            <span className="nav-label">{label}</span>
             <span className="key">{i + 1}</span>
           </a>
         ))}
       </div>
+      <button
+        type="button"
+        className="nav-collapse"
+        onClick={onToggle}
+        aria-expanded={!collapsed}
+        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        title={collapsed ? "Expand sidebar ( [ )" : "Collapse sidebar ( [ )"}
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <rect x="1.5" y="2.5" width="13" height="11" rx="1.5" />
+          <path d="M5.5 2.5v11" />
+          <path d={collapsed ? "M8.5 6l2 2-2 2" : "M10.5 6l-2 2 2 2"} />
+        </svg>
+        <span className="nav-label">Collapse</span>
+      </button>
     </nav>
   );
 }
@@ -174,11 +208,27 @@ function Content({ route }: { route: Route }) {
 
 export function App() {
   const route = useRoute();
+  const [collapsed, setCollapsed] = useState(loadCollapsed);
+  const toggleNav = () =>
+    setCollapsed((c) => {
+      try {
+        localStorage.setItem(COLLAPSE_KEY, c ? "0" : "1");
+      } catch {
+        /* storage blocked: lasts for this page */
+      }
+      return !c;
+    });
+  const toggleRef = useRef(toggleNav);
+  toggleRef.current = toggleNav;
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement | null;
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       if (t && (t.tagName === "INPUT" || t.tagName === "SELECT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+      if (e.key === "[") {
+        toggleRef.current();
+        return;
+      }
       const n = Number(e.key);
       if (n >= 1 && n <= NAV.length) navigate(`/${NAV[n - 1][0]}`);
     };
@@ -187,9 +237,9 @@ export function App() {
   }, []);
   return (
     <AppStateProvider>
-      <div className="app">
+      <div className={`app ${collapsed ? "nav-collapsed" : ""}`}>
         <Header />
-        <Sidebar active={section(route)} />
+        <Sidebar active={section(route)} collapsed={collapsed} onToggle={toggleNav} />
         <Content route={route} />
       </div>
       <DevBar />
