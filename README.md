@@ -204,7 +204,27 @@ port = 8470
 
 [waves]
 max_size_mb = 2000                # don't archive larger dumps
+archive = "fst"                   # default; "vcd" keeps plain-text VCDs
 ```
+
+**Waveform storage.** svkit keeps a copy of each run's waveform under `.svkit/runs/`, because your
+build overwrites its own output files on the next run. By default the copy is stored as **FST**,
+converted with `vcd2fst` (part of GTKWave and OSS CAD Suite). That is typically 20–60× smaller
+than VCD, takes well under a second per run, and loses nothing (the converted file is checked
+before the VCD is dropped). Your own `output/*.vcd` files are never touched. If `vcd2fst` is
+missing or a conversion fails, the VCD is kept and the run says why. To go back to VCD, for
+example to open svkit's copies in Verdi or read them as text:
+
+```bash
+# 1. new runs: in svkit.toml
+#    [waves]
+#    archive = "vcd"
+# 2. runs already recorded (uses fst2vcd; --dry-run lists them first):
+svkit waves archive --to vcd
+```
+
+`svkit waves archive --to fst` does the reverse, for example to shrink a project recorded before
+FST became the default (lab7: 607 MB of VCDs became 17 MB).
 
 ## Adding an adapter
 

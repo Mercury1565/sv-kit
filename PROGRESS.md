@@ -179,3 +179,26 @@ cd lab7 && svkit serve           # restart it: the backend changed
 svkit sim --all --flow unit      # same from the CLI
 .venv/bin/pytest tests/test_unit_suite.py
 ```
+
+## Iteration 5 — 2026-11-04 — Compact waveform archive (FST by default, reversible)
+**Status:** done
+**What works now:**
+- `.svkit` no longer grows by the full size of every VCD. Each run's waveform copy is stored as FST, and the waves view, X tracer and first-error/first-mismatch jumps read it as before. On a copy of lab7's run history: 291 waveforms, **607 MB → 17 MB** (`.svkit` 601 → 39 MB) in 8 s. Per run, conversion adds about 0.2–0.5 s.
+- Reversible: `[waves] archive = "vcd"` stores new runs as VCD again, and `svkit waves archive --to vcd` (or `--to fst`) converts recorded runs, with `--dry-run` to preview.
+**Decisions made (and why):**
+- Product decision: PRODUCT §13 (2026-11-04, waveform archive), CONTEXT #23.
+- Conversion happens once, in the runner after the adapter returns, not in each adapter. Every sim adapter (VCS, Verilator, the shim, plugins) gets it for free, and everything computed from the VCD (`sim_time`) is already done.
+- Accept-only-if-verified: the FST must open and end at the VCD's last timestamp, or the VCD is kept with an info warning. A run never loses its waveform to a bad conversion.
+- Cache hits point at the original run's files (`../r_x/waves.*`). `waves archive` rewrites those references as well, so reused runs keep their waves.
+- External tools, no new Python dependency: `vcd2fst`/`fst2vcd` from GTKWave / OSS CAD Suite (located like the other OSS tools; `[tools].vcd2fst` overrides).
+**Known gaps / risks:**
+- Hosts without `vcd2fst` (possibly CAEN) keep VCDs. It works, but without the savings; the run log says so.
+- No "download as VCD" button yet for taking an archived FST into Verdi; use `fst2vcd` or `svkit waves archive --to vcd`.
+- No retention policy yet (keep failed + latest waves, size budget, `svkit gc`). With FST it is far less urgent.
+**Next iteration plan:**
+- As in iteration 4, plus a retention / `svkit gc` command if `.svkit` still grows too much.
+**How to see it:**
+```
+svkit waves archive --to fst --dry-run    # what an existing project would save
+svkit waves archive --to fst              # shrink it (a running svkit serve picks it up)
+```

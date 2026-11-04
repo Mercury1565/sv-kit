@@ -189,5 +189,5 @@ def test_vcs_wrap_flow_runs_on_verilator(tmp_path):
     run = runs[0]
     assert run.status == "passed", (run.message, (r.db.run_dir(run.id) / "svkit.log").read_text()[-3000:])
     assert run.adapter == "verilator" and run.metrics["tool"] == "verilator"
-    assert run.metrics["waves"] == "waves.vcd"
+    assert run.metrics["waves"] == "waves.fst"          # archived as FST ([waves].archive default)
     assert any(w["code"] == "FALLBACK" for w in run.metrics["warnings"])

@@ -304,6 +304,9 @@ class Runner:
             else:
                 res = adapter.run(ctx, fl, test)
             status = "passed" if res.passed else ("failed" if res.passed is False else "done")
+            from svkit.core import wavestore
+            if warn := wavestore.archive_run(self.cfg, ctx.run_dir, res, ctx.artifacts, ctx.log):
+                res.warnings.append(Msg(severity=Severity.info, code="WAVES", text=warn))
             if rs.note:
                 res.warnings.insert(0, Msg(severity=Severity.info, code="FALLBACK", text=rs.note))
             # exit_code is the tool's: unknown here (the reason carries it), not svkit's own 0

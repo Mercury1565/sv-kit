@@ -260,7 +260,7 @@ def test_builtin_compiles_once(builtin_project, fake_vcs):
         assert s in c, s
     assert "+incdir+" in c and "core.sv" in c and "tb.sv" in c and "+verbose" not in c
     m = runs[0].metrics
-    assert m["waves"] == "waves.vcd" and m["sim_time"] == 5000
+    assert m["waves"] in ("waves.vcd", "waves.fst") and m["sim_time"] == 5000   # FST when vcd2fst is installed
     assert any(w["code"] == "W1" for w in m["warnings"])
     assert "compile.log" in runs[0].artifacts
     assert len(list((builtin_project / ".svkit" / "build").glob("vcs-*/simv"))) == 1

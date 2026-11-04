@@ -246,6 +246,9 @@ class Server(_M):
 
 class Waves(_M):
     max_size_mb: int = 0                 # 0 = unlimited; skip archiving larger waves (link instead)
+    # format of the waveform svkit keeps per run: "fst" (compact; converted with vcd2fst, VCD kept
+    # if that fails) or "vcd" (as produced). `svkit waves archive --to vcd|fst` converts old runs.
+    archive: Literal["fst", "vcd"] = "fst"
 
 
 # ------------------------------------------------------------------ root

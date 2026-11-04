@@ -196,9 +196,10 @@ def _check_run(r, run, passed):
     assert run.flow == "unit" and run.test == "acc"
     assert run.status == ("passed" if passed else "failed"), (run.message, (r.db.run_dir(run.id) / "svkit.log").read_text()[-3000:])
     m = run.metrics
-    assert m["waves"] == "waves.vcd" and "waves.vcd" in run.artifacts
-    vcd = (r.db.run_dir(run.id) / "waves.vcd").read_text()
-    assert "acc_tb" in vcd and "dut" in vcd          # the whole testbench, dumped without editing it
+    assert m["waves"] in run.artifacts and m["waves"].startswith("waves.")
+    from svkit.adapters.waves.wellen import find_vars, open_wave
+    wf = open_wave(r.db.run_dir(run.id) / m["waves"])
+    assert find_vars(wf, "q", under="acc_tb")                  # the whole testbench, dumped without editing it
     if not passed:
         d = m["divergence"]
         assert d["source"] == "log" and d["time"] is not None and "ERROR" in d["actual"]

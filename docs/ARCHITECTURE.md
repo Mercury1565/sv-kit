@@ -91,6 +91,17 @@ Every such run:
 
 `GET /api/project` returns `backends` (what each kind runs on this host). The CLI prints a note.
 
+### 2.1c Waveform archive (`[waves].archive`)
+
+After a sim run, the runner (`svkit.core.wavestore.archive_run`) stores the waveform the adapter
+kept (`SimResult.waves`) in the configured format. The default is `"fst"`: `vcd2fst` writes a
+temp file, which is accepted only if it opens and ends at the VCD's last timestamp. Then
+`waves.vcd` is replaced by `waves.fst` in the artifacts and in `SimResult.waves`. `"vcd"` keeps
+VCDs as produced. Failures keep the VCD and add an info warning (`WAVES`); symlinked waves (over
+`max_size_mb`) are left alone. `svkit waves archive --to fst|vcd [--dry-run]` converts recorded
+runs (`fst2vcd -f in -o out` for the way back) and rewrites the artifact references of cache-hit
+runs (`../<orig>/waves.*`). Readers use `wave_path()`, which accepts both formats.
+
 ### 2.1b Test suites (unit tests)
 
 Sim flows are grouped into **suites**: `suite` if set, else `"unit"` for a flow with a

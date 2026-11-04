@@ -35,9 +35,9 @@ def test_sim_all_builtin(fixture_copy, fx):
     assert len(builds) == 1, "one Verilator build shared by all tests"
     for run in runs:
         m = run.metrics
-        assert m["tool"] == "verilator" and m["waves"] == "waves.vcd" and m["sim_time"] > 0
-        assert {"waves.vcd", "sim.log", "build.log"} <= set(run.artifacts)
-        assert (r.db.run_dir(run.id) / "waves.vcd").stat().st_size > 0
+        assert m["tool"] == "verilator" and m["waves"] == "waves.fst" and m["sim_time"] > 0
+        assert {"waves.fst", "sim.log", "build.log"} <= set(run.artifacts) and "waves.vcd" not in run.artifacts
+        assert (r.db.run_dir(run.id) / "waves.fst").stat().st_size > 0
     grp = r.db.get_group(gid)
     assert grp.status == ("failed" if "failed" in want.values() else "done")
 
@@ -84,7 +84,7 @@ def test_sim_wrap_mode_makefile(fixture_copy):
     r = _runner(root)
     gid, runs = r.sim_all(jobs=1)
     assert [x.status for x in runs] == ["passed"] * 3, [x.message for x in runs]
-    assert all(x.metrics["waves"] == "waves.vcd" for x in runs)
+    assert all(x.metrics["waves"] == "waves.fst" for x in runs)
 
 
 def test_synth_counter_and_pipe5(fixture_copy):

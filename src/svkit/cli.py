@@ -17,6 +17,8 @@ runs_app = typer.Typer(help="List, inspect, diff and tag recorded Runs", no_args
 sweep_app = typer.Typer(help="Parameter sweeps", no_args_is_help=True)
 app.add_typer(runs_app, name="runs")
 app.add_typer(sweep_app, name="sweep")
+waves_app = typer.Typer(help="Waveforms svkit keeps for each run", no_args_is_help=True)
+app.add_typer(waves_app, name="waves")
 
 EXIT_FAIL, EXIT_CONFIG, EXIT_TOOL = 1, 2, 3
 
@@ -221,6 +223,33 @@ def runs_tag(run_id: str, tag: str):
     db = RunDB.for_project(_cfg().root)
     db.add_tag(run_id, tag)
     typer.echo(f"{run_id} #{tag}")
+
+
+@waves_app.command("archive")
+def waves_archive(to: str = typer.Option(..., "--to", help="fst (compact) or vcd (plain text)"),
+                  dry_run: bool = typer.Option(False, "--dry-run", help="only list what would be converted")):
+    """Convert the waveforms of recorded runs to FST or back to VCD (new runs follow waves.archive in svkit.toml)."""
+    from svkit.core import wavestore
+    from svkit.core.rundb import RunDB
+    to = to.lower().lstrip(".")
+    if to not in wavestore.CONVERTERS:
+        typer.secho("--to must be fst or vcd", fg="red", err=True)
+        raise typer.Exit(2)
+    cfg = _cfg()
+    if not dry_run and wavestore.converter(cfg, to) is None:
+        typer.secho(f"{wavestore.CONVERTERS[to]} not found (GTKWave / OSS CAD Suite); nothing converted", fg="red", err=True)
+        raise typer.Exit(1)
+    res = wavestore.rearchive(cfg, RunDB.for_project(cfg.root), to, dry_run=dry_run, progress=typer.echo)
+    mb = lambda n: f"{n / 1e6:.1f} MB"  # noqa: E731
+    if dry_run:
+        typer.echo(f"{len(res.converted)} waveform(s) would be converted to {to.upper()} ({mb(res.before)} now)")
+    else:
+        typer.echo(f"converted {len(res.converted)} waveform(s) to {to.upper()}: {mb(res.before)} -> {mb(res.after)}")
+    for rid, msg in res.failed:
+        typer.secho(f"  {rid}: kept as is ({msg})", fg="yellow")
+    if cfg.waves.archive != to:
+        typer.secho(f"note: [waves].archive = \"{cfg.waves.archive}\", so new runs are still stored as "
+                    f"{cfg.waves.archive.upper()}; set archive = \"{to}\" in svkit.toml to match", fg="yellow")
 
 
 @app.command()
