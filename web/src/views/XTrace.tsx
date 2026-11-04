@@ -5,6 +5,7 @@ import { SourcePanel } from "../components/SourcePanel";
 import { Empty, ErrorState, Loading } from "../components/States";
 import { fmtInt } from "../lib/format";
 import { useAsync } from "../lib/hooks";
+import { Term } from "../components/Info";
 import { href, navigate } from "../lib/router";
 
 export const CAUSE_LABEL: Record<XCause, string> = {
@@ -128,8 +129,8 @@ export default function XTraceView({ query }: { query: URLSearchParams }) {
     <div className="view" style={{ flexDirection: "row", alignItems: "flex-start", gap: 12 }}>
       <div className="grow" style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 0 }}>
         <div className="view-head">
-          <h1>X-Trace</h1>
-          <span className="muted small">Where did this X come from?</span>
+          <h1><Term id="x_trace" /></h1>
+          <span className="muted small">Where did this unknown value (X) come from?</span>
         </div>
         <form className="row wrap" onSubmit={submit} style={{ gap: 6 }}>
           <label className="field">

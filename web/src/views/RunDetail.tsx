@@ -7,6 +7,7 @@ import { DASH, fmtDate, fmtDuration, fmtInt } from "../lib/format";
 import { useAsync, useServerEvents } from "../lib/hooks";
 import { href } from "../lib/router";
 import { isSynthKind } from "./Runs";
+import { Term } from "../components/Info";
 import { DivergenceLink } from "./Tests";
 
 const MAX_LOG = 5000;
@@ -89,9 +90,9 @@ export function RunDetail({ id }: { id: string }) {
   const sim = isSimResult(r.metrics) ? (r.metrics as SimResult) : null;
   const wavesArtifact = sim?.waves ?? Object.keys(r.artifacts).find((a) => /\.(vcd|fst)$/i.test(a));
   const live = r.status === "running" || r.status === "queued";
-  const info: [string, React.ReactNode][] = [
+  const info: [string, React.ReactNode, React.ReactNode?][] = [
     ["Kind", r.kind],
-    ["Adapter", r.adapter],
+    ["Tool", r.adapter, <Term id="tool" />],
     ["Test", r.test ?? DASH],
     ["Experiment", r.experiment ?? DASH],
     ["Created", fmtDate(r.created_at)],
@@ -99,8 +100,8 @@ export function RunDetail({ id }: { id: string }) {
     ["Git", r.git_sha ? `${r.git_sha}${r.git_dirty ? " (dirty)" : ""}` : DASH],
     ["Exit code", r.exit_code ?? DASH],
     ["Group", r.group_id ? <a href={r.group_id && r.kind === "sweep-point" ? `#/sweep/${r.group_id}` : `#/runs`}>{r.group_id}</a> : DASH],
-    ["Cache", r.cached_from ? <>hit of <a href={`#/runs/${r.cached_from}`}>{r.cached_from}</a></> : DASH],
-    ["Knobs", Object.keys(r.knobs).length ? <span className="mono">{Object.entries(r.knobs).map(([k, v]) => `${k}=${v}`).join("  ")}</span> : DASH],
+    ["Reused", r.cached_from ? <>result of <a href={`#/runs/${r.cached_from}`}>{r.cached_from}</a></> : DASH, <Term id="cache" />],
+    ["Settings", Object.keys(r.knobs).length ? <span className="mono">{Object.entries(r.knobs).map(([k, v]) => `${k}=${v}`).join("  ")}</span> : DASH, <Term id="knobs" />],
   ];
   return (
     <div className="view">
@@ -137,7 +138,7 @@ export function RunDetail({ id }: { id: string }) {
               <table className="t" style={{ marginTop: 6 }}>
                 <tbody>
                   <tr>
-                    <th>Line</th>
+                    <th><Term id="divergence">First mismatch at line</Term></th>
                     <td className="mono">{sim.divergence.line}</td>
                     <th>Time</th>
                     <td className="mono">{sim.divergence.time ?? DASH}</td>
@@ -157,7 +158,7 @@ export function RunDetail({ id }: { id: string }) {
             )}
             {sim.perf && (
               <div className="muted" style={{ marginTop: 6 }}>
-                cycles {fmtInt(sim.perf.cycles)} · instrs {fmtInt(sim.perf.instrs)}
+                cycles {fmtInt(sim.perf.cycles)} · instructions {fmtInt(sim.perf.instrs)}
               </div>
             )}
           </div>
@@ -171,9 +172,9 @@ export function RunDetail({ id }: { id: string }) {
           <div className="panel-body">
             <table className="t">
               <tbody>
-                {info.map(([k, v]) => (
+                {info.map(([k, v, label]) => (
                   <tr key={k}>
-                    <th style={{ width: 110, position: "static" }}>{k}</th>
+                    <th style={{ width: 110, position: "static" }}>{label ?? k}</th>
                     <td className="anywhere">{v}</td>
                   </tr>
                 ))}

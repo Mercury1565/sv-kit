@@ -5,6 +5,7 @@ import { Empty, ErrorState, Loading } from "../components/States";
 import { fmtNum, plural } from "../lib/format";
 import { blockToElk, coneToElk, getElk, toDrawing, type Drawing } from "../lib/graph";
 import { useAsync } from "../lib/hooks";
+import { Info } from "../components/Info";
 import { href, navigate } from "../lib/router";
 
 function useLayout(build: (() => Promise<Drawing>) | null, key: string) {
@@ -249,7 +250,7 @@ function ConeDiagram({ run, path, net, depth }: { run: string; path: string; net
       </form>
       {g && g.unresolved.length > 0 && (
         <div className="small worse anywhere">
-          {plural(g.unresolved.length, "path point")} could not be mapped to netlist instances: <span className="mono">{g.unresolved.slice(0, 10).join(", ")}{g.unresolved.length > 10 ? " …" : ""}</span>
+          {plural(g.unresolved.length, "path point")} could not be matched to gates in the synthesized netlist: <span className="mono">{g.unresolved.slice(0, 10).join(", ")}{g.unresolved.length > 10 ? " …" : ""}</span>
         </div>
       )}
       {cone.error ? (
@@ -257,7 +258,7 @@ function ConeDiagram({ run, path, net, depth }: { run: string; path: string; net
       ) : layout.error ? (
         <ErrorState error={layout.error} />
       ) : g && g.nodes.length === 0 ? (
-        <Empty title="Empty cone">No driving cells found for this net.</Empty>
+        <Empty title="No gates found">Nothing in the synthesized design drives this signal.</Empty>
       ) : !layout.drawing ? (
         <Loading what="Laying out" />
       ) : (
@@ -281,10 +282,11 @@ export default function DesignView({ query }: { query: URLSearchParams }) {
           <button className={!cone ? "on" : ""} onClick={() => navigate("/design")}>
             Block diagram
           </button>
-          <button className={cone ? "on" : ""} disabled={!cone} title={cone ? undefined : "Open a gate cone from a timing path in a synthesis run"}>
+          <button className={cone ? "on" : ""} disabled={!cone} title={cone ? undefined : "Open the gates of a timing path from a synthesis run (\"Show gates\")"}>
             Gate cone
           </button>
         </div>
+        <Info term="gate_cone" />
       </div>
       {cone ? (
         <ConeDiagram run={cone} path={query.get("path") ?? ""} net={query.get("net") ?? ""} depth={Number(query.get("depth") ?? 6) || 6} />

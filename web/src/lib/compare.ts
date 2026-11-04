@@ -32,7 +32,7 @@ export function compareCell(m: MetricDelta, i: number): CompareCell {
   const pct = isNum(p) ? fmtPct(p, 1) : null;
   // ▲ = better, ▼ = worse: glyph carries the meaning, color only reinforces it.
   const glyph = verdict === "better" ? "▲" : verdict === "worse" ? "▼" : verdict === "same" ? "=" : "";
-  const title = `${value}; Δ ${delta}${pct ? ` (${pct})` : ""}; ${verdict === "na" ? "not comparable" : verdict}`;
+  const title = `${value}; change ${delta}${pct ? ` (${pct})` : ""}; ${verdict === "na" ? "not comparable" : verdict}`;
   return { value, delta, pct, verdict, glyph, title };
 }
 

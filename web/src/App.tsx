@@ -24,7 +24,7 @@ const NAV: [string, string][] = [
   ["tests", "Tests"],
   ["waves", "Waves"],
   ["design", "Design"],
-  ["xtrace", "X-Trace"],
+  ["xtrace", "X tracer"],
   ["synth", "Synthesis"],
   ["sweep", "Sweep"],
   ["perf", "Perf"],

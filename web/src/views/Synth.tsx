@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Fragment, useCallback, useMemo, useState } from "react";
 import { api } from "../api/client";
 import { isSynthResult, type Msg, type SynthResult, type TimingPath } from "../api/types";
@@ -12,6 +13,7 @@ import { DASH, fmtCompact, fmtDate, fmtInt, fmtNum, fmtPs, fmtSigned, isNum, plu
 import { useAsync, useServerEvents } from "../lib/hooks";
 import { href } from "../lib/router";
 import { RunsTable, isSynthKind } from "./Runs";
+import { Term } from "../components/Info";
 import { TagEditor } from "./RunDetail";
 
 export default function SynthView({ id }: { id?: string }) {
@@ -86,7 +88,7 @@ function SynthIndex() {
 }
 
 // ------------------------------------------------------------------ dashboard
-function Card({ label, value, sub, tone }: { label: string; value: string; sub?: string; tone?: "good" | "bad" }) {
+function Card({ label, value, sub, tone }: { label: ReactNode; value: string; sub?: string; tone?: "good" | "bad" }) {
   return (
     <div className="card">
       <div className="label">{label}</div>
@@ -103,19 +105,19 @@ const slackTone = (v: number | null | undefined) => (isNum(v) ? (v < 0 ? "bad" :
 function QoRCards({ m }: { m: SynthResult }) {
   return (
     <div className="cards">
-      <Card label="WNS (setup)" value={fmtPs(m.wns, true)} tone={slackTone(m.wns)} sub={m.paths[0] ? `→ ${m.paths[0].endpoint}` : undefined} />
-      <Card label="TNS" value={fmtPs(m.tns, true)} tone={isNum(m.tns) && m.tns < 0 ? "bad" : undefined} />
-      <Card label="Hold WNS" value={fmtPs(m.hold_wns, true)} tone={slackTone(m.hold_wns)} sub={isNum(m.hold_tns) ? `TNS ${fmtPs(m.hold_tns, true)}` : undefined} />
-      <Card label="Period" value={fmtPs(m.period)} sub={isNum(m.period) && m.period > 0 ? `${fmtNum(1e6 / m.period, 1)} MHz` : undefined} />
+      <Card label={<Term id="setup_slack" />} value={fmtPs(m.wns, true)} tone={slackTone(m.wns)} sub={m.paths[0] ? `slowest path ends at ${m.paths[0].endpoint}` : undefined} />
+      <Card label={<Term id="setup_tns" />} value={fmtPs(m.tns, true)} tone={isNum(m.tns) && m.tns < 0 ? "bad" : undefined} />
+      <Card label={<Term id="hold_slack" />} value={fmtPs(m.hold_wns, true)} tone={slackTone(m.hold_wns)} sub={isNum(m.hold_tns) ? `total hold violation ${fmtPs(m.hold_tns, true)}` : undefined} />
+      <Card label={<Term id="clock_period" />} value={fmtPs(m.period)} sub={isNum(m.period) && m.period > 0 ? `${fmtNum(1e6 / m.period, 1)} MHz` : undefined} />
       <Card
-        label={`Area (${m.area_unit.replace("um^2", "µm²")})`}
+        label={<Term id="area">{`Area (${m.area_unit.replace("um^2", "µm²")})`}</Term>}
         value={isNum(m.area_total) && Math.abs(m.area_total) >= 1e7 ? fmtCompact(m.area_total) : fmtNum(m.area_total, 1)}
         sub={isNum(m.area_total) && Math.abs(m.area_total) >= 1e7 ? fmtNum(m.area_total, 0) : undefined}
       />
       <Card label="Cells" value={fmtInt(m.cell_count)} />
-      <Card label="Power total" value={isNum(m.power.total) ? `${fmtNum(m.power.total, 3)} mW` : fmtNum(m.power.total)} />
-      <Card label="Dynamic / leakage" value={`${fmtNum(m.power.dynamic, 3)} / ${fmtNum(m.power.leakage, 3)}`} sub="mW" />
-      <Card label="Corner" value={m.corner ?? DASH} sub={m.tool} />
+      <Card label="Total power" value={isNum(m.power.total) ? `${fmtNum(m.power.total, 3)} mW` : fmtNum(m.power.total)} />
+      <Card label={<Term id="power_split" />} value={`${fmtNum(m.power.dynamic, 3)} / ${fmtNum(m.power.leakage, 3)}`} sub="mW" />
+      <Card label={<Term id="corner" />} value={m.corner ?? DASH} sub={m.tool} />
     </div>
   );
 }
@@ -144,10 +146,10 @@ function VtMix({ mix }: { mix: Record<string, number> }) {
     },
     [entries, total],
   );
-  if (!entries.length) return <div className="muted small">No Vt classes (configure <code>[library].vt_suffix</code>).</div>;
+  if (!entries.length) return <div className="muted small">No transistor speed classes (set <code>[library].vt_suffix</code> to map cell names to them).</div>;
   return (
     <div>
-      <EChart option={option} height={40} ariaLabel={`Vt mix: ${entries.map(([c, n]) => `${c} ${n}`).join(", ")}`} />
+      <EChart option={option} height={40} ariaLabel={`Transistor speed mix: ${entries.map(([c, n]) => `${c} ${n}`).join(", ")}`} />
       <table className="t">
         <tbody>
           {entries.map(([c, n]) => (
@@ -237,9 +239,9 @@ function PathsTable({ runId, paths }: { runId: string; paths: TimingPath[] }) {
             <th>#</th>
             <th>Startpoint</th>
             <th>Endpoint</th>
-            <th>Type</th>
-            <th className="num">Slack</th>
-            <th className="num">Arrival</th>
+            <th>Check</th>
+            <th className="num"><Term id="slack">Slack (ps)</Term></th>
+            <th className="num">Arrival (ps)</th>
             <th className="num">Points</th>
             <th />
           </tr>
@@ -252,13 +254,13 @@ function PathsTable({ runId, paths }: { runId: string; paths: TimingPath[] }) {
                 <td className="num">{i}</td>
                 <td className="mono anywhere" style={{ maxWidth: 360 }}>{p.startpoint}</td>
                 <td className="mono anywhere" style={{ maxWidth: 360 }}>{p.endpoint}</td>
-                <td>{p.path_type === "min" ? "hold" : "setup"}</td>
+                <td>{p.path_type === "min" ? "hold (too fast)" : "setup (too slow)"}</td>
                 <td className={`num ${p.slack < 0 ? "worse" : "better"}`}>{fmtSigned(p.slack, 1)}</td>
                 <td className="num">{fmtNum(p.arrival, 1)}</td>
                 <td className="num">{fmtInt(p.points.length)}</td>
                 <td onClick={(e) => e.stopPropagation()}>
                   <a href={href("/design", { cone: runId, path: i })} style={{ whiteSpace: "nowrap" }}>
-                    Show on gate cone
+                    Show gates
                   </a>
                 </td>
               </tr>
@@ -404,7 +406,7 @@ function SynthDashboard({ id }: { id: string }) {
             </div>
             <div className="panel">
               <div className="panel-head">
-                <h3>Vt mix</h3>
+                <h3><Term id="vt_mix" /></h3>
               </div>
               <div className="panel-body">
                 <VtMix mix={m.vt_mix} />
@@ -413,7 +415,7 @@ function SynthDashboard({ id }: { id: string }) {
           </div>
           <div className="panel">
             <div className="panel-head">
-              <h3>Critical paths</h3>
+              <h3><Term id="timing_path" /></h3>
               <span className="muted small">{plural(m.paths.length, "path")}, worst first</span>
             </div>
             <PathsTable runId={r.id} paths={m.paths} />

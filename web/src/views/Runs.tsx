@@ -55,7 +55,7 @@ export function RunsTable({ runs, selected, onToggle, height }: { runs: RunSumma
       },
       { key: "id", header: "Run", width: "84px", render: (r) => <span className="mono">{r.id}</span>, sortValue: (r) => r.id },
       { key: "kind", header: "Kind", width: "92px", render: (r) => r.kind, sortValue: (r) => r.kind },
-      { key: "adapter", header: "Adapter", width: "minmax(80px, 120px)", render: (r) => r.adapter, title: (r) => r.adapter, sortValue: (r) => r.adapter },
+      { key: "adapter", header: "Tool", width: "minmax(80px, 120px)", render: (r) => r.adapter, title: (r) => r.adapter, sortValue: (r) => r.adapter },
       {
         key: "label",
         header: "Test / experiment",
@@ -63,7 +63,7 @@ export function RunsTable({ runs, selected, onToggle, height }: { runs: RunSumma
         render: (r) => (
           <span className="row" style={{ gap: 6 }}>
             <span className="ellipsis mono">{runLabel(r) || <span className="faint">—</span>}</span>
-            {r.cached_from && <span className="chip" title={`cache hit of ${r.cached_from}`}>cached</span>}
+            {r.cached_from && <span className="chip" title={`identical inputs: reused the result of ${r.cached_from}`}>reused</span>}
           </span>
         ),
         title: (r) => [runLabel(r), r.message].filter(Boolean).join("\n") || undefined,

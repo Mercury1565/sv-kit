@@ -55,7 +55,7 @@ describe("compare table", () => {
     const cmp = (await be.request("GET", "/api/compare", { ids: synth.slice(0, 3).join(",") })) as any;
     const { container } = render(<CompareTable cmp={cmp} />);
     expect(Array.from(container.querySelectorAll(".chip")).filter((c) => c.textContent === "baseline").length).toBe(1);
-    expect(screen.getByText("WNS")).toBeTruthy();
+    expect(screen.getByText("Worst setup slack")).toBeTruthy();
     expect(document.body.textContent).toMatch(/[▲▼]/);
   });
 });

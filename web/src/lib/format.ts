@@ -128,20 +128,20 @@ export function middleTruncate(s: string, max: number): string {
 
 /** Pretty metric names for compare tables. */
 const METRIC_LABELS: Record<string, string> = {
-  wns: "WNS",
-  tns: "TNS",
-  hold_wns: "Hold WNS",
-  hold_tns: "Hold TNS",
+  wns: "Worst setup slack",
+  tns: "Total setup violation",
+  hold_wns: "Worst hold slack",
+  hold_tns: "Total hold violation",
   area_total: "Area",
   cell_count: "Cells",
-  period: "Period",
-  "power.total": "Power total",
-  "power.dynamic": "Power dynamic",
-  "power.leakage": "Power leakage",
+  period: "Clock period",
+  "power.total": "Total power",
+  "power.dynamic": "Switching power",
+  "power.leakage": "Leakage power",
 };
 
 export function metricLabel(m: string): string {
   if (METRIC_LABELS[m]) return METRIC_LABELS[m];
-  if (m.startsWith("vt_mix.")) return `Vt ${m.slice(7)} cells`;
+  if (m.startsWith("vt_mix.")) return `${m.slice(7)} cells (transistor speed class)`;
   return m;
 }

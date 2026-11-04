@@ -7,6 +7,7 @@ import { Empty, ErrorState, Loading } from "../components/States";
 import { useApp } from "../lib/appState";
 import { DASH, fmtAgo, fmtCompact, fmtNum, fmtPs, fmtSigned, isNum } from "../lib/format";
 import { useAsync, useServerEvents } from "../lib/hooks";
+import { Info, Term } from "../components/Info";
 import { navigate } from "../lib/router";
 
 export default function SweepView({ gid }: { gid?: string }) {
@@ -20,11 +21,11 @@ function SweepLauncher() {
   return (
     <span className="row" style={{ gap: 6 }}>
       <label className="field">
-        tol (ps)
+        <Term id="sweep_tol">Precision (ps)</Term>
         <input type="number" min={1} value={tol} onChange={(e) => setTol(Number(e.target.value))} style={{ width: 70 }} />
       </label>
       <label className="field">
-        jobs
+        <span className="term">Parallel runs<Info text="How many synthesis runs the sweep starts at the same time. Synopsys licenses are shared: keep it at 2 or less on shared servers." /></span>
         <input type="number" min={1} max={8} value={jobs} onChange={(e) => setJobs(Number(e.target.value))} style={{ width: 54 }} />
       </label>
       <JobButton kind="sweep" args={{ tol, jobs }} primary disabled={!project?.flows.synth.length || !(tol > 0)}>
@@ -61,7 +62,7 @@ function SweepIndex() {
               <tr>
                 <th>Sweep</th>
                 <th>Status</th>
-                <th className="num">Tolerance</th>
+                <th className="num">Precision</th>
                 <th className="num">Started</th>
               </tr>
             </thead>
@@ -108,19 +109,19 @@ export function sweepChartOption(sw: SweepResult) {
           if (!pt) return "";
           return [
             `<b>${pt.run_id}</b> · period ${fmtPs(pt.period)}`,
-            `WNS ${fmtSigned(pt.wns, 1)} ps · hold ${fmtSigned(pt.hold_wns, 1)} ps`,
+            `worst setup slack ${fmtSigned(pt.wns, 1)} ps · worst hold slack ${fmtSigned(pt.hold_wns, 1)} ps`,
             `area ${fmtNum(pt.area_total, 1)} · power ${fmtNum(pt.power_total, 3)} mW`,
-            pt.passed ? "✓ meets timing" : "✕ violates",
+            pt.passed ? "✓ meets timing" : "✕ misses timing",
             "<i>click to open the synthesis run</i>",
           ].join("<br>");
         },
       },
       xAxis: [
-        { type: "value", gridIndex: 0, name: "period (ps)", nameLocation: "middle", nameGap: 24, scale: true, ...ax, axisLabel: { ...ax.axisLabel, formatter: (v: number) => fmtCompact(v) } },
+        { type: "value", gridIndex: 0, name: "clock period (ps)", nameLocation: "middle", nameGap: 24, scale: true, ...ax, axisLabel: { ...ax.axisLabel, formatter: (v: number) => fmtCompact(v) } },
         { type: "value", gridIndex: 1, scale: true, ...ax, axisLabel: { ...ax.axisLabel, formatter: (v: number) => fmtCompact(v) } },
       ],
       yAxis: [
-        { type: "value", gridIndex: 0, name: "WNS (ps)", scale: true, ...ax, axisLabel: { ...ax.axisLabel, formatter: (v: number) => fmtCompact(v) } },
+        { type: "value", gridIndex: 0, name: "worst setup slack (ps)", scale: true, ...ax, axisLabel: { ...ax.axisLabel, formatter: (v: number) => fmtCompact(v) } },
         { type: "value", gridIndex: 1, name: "area", scale: true, ...ax, splitLine: { show: false }, axisLabel: { ...ax.axisLabel, formatter: (v: number) => fmtCompact(v) } },
         { type: "value", gridIndex: 1, name: "mW", scale: true, position: "right", ...ax, splitLine: { show: false }, axisLabel: { ...ax.axisLabel, formatter: (v: number) => fmtCompact(v) } },
       ],
@@ -139,9 +140,9 @@ export function sweepChartOption(sw: SweepResult) {
             symbol: "none",
             label: { color: t.muted, fontSize: 11 },
             data: [
-              { yAxis: 0, lineStyle: { color: t.faint, type: "solid" }, label: { formatter: "WNS = 0", position: "insideStartTop" } },
+              { yAxis: 0, lineStyle: { color: t.faint, type: "solid" }, label: { formatter: "0 = just meets timing", position: "insideStartTop" } },
               ...(isNum(sw.t_min)
-                ? [{ xAxis: sw.t_min, lineStyle: { color: t.good, type: "dashed", width: 1.5 }, label: { formatter: `T_min ${fmtPs(sw.t_min)}`, position: "insideEndTop", color: t.good } }]
+                ? [{ xAxis: sw.t_min, lineStyle: { color: t.good, type: "dashed", width: 1.5 }, label: { formatter: `fastest passing ${fmtPs(sw.t_min)}`, position: "insideEndTop", color: t.good } }]
                 : []),
             ],
           },
@@ -177,21 +178,21 @@ function SweepDetail({ gid }: { gid: string }) {
         </h1>
         <span className={`chip ${s.status === "done" ? "good" : s.status === "failed" ? "bad" : "run"}`}>{s.status}</span>
         <span className="muted small">
-          knob {s.knob} · tol {fmtNum(s.tol, 0)} ps · {s.points.length} points
+          varies {s.knob === "clock_period" ? "the clock period" : s.knob} · precision {fmtNum(s.tol, 0)} ps · {s.points.length} synthesis runs
         </span>
         <span className="spacer" />
         <SweepLauncher />
       </div>
       <div className="cards">
         <div className="card">
-          <div className="label">T_min</div>
+          <div className="label"><Term id="t_min" /></div>
           <div className={`value ${isNum(s.t_min) ? "good" : ""}`}>{isNum(s.t_min) ? fmtPs(s.t_min) : s.status === "running" ? "searching…" : "none passed"}</div>
           {isNum(s.t_min) && <div className="sub">{fmtNum(1e6 / s.t_min, 1)} MHz</div>}
         </div>
         <div className="card">
-          <div className="label">T_min run</div>
+          <div className="label">Run at the fastest passing clock</div>
           <div className="value mono">{s.t_min_run_id ? <a href={`#/synth/${s.t_min_run_id}`}>{s.t_min_run_id}</a> : DASH}</div>
-          {tminPt && <div className="sub">WNS {fmtSigned(tminPt.wns, 1)} ps · area {fmtNum(tminPt.area_total, 0)}</div>}
+          {tminPt && <div className="sub">setup slack {fmtSigned(tminPt.wns, 1)} ps · area {fmtNum(tminPt.area_total, 0)}</div>}
         </div>
       </div>
       {s.points.length === 0 ? (
@@ -202,7 +203,7 @@ function SweepDetail({ gid }: { gid: string }) {
             <EChart
               option={option}
               height={440}
-              ariaLabel={`WNS vs clock period for ${s.points.length} points; T_min ${isNum(s.t_min) ? s.t_min + " ps" : "not found"}`}
+              ariaLabel={`Worst setup slack vs clock period for ${s.points.length} points; fastest passing clock ${isNum(s.t_min) ? s.t_min + " ps" : "not found"}`}
               onClick={(p) => {
                 const rid = (p.data as { run_id?: string } | undefined)?.run_id;
                 if (rid) navigate(`/synth/${rid}`);
@@ -216,10 +217,10 @@ function SweepDetail({ gid }: { gid: string }) {
           <table className="t">
             <thead>
               <tr>
-                <th className="num">Period</th>
+                <th className="num"><Term id="clock_period" /></th>
                 <th>Run</th>
-                <th className="num">WNS</th>
-                <th className="num">Hold WNS</th>
+                <th className="num"><Term id="setup_slack" /></th>
+                <th className="num"><Term id="hold_slack" /></th>
                 <th className="num">Area</th>
                 <th className="num">Power (mW)</th>
                 <th>Result</th>
@@ -231,14 +232,14 @@ function SweepDetail({ gid }: { gid: string }) {
                   <td className="num">{fmtPs(p.period)}</td>
                   <td className="mono">
                     <a href={`#/synth/${p.run_id}`}>{p.run_id}</a>
-                    {p.run_id === s.t_min_run_id && <span className="chip good" style={{ marginLeft: 6 }}>T_min</span>}
+                    {p.run_id === s.t_min_run_id && <span className="chip good" style={{ marginLeft: 6 }}>fastest</span>}
                   </td>
                   <td className={`num ${isNum(p.wns) && p.wns < 0 ? "worse" : ""}`}>{fmtSigned(p.wns, 1)}</td>
                   <td className={`num ${isNum(p.hold_wns) && p.hold_wns < 0 ? "worse" : ""}`}>{fmtSigned(p.hold_wns, 1)}</td>
                   <td className="num">{fmtNum(p.area_total, 1)}</td>
                   <td className="num">{fmtNum(p.power_total, 3)}</td>
                   <td>
-                    {p.passed ? <span className="chip good">✓ pass</span> : <span className="chip bad">✕ fail</span>}
+                    {p.passed ? <span className="chip good">✓ meets timing</span> : <span className="chip bad">✕ misses timing</span>}
                     {p.note && <span className="small muted anywhere" style={{ marginLeft: 6 }}>{p.note}</span>}
                   </td>
                 </tr>

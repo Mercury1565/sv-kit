@@ -464,13 +464,13 @@ function WaveWorkspace({ runId, meta, query }: { runId: string; meta: WaveMeta; 
             <button onClick={() => jump("x", 1)} disabled={!selRow} title="Next X/Z of selected signal (x; shift+x for previous)">
               next X
             </button>
-            <span className="readout" title="cursor / marker / delta">
+            <span className="readout" title="cursor time / marker time / distance between them">
               <span style={{ color: "var(--w-cursor)" }}>▼ {fmtT(cursor)}</span>
               {marker !== null && (
                 <>
                   {"  "}
                   <span style={{ color: "var(--w-marker)" }}>▼ {fmtT(marker)}</span>
-                  {cursor !== null && <> Δ {formatTime(Math.abs(cursor - marker), ts, undefined, 3)}</>}
+                  {cursor !== null && <> apart {formatTime(Math.abs(cursor - marker), ts, undefined, 3)}</>}
                 </>
               )}
             </span>

@@ -8,18 +8,19 @@ import { VirtualTable, type Column } from "../components/VirtualTable";
 import { useApp } from "../lib/appState";
 import { fmtAgo, fmtDate, fmtDuration, fmtInt } from "../lib/format";
 import { useAsync, useServerEvents } from "../lib/hooks";
+import { Info } from "../components/Info";
 import { href, navigate } from "../lib/router";
 
-/** Why a failed run has no divergence to jump to, in words the user can act on. */
+/** Why a failed run has no first mismatch to jump to, in words the user can act on. */
 export function noDivergenceReason(run?: Pick<RunSummary, "message" | "artifacts" | "cached_from">): string {
   const why = run?.message ? ` (${run.message})` : "";
   if (run && !Object.keys(run.artifacts ?? {}).some((n) => /^waves\./.test(n)))
-    return `no divergence: the test failed before producing output to compare${why}. Open "details" for the log, then run it again.`;
-  return `no divergence: the output matched or was not compared; the failure came from elsewhere${why}.`;
+    return `No mismatch to show: the test failed before producing output to compare${why}. Open "details" for the log, then run it again.`;
+  return `No mismatch to show: the output matched or was not compared; the failure came from elsewhere${why}.`;
 }
 
 /** Button: ask the backend for the first divergence and open the waveform there. */
-export function DivergenceLink({ runId, run, label = "Open waves at divergence" }: { runId: string; run?: RunSummary; label?: string }) {
+export function DivergenceLink({ runId, run, label = "Open waves at first mismatch" }: { runId: string; run?: RunSummary; label?: string }) {
   const [state, setState] = useState<"idle" | "busy" | string>("idle");
   const hasWaves = run ? Object.keys(run.artifacts ?? {}).some((n) => /^waves\./.test(n)) : true;
   const go = async () => {
@@ -27,7 +28,7 @@ export function DivergenceLink({ runId, run, label = "Open waves at divergence" 
     try {
       const d = await api.divergence(runId);
       if (d.time === null || d.time === undefined) {
-        setState(`divergence at output line ${d.line} could not be mapped to a sim time`);
+        setState(`the first mismatch (output line ${d.line}) could not be matched to a time in the waveform`);
         navigate(href(`/waves/${runId}`));
         return;
       }
@@ -44,6 +45,7 @@ export function DivergenceLink({ runId, run, label = "Open waves at divergence" 
       <button onClick={go} disabled={state === "busy"}>
         {label}
       </button>
+      <Info term="divergence" />
       {state !== "idle" && state !== "busy" && <span className="small muted ellipsis" title={state}>{state}</span>}
     </span>
   );
@@ -108,7 +110,7 @@ export function TestsView() {
         r.run ? (
           <span className="row" style={{ gap: 6 }} onClick={(e) => e.stopPropagation()}>
             {r.run.status === "failed" ? (
-              <DivergenceLink runId={r.run.id} run={r.run} label="Waves at divergence" />
+              <DivergenceLink runId={r.run.id} run={r.run} label="Waves at first mismatch" />
             ) : (
               <a href={href(`/waves/${r.run.id}`)}>waves</a>
             )}

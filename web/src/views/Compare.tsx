@@ -4,6 +4,8 @@ import { Empty, ErrorState, Loading } from "../components/States";
 import { compareCell, withBaseline } from "../lib/compare";
 import { metricLabel } from "../lib/format";
 import { useAsync } from "../lib/hooks";
+import { Info } from "../components/Info";
+import { metricTerm } from "../lib/glossary";
 import { navigate } from "../lib/router";
 
 export function CompareTable({ cmp, onBaseline }: { cmp: CompareResult; onBaseline?: (idx: number) => void }) {
@@ -40,6 +42,7 @@ export function CompareTable({ cmp, onBaseline }: { cmp: CompareResult; onBaseli
               <th style={{ position: "static", background: "transparent", color: "var(--fg)", fontWeight: 500 }}>
                 {metricLabel(m.metric)}
                 {m.unit ? <span className="faint"> ({m.unit})</span> : null}
+                {metricTerm(m.metric) && <> <Info term={metricTerm(m.metric)!} /></>}
                 {m.better !== "none" && <span className="faint small"> {m.better === "higher" ? "↑ better" : "↓ better"}</span>}
               </th>
               {m.values.map((_, i) => {
