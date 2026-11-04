@@ -1,4 +1,5 @@
 import type { Project } from "./api/types";
+import { Logo } from "./components/Logo";
 import { lazy, Suspense, useEffect, type ReactNode } from "react";
 import { isMock } from "./api/client";
 import { mockDataset } from "./api/dataset";
@@ -40,7 +41,7 @@ function Header() {
   const connLabel = conn === "open" ? "live" : conn === "mock" ? "mock data" : conn === "connecting" ? "connecting" : "offline";
   return (
     <header className="header">
-      <span className="brand">svkit</span>
+      <Logo />
       <div className="proj">
         <span className="proj-name" title={project?.root ?? undefined}>
           {project?.name ?? "…"}
@@ -78,8 +79,8 @@ export function BackendChips({ backends }: { backends: NonNullable<Project["back
     <>
       {items.map(({ k, b }) => (
         <span key={k} className="fallback-chip small" title={b.note ?? undefined}>
-          {k}: {b.runs_on}
-          <span className="muted"> ({b.missing?.length ? b.missing.join(", ") : b.configured ?? b.flow} not found)</span>
+          {k}: {b.runs_on}&nbsp;
+          <span className="muted">({b.missing?.length ? b.missing.join(", ") : b.configured ?? b.flow} not found)</span>
         </span>
       ))}
     </>

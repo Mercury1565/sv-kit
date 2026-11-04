@@ -24,3 +24,14 @@ describe("BackendChips", () => {
     expect(container.textContent).toBe("");
   });
 });
+
+import { Logo } from "./Logo";
+describe("Logo", () => {
+  it("shows the mark and wordmark and links home", () => {
+    const { container } = render(<Logo />);
+    const a = container.querySelector("a.brand")!;
+    expect(a.getAttribute("href")).toBe("#/");
+    expect(a.querySelector("svg.logo-mark")).toBeTruthy();
+    expect(a.textContent).toBe("svkit");
+  });
+});

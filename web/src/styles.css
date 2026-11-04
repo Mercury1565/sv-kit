@@ -110,7 +110,11 @@ h3 { font-size: 13px; }
   grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; padding: 0 12px;
   border-bottom: 1px solid var(--border); background: var(--bg-raised); min-width: 0;
 }
-.brand { font-weight: 700; letter-spacing: 0.02em; flex-shrink: 0; }
+.brand { display: inline-flex; align-items: center; gap: 7px; font-weight: 700; letter-spacing: 0.02em; flex-shrink: 0;
+  color: var(--fg); text-decoration: none; border-radius: var(--radius); }
+.brand:hover { text-decoration: none; }
+.logo-mark { display: block; flex-shrink: 0; }
+@media (max-width: 480px) { .brand-word { display: none; } }
 .proj { display: flex; align-items: baseline; gap: 8px; min-width: 0; flex: 1 1 auto; }
 .proj-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .git { font-family: var(--mono); font-size: var(--fs-sm); color: var(--fg-muted); white-space: nowrap; flex-shrink: 0; }
