@@ -139,7 +139,9 @@ def backends(cfg: Config) -> dict[str, Any]:
     for kind, fn in (("sim", resolve_sim), ("synth", resolve_synth)):
         try:
             rs = fn(cfg, None)
-            out[kind] = {"flow": rs.name, "runs_on": rs.label, "note": rs.note,
+            conf, _ = (cfg.sim_flow if kind == "sim" else cfg.synth_flow)(None)
+            missing = missing_tools(registry.get(conf, cfg)) if rs.note else []
+            out[kind] = {"flow": rs.name, "configured": conf, "missing": missing, "runs_on": rs.label, "note": rs.note,
                          "available": not missing_tools(rs.adapter) or bool(rs.shims)}
         except ConfigError:
             pass
@@ -204,6 +206,8 @@ class Runner:
         hit = self.db.find_cached(key)
         if hit is None:
             return None
+        while hit.cached_from and (orig := self.db.get_run(hit.cached_from)) is not None:
+            hit = orig                       # always point at the run that really executed
         r = self.db.create_run(kind, adapter, cache_key=key, status=hit.status, **create)
         # artifacts are referenced from the original run's directory
         arts = {n: f"../{hit.id}/{p}" for n, p in hit.artifacts.items()}
@@ -290,7 +294,8 @@ class Runner:
             status = "passed" if res.passed else ("failed" if res.passed is False else "done")
             if rs.note:
                 res.warnings.insert(0, Msg(severity=Severity.info, code="FALLBACK", text=rs.note))
-            return self._finish(run, ctx, t0, status, res.model_dump(mode="json"), 0, res.reason)
+            # exit_code is the tool's: unknown here (the reason carries it), not svkit's own 0
+            return self._finish(run, ctx, t0, status, res.model_dump(mode="json"), None, res.reason)
         except Exception as e:  # adapter crash -> error run, never kills the caller
             ctx.log(traceback.format_exc())
             return self._finish(run, ctx, t0, "error", None, None, f"{type(e).__name__}: {e}")

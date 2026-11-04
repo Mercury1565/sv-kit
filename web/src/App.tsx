@@ -79,7 +79,7 @@ export function BackendChips({ backends }: { backends: NonNullable<Project["back
       {items.map(({ k, b }) => (
         <span key={k} className="fallback-chip small" title={b.note ?? undefined}>
           {k}: {b.runs_on}
-          <span className="muted"> ({b.flow} not found)</span>
+          <span className="muted"> ({b.missing?.length ? b.missing.join(", ") : b.configured ?? b.flow} not found)</span>
         </span>
       ))}
     </>

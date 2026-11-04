@@ -100,10 +100,19 @@ def create_app(cfg: Config) -> FastAPI:
 
     @api.get("/runs/{rid}/log")
     def run_log(rid: str, tail: int = Query(500, le=100000)) -> dict[str, Any]:
-        _run(rid)
+        run = _run(rid)
         f = st.db.runs_dir / rid / "svkit.log"
+        head: list[str] = []
+        seen = {rid}
+        while not f.exists() and run.cached_from and run.cached_from not in seen:   # cache hit: the original's log
+            seen.add(run.cached_from)
+            head = [f"[svkit] {rid} reused the result of {run.cached_from}; this is the log of {run.cached_from}"]
+            run = st.db.get_run(run.cached_from)
+            if run is None:
+                break
+            f = st.db.runs_dir / run.id / "svkit.log"
         lines = f.read_text(errors="replace").splitlines()[-tail:] if f.exists() else []
-        return {"lines": lines}
+        return {"lines": head + lines}
 
     @api.post("/runs/{rid}/tags")
     def add_tag(rid: str, body: dict = Body(...)) -> dict[str, Any]:

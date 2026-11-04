@@ -220,6 +220,9 @@ export interface Project {
 
 export interface Backend {
   flow: string;
+  /** the flow svkit.toml names (before fallback) and the tools it lacks on this host */
+  configured?: string;
+  missing?: string[];
   runs_on: string;
   note?: string | null;
   available: boolean;

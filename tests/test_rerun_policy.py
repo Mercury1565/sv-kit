@@ -65,3 +65,32 @@ def test_parallel_wrap_tests_warm_up_first(tmp_path, monkeypatch):
     (tmp_path / "svkit.toml").write_text(TOML)
     gid, runs = Runner(C.load(tmp_path)).sim_all(jobs=6, use_cache=False)
     assert [r.status for r in runs] == ["passed"] * 6, [r.message for r in runs]
+
+
+def test_cache_hits_point_at_the_original_run_and_show_its_log(tmp_path):
+    from fastapi.testclient import TestClient
+    from svkit.server.app import create_app
+    (tmp_path / "top.sv").write_text("module top; endmodule\n")
+    (tmp_path / "svkit.toml").write_text('[project]\nname = "c"\ntop = "top"\nsources = { glob = ["*.sv"] }\n'
+                                         '[flows.sim.verilator]\nmode = "builtin"\n')
+    cfg = C.load(tmp_path)
+    r = Runner(cfg)
+    orig = _run(r.db, "kk", "passed", {"passed": True})
+    r.db.update_run(orig, artifacts={"sim.log": "sim.log"})
+    (r.db.run_dir(orig) / "svkit.log").write_text("built\nran\n")
+    first = r._cached("kk", "sim", "x", test="t")
+    second = r._cached("kk", "sim", "x", test="t")
+    assert first.cached_from == orig and second.cached_from == orig
+    assert second.artifacts == {"sim.log": f"../{orig}/sim.log"}
+    lines = TestClient(create_app(cfg)).get(f"/api/runs/{second.id}/log").json()["lines"]
+    assert lines[-2:] == ["built", "ran"] and orig in lines[0]
+
+
+def test_backends_name_the_missing_tool(tmp_path):
+    from svkit.core.runner import backends
+    (tmp_path / "top.sv").write_text("module top; endmodule\n")
+    (tmp_path / "svkit.toml").write_text('[project]\nname = "c"\ntop = "top"\nsources = { glob = ["*.sv"] }\n'
+                                         '[tools]\ndc_shell-t = "svkit-no-dc"\nyosys = "true"\nsta = "true"\n'
+                                         '[flows.synth.dc]\ncmd = "make syn"\n')
+    b = backends(C.load(tmp_path))["synth"]
+    assert b["configured"] == "dc" and b["missing"] == ["svkit-no-dc"] and b["runs_on"] == "yosys"
