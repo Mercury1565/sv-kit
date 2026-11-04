@@ -24,11 +24,20 @@ Background: [PRODUCT.md](PRODUCT.md) (spec), [docs/MVP.md](docs/MVP.md) (v1 scop
 Requirements: Python ≥ 3.11 and a browser. No root access and no Node are needed, because the web
 UI ships prebuilt.
 
+Install straight from the project's GitHub repository,
+[github.com/Mercury1565/sv-kit](https://github.com/Mercury1565/sv-kit):
+
 ```
 python3.11 -m venv ~/.venvs/svkit          # on CAEN, `python3` is 3.9: use python3.11
-~/.venvs/svkit/bin/pip install /path/to/svkit
+~/.venvs/svkit/bin/pip install "git+https://github.com/Mercury1565/sv-kit.git"
 export PATH=~/.venvs/svkit/bin:$PATH
+svkit --version
 ```
+
+- **A specific version:** append a branch, tag or commit, e.g. `...sv-kit.git@main` or `...sv-kit.git@<tag>`.
+- **Update:** run the same command with `--upgrade` (add `--force-reinstall` to rebuild the same version number).
+- **Over SSH** (if you prefer your SSH key): `pip install "git+ssh://git@github.com/Mercury1565/sv-kit.git"`.
+- **From a local checkout instead** (e.g. to try unpushed changes): `pip install /path/to/sv-kit`.
 
 Tools are found on `PATH`, or through `[tools]` overrides in `svkit.toml`:
 
@@ -46,9 +55,9 @@ Notes for shared Linux servers:
   ships as a separate package. Without root, put `FindBin.pm` in a directory on `PERL5LIB`.
 - **Stale `VERILATOR_ROOT`.** If one is set from an older install, unset it.
 - **Network home directories (CIFS/SMB, as on CAEN).** Building svkit from a source tree on such a
-  mount fails, because SMB leaves `.__smb*` temp files in setuptools' build dirs. Build the wheel from
-  a copy on local disk (e.g. under `/tmp`) and install that. Running svkit on projects in your home
-  directory works.
+  mount fails, because SMB leaves `.__smb*` temp files in setuptools' build dirs. Installing from GitHub
+  avoids this (pip builds in a temporary directory). For a local checkout, build the wheel from a copy on
+  local disk (e.g. under `/tmp`) and install that. Running svkit on projects in your home directory works.
 
 ## Quick start
 
