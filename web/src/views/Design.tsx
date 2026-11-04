@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { api } from "../api/client";
-import type { DesignHierarchy, Schematic, SchematicCell } from "../api/types";
+import type { DesignHierarchy, RunSummary, Schematic, SchematicCell } from "../api/types";
 import { Empty, ErrorState, Loading } from "../components/States";
 import { plural } from "../lib/format";
 import { cellKey, decorate, draw, sanitize, setZoom } from "../lib/schematic";
@@ -177,6 +177,49 @@ function BlockDiagram({ module, trail }: { module: string; trail: string[] }) {
 }
 
 // ------------------------------------------------------------------ gate cone
+const isSynth = (r: RunSummary) => (r.kind === "synth" || r.kind === "sweep-point") && r.status === "done";
+
+/** Gates tab opened directly: show the newest finished synthesis run's worst timing path. */
+function GatesStart() {
+  const runs = useAsync(() => api.runs({ kind: "synth", limit: 200 }), []);
+  const latest = runs.data?.find(isSynth);
+  useEffect(() => {
+    if (latest) navigate(href("/design", { cone: latest.id, path: 0 }), true);
+  }, [latest]);
+  if (runs.error) return <ErrorState error={runs.error} feature="Gate cone view" onRetry={runs.reload} />;
+  if (runs.loading || latest) return <Loading what="Finding the latest synthesis run" />;
+  return (
+    <Empty title="No synthesis run yet" cmd="svkit synth">
+      The gate view draws the synthesized netlist around a timing path. Run synthesis (here or from the Synthesis view), then
+      come back.
+    </Empty>
+  );
+}
+
+/** Switch the cone to another finished synthesis run (its worst path). */
+function RunPicker({ run }: { run: string }) {
+  const runs = useAsync(() => api.runs({ kind: "synth", limit: 200 }), []);
+  const list = (runs.data ?? []).filter(isSynth);
+  if (!list.some((r) => r.id === run)) list.unshift({ id: run } as RunSummary);
+  return (
+    <select
+      className="mono"
+      aria-label="Synthesis run"
+      style={{ maxWidth: 280 }}
+      value={run}
+      onChange={(e) => navigate(href("/design", { cone: e.target.value, path: 0 }))}
+    >
+      {list.map((r) => (
+        <option key={r.id} value={r.id}>
+          {r.id}
+          {r.experiment ? ` · ${r.experiment}` : ""}
+          {r.knobs && Object.keys(r.knobs).length ? ` · ${Object.entries(r.knobs).map(([k, v]) => `${k}=${v}`).join(" ")}` : ""}
+        </option>
+      ))}
+    </select>
+  );
+}
+
 function ConeDiagram({ run, path, net, depth }: { run: string; path: string; net: string; depth: number }) {
   const [netIn, setNetIn] = useState(net);
   const [depthIn, setDepthIn] = useState(depth);
@@ -199,8 +242,12 @@ function ConeDiagram({ run, path, net, depth }: { run: string; path: string; net
         }}
       >
         <span className="small">
-          Gate cone · run <a className="mono" href={`#/synth/${run}`}>{run}</a>
-          {path !== "" && <> · critical path #{path}</>}
+          Gate cone · run
+        </span>
+        <RunPicker run={run} />
+        <span className="small">
+          <a href={`#/synth/${run}`}>timing paths</a>
+          {path !== "" && <> · path #{path}{path === "0" ? " (worst)" : ""}</>}
         </span>
         <label className="field">
           net
@@ -254,22 +301,25 @@ function ConeDiagram({ run, path, net, depth }: { run: string; path: string; net
 
 export default function DesignView({ query }: { query: URLSearchParams }) {
   const cone = query.get("cone");
+  const gates = !!cone || query.get("gates") === "1";
   const trail = (query.get("trail") ?? "").split(",").filter(Boolean);
   return (
     <div className="view">
       <div className="view-head">
         <h1>Design</h1>
         <div className="seg">
-          <button className={!cone ? "on" : ""} onClick={() => navigate("/design")}>
+          <button className={!gates ? "on" : ""} onClick={() => navigate("/design")}>
             Blocks
           </button>
-          <button className={cone ? "on" : ""} disabled={!cone} title={cone ? undefined : "Open the gates of a timing path from a synthesis run (\"Show gates\")"}>
+          <button className={gates ? "on" : ""} onClick={() => !cone && navigate(href("/design", { gates: 1 }))}>
             Gates
           </button>
         </div>
         <Info term="gate_cone" />
       </div>
-      {cone ? (
+      {gates && !cone ? (
+        <GatesStart />
+      ) : cone ? (
         <ConeDiagram run={cone} path={query.get("path") ?? ""} net={query.get("net") ?? ""} depth={Number(query.get("depth") ?? 6) || 6} />
       ) : (
         <BlockDiagram module={query.get("module") ?? ""} trail={trail} />

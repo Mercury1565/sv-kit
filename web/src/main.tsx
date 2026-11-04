@@ -4,6 +4,9 @@ import { App } from "./App";
 import { mockRequested, setTransport } from "./api/client";
 import { events } from "./api/ws";
 import "./styles.css";
+import { applyTheme } from "./lib/theme";
+
+applyTheme(); // before the first paint
 
 async function boot() {
   if (mockRequested()) {

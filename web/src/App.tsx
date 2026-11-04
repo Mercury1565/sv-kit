@@ -10,6 +10,7 @@ import { navigate, useRoute, type Route } from "./lib/router";
 import { RunsView } from "./views/Runs";
 import { RunDetail } from "./views/RunDetail";
 import { TestsView } from "./views/Tests";
+import { ThemeSwitch } from "./components/ThemeSwitch";
 
 const WavesView = lazy(() => import("./views/waves/Waves"));
 const DesignView = lazy(() => import("./views/Design"));
@@ -54,6 +55,7 @@ function Header() {
         )}
       </div>
       <div className="header-right">
+        <ThemeSwitch />
         {project?.backends && <BackendChips backends={project.backends} />}
         <span className="live" title={running ? jobs.filter((j) => j.status === "running").map((j) => `${j.job_id} ${j.kind}`).join("\n") : "no running jobs"}>
           <span className={`dot ${running ? "busy" : ""}`} />

@@ -212,6 +212,8 @@ svkit waves archive --to fst              # shrink it (a running svkit serve pic
 - Blocks: click an instance (or Tab to it and press Enter) to descend. Fit / 100 % / ± zoom. Light and dark themes.
 - The layout runs in a Web Worker: a 970-cell cone (pipe5, depth 40) lays out in about 6 s without freezing the page. Leaving the view or changing the cone cancels a running layout.
 - On the pipe5 OSS run (svkit_tiny Liberty), 28 of the 42 cells in the depth-4 critical cone are drawn as symbols; the 14 boxes are AOI21/OAI21.
+- Follow-up: the **Gates** tab is always clickable. Opened directly, it shows the newest finished synthesis run's worst path, or explains how to get a synthesis run if there is none. A run picker in the cone toolbar switches to another run.
+- Follow-up: a **theme switch** in the header cycles Auto (follow the OS) → Light → Dark. It is remembered per browser (localStorage) and applied before the first paint; charts and the wave canvas follow it.
 **Decisions made (and why):**
 - Owner request: netlistsvg draws both diagrams, using elkjs 0.3.0 (its own dependency), our original skin (`web/src/lib/schematic-skin.svg`), DOMPurify on its output, and a Web Worker (`schematic.worker.ts`). This replaces the hand-drawn ELK 0.11 diagrams (`web/src/lib/graph.ts`, removed, with the `elkjs` 0.11 dependency). The stack line "ELK.js for diagrams" still holds: netlistsvg lays out with ELK.
 - The server sends netlistsvg's input format (one Yosys-JSON module), so the browser has a single drawing path. New endpoints are `/api/design/schematic/{block,cone}` (ARCHITECTURE §6). The old `/api/design/{block,cone}` stay unchanged as the analysis contract.

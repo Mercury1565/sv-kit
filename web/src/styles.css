@@ -85,6 +85,44 @@
     color-scheme: dark;
   }
 }
+/* the in-app theme switch (lib/theme.ts) forces dark regardless of the OS setting */
+:root[data-theme="dark"] {
+  --bg: #0f1216;
+  --bg-sunken: #0b0d10;
+  --bg-raised: #161a20;
+  --bg-hover: #1c2129;
+  --bg-sel: #1b2b47;
+  --border: #262c35;
+  --border-strong: #353d48;
+  --fg: #e3e7ed;
+  --fg-muted: #9aa5b4;
+  --fg-faint: #6b7686;
+  --accent: #5b93f5;
+  --accent-fg: #0b0d10;
+  --good: #4cc26a;
+  --good-bg: #13291b;
+  --bad: #ff6b6b;
+  --bad-bg: #331617;
+  --warn: #e3b341;
+  --warn-bg: #2d240f;
+  --run: #5b93f5;
+  --run-bg: #16243d;
+  --neutral-bg: #1c2129;
+  --w-bg: #0b0d10;
+  --w-grid: #1a1f26;
+  --w-line: #4ade80;
+  --w-bus: #4ade80;
+  --w-bus-fill: rgba(74, 222, 128, 0.07);
+  --w-text: #e3e7ed;
+  --w-x: #ff5c5c;
+  --w-z: #f0b429;
+  --w-dense: #7c8a9a;
+  --w-cursor: #5b93f5;
+  --w-marker: #e879f9;
+  --w-sel: rgba(91, 147, 245, 0.12);
+  color-scheme: dark;
+
+}
 
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; margin: 0; }
@@ -120,6 +158,9 @@ h3 { font-size: 13px; }
 .git { font-family: var(--mono); font-size: var(--fs-sm); color: var(--fg-muted); white-space: nowrap; flex-shrink: 0; }
 .dirty { color: var(--warn); }
 .header-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.theme-switch { display: inline-flex; align-items: center; gap: 5px; font-size: var(--fs-sm); color: var(--fg-muted);
+  background: none; border: 1px solid var(--border); border-radius: var(--radius); padding: 2px 8px; cursor: pointer; white-space: nowrap; }
+.theme-switch:hover { color: var(--fg); border-color: var(--border-strong); }
 .live { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-sm); color: var(--fg-muted); white-space: nowrap; }
 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--fg-faint); flex-shrink: 0; }
 .dot.on { background: var(--good); }
@@ -355,7 +396,7 @@ pre.log { margin: 0; padding: 8px 10px; font: var(--fs-sm)/1.45 var(--mono); bac
   .nav { flex-direction: row; overflow-x: auto; }
   .nav .key { display: none; }
   .git { display: none; }
-  .live .lbl { display: none; }
+  .live .lbl, .theme-switch .lbl { display: none; }
   .view-head > input { flex: 1 1 140px; width: auto !important; }
   .waves { grid-template-columns: 1fr; }
   .waves-side { max-height: 30vh; }

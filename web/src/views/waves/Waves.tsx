@@ -11,6 +11,7 @@ import { defaultRadix, formatTime, formatValue, hasX, hasZ, pickUnit, valueAt, x
 import { Hierarchy, type AddSignal } from "./Hierarchy";
 import { locateSignal } from "./locate";
 import { ROW_H, WaveRenderer, type RenderRow } from "./renderer";
+import { onThemeChange } from "../../lib/theme";
 
 interface Sig {
   path: string;
@@ -175,12 +176,10 @@ function WaveWorkspace({ runId, meta, query }: { runId: string; meta: WaveMeta; 
     const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(size) : null;
     ro?.observe(wrap);
     ro?.observe(grid);
-    const mq = window.matchMedia?.("(prefers-color-scheme: dark)");
-    const onMq = () => r.refreshTheme();
-    mq?.addEventListener?.("change", onMq);
+    const offTheme = onThemeChange(() => r.refreshTheme());
     return () => {
       ro?.disconnect();
-      mq?.removeEventListener?.("change", onMq);
+      offTheme();
       r.destroy();
       rendRef.current = null;
     };

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { ECharts, EChartsCoreOption } from "echarts/core";
+import { onThemeChange } from "../lib/theme";
 
 export interface ChartTheme {
   fg: string;
@@ -80,13 +81,11 @@ export function EChart({ option, height = 300, onClick, ariaLabel }: Props) {
       }
       setReady(true);
     });
-    const mq = window.matchMedia?.("(prefers-color-scheme: dark)");
-    const onMq = () => setScheme((s) => s + 1);
-    mq?.addEventListener?.("change", onMq);
+    const offTheme = onThemeChange(() => setScheme((s) => s + 1));
     return () => {
       disposed = true;
       ro?.disconnect();
-      mq?.removeEventListener?.("change", onMq);
+      offTheme();
       chart.current?.dispose();
       chart.current = null;
     };
