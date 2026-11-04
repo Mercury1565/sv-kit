@@ -45,3 +45,23 @@ tests = { names = ["t1"] }
 """)
     with pytest.raises(ConfigError, match="svkit-no-such-verilator"):
         Runner(cfg).sim("t1", flow="verilator")
+
+
+def test_first_error_line_in_failure_message(tmp_path):
+    from svkit.adapters.synth.yosys import _failed
+    from svkit.core.fsutil import first_error
+    log = tmp_path / "synth.log"
+    log.write_text("1. Executing Verilog-2005 frontend\n"
+                   f"{tmp_path}/verilog/queue.sv:39: ERROR: syntax error, unexpected ';'\n"
+                   "Parsing SystemVerilog input\n")
+    assert first_error(log, root=tmp_path) == "verilog/queue.sv:39: ERROR: syntax error, unexpected ';'"
+    msg = _failed("yosys", 1, log, tmp_path)
+    assert msg == "yosys failed (exit 1): verilog/queue.sv:39: ERROR: syntax error, unexpected ';' (full log: synth.log)"
+    log.write_text("nothing useful\n")
+    assert _failed("yosys", 1, log, tmp_path) == "yosys failed (exit 1); see artifact synth.log"
+
+
+def test_error_text_drops_type_for_tool_failures():
+    from svkit.core.runner import _error_text
+    assert _error_text(RuntimeError("yosys failed (exit 1): x")) == "yosys failed (exit 1): x"
+    assert _error_text(KeyError("k")) == "KeyError: 'k'"

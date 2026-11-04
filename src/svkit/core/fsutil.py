@@ -49,3 +49,22 @@ def copy_tree(src: Path | str, dst: Path | str,
         else:
             copy_file(s, d)
     return dst
+
+
+def first_error(log: Path, pattern: str = r"\b(?:ERROR|Error)\b\s*:", root: Path | None = None,
+                limit: int = 300) -> str | None:
+    """The first line of a tool log that reports an error, shortened for a run's one-line message
+    (absolute paths under `root` are made project-relative). None if there is none."""
+    import re
+    try:
+        text = log.read_text(errors="replace")
+    except OSError:
+        return None
+    rx = re.compile(pattern)
+    for line in text.splitlines():
+        if rx.search(line):
+            line = line.strip()
+            if root is not None:
+                line = line.replace(str(Path(root).resolve()) + "/", "").replace(str(root) + "/", "")
+            return line[:limit]
+    return None

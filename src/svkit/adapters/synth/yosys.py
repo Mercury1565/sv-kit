@@ -29,6 +29,7 @@ from svkit.adapters.sim.verilator import order_sources
 from svkit.analysis.vt import vt_mix
 from svkit.config import Config, ConfigError, SynthFlow
 from svkit.core import project as P
+from svkit.core.fsutil import first_error
 from svkit.schemas import Msg, Severity, SynthResult
 
 OUT = "svkit_out"
@@ -247,7 +248,7 @@ class YosysAdapter(SynthAdapter):
                         extra_env=flow.env)
             ctx.artifacts["synth.log"] = "synth.log"
             if rc != 0:
-                raise RuntimeError(f"yosys failed (exit {rc}); see artifact synth.log")
+                raise RuntimeError(_failed("yosys", rc, log, cfg.root))
             reports = [cwd / OUT / "stat.json", cwd / OUT / "netlist.json"]
             netlist_v = cwd / OUT / "netlist.v"
             ctx.keep(cwd / OUT / "stat.json", "stat.json")
@@ -263,7 +264,7 @@ class YosysAdapter(SynthAdapter):
             rc = ctx.sh(cmd, cwd=cwd, timeout=flow.timeout_s, log_file=log, extra_env=env)
             ctx.artifacts["synth.log"] = "synth.log"
             if rc != 0:
-                raise RuntimeError(f"synthesis command failed (exit {rc}); see artifact synth.log")
+                raise RuntimeError(_failed("synthesis command", rc, log, cfg.root))
             reports = []
             for r in flow.reports:
                 f = Path(P.tmpl(r, cfg, workdir=ctx.workdir, run_dir=ctx.run_dir))
@@ -311,3 +312,9 @@ class YosysAdapter(SynthAdapter):
             res.warnings += t.warnings
             res.extra.update(t.extra)
         return res
+
+
+def _failed(what: str, rc: int, log: Path, root: Path) -> str:
+    err = first_error(log, root=root)
+    return f"{what} failed (exit {rc}): {err} (full log: synth.log)" if err else \
+        f"{what} failed (exit {rc}); see artifact synth.log"

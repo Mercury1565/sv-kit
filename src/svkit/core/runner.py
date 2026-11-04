@@ -163,6 +163,12 @@ def _tail(path: Path, n: int = 8) -> str:
     return "\n".join(lines[-n:])
 
 
+def _error_text(e: BaseException) -> str:
+    """One-line message for an error run. Tool failures (RuntimeError / ConfigError raised by
+    adapters) already read as sentences; anything else is an svkit bug, so keep its type."""
+    return str(e) if isinstance(e, (RuntimeError, ConfigError)) and str(e) else f"{type(e).__name__}: {e}"
+
+
 def run_summary(r: Run) -> dict[str, Any]:
     d = r.to_dict()
     d.pop("metrics", None)
@@ -313,7 +319,7 @@ class Runner:
             return self._finish(run, ctx, t0, status, res.model_dump(mode="json"), None, res.reason)
         except Exception as e:  # adapter crash -> error run, never kills the caller
             ctx.log(traceback.format_exc())
-            return self._finish(run, ctx, t0, "error", None, None, f"{type(e).__name__}: {e}")
+            return self._finish(run, ctx, t0, "error", None, None, _error_text(e))
         finally:
             if workdir != self.cfg.root:
                 shutil.rmtree(workdir, ignore_errors=True)
@@ -432,7 +438,7 @@ class Runner:
         except Exception as e:
             if ctx:
                 ctx.log(traceback.format_exc())
-            return self._finish(run, ctx, t0, "error", None, None, f"{type(e).__name__}: {e}")
+            return self._finish(run, ctx, t0, "error", None, None, _error_text(e))
         finally:
             if sem:
                 sem.release()

@@ -17,6 +17,7 @@ from typing import Optional
 from svkit.adapters.base import RunContext, StaAdapter
 from svkit.config import StaFlow
 from svkit.core import project as P
+from svkit.core.fsutil import first_error
 from svkit.schemas import Msg, Power, Severity, SynthResult, TimingPath, TimingPoint
 
 MARK = "@@svkit"
@@ -313,7 +314,8 @@ class OpenStaAdapter(StaAdapter):
         if out.exists():
             ctx.keep(out, "sta.log")
         if rc != 0 or f"{MARK} end" not in text:
-            raise RuntimeError(f"OpenSTA failed (exit {rc}); see artifact sta.log")
+            err = first_error(ctx.run_dir / "sta.log", root=ctx.cfg.root) if (ctx.run_dir / "sta.log").is_file() else None
+            raise RuntimeError(f"OpenSTA failed (exit {rc})" + (f": {err} (full log: sta.log)" if err else "; see artifact sta.log"))
         return parse_report(text, top=top, period_ps=period_ps)
 
 

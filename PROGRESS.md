@@ -195,6 +195,7 @@ svkit sim --all --flow unit      # same from the CLI
 - Hosts without `vcd2fst` (possibly CAEN) keep VCDs. It works, but without the savings; the run log says so.
 - No "download as VCD" button yet for taking an archived FST into Verdi; use `fst2vcd` or `svkit waves archive --to vcd`.
 - No retention policy yet (keep failed + latest waves, size budget, `svkit gc`). With FST it is far less urgent.
+- Follow-up (2026-11-04): a failed synthesis or STA run's message now quotes the tool's first error line with a project-relative path, e.g. `yosys failed (exit 1): verilog/queue.sv:39: ERROR: syntax error, unexpected ';'`. Before, it said only "see artifact synth.log". Tool failures no longer carry a Python exception name (`RuntimeError:`); unexpected svkit errors still do.
 **Next iteration plan:**
 - As in iteration 4, plus a retention / `svkit gc` command if `.svkit` still grows too much.
 **How to see it:**
