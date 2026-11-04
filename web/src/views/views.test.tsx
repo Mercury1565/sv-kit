@@ -94,3 +94,15 @@ describe("app shell", () => {
     expect(document.body.textContent).toContain("svkit sim <test>");
   });
 });
+
+import { noDivergenceReason } from "./Tests";
+describe("noDivergenceReason", () => {
+  it("explains a failure that produced no output", () => {
+    const m = noDivergenceReason({ message: "exit code 2", artifacts: { "sim.log": "sim.log" }, cached_from: null });
+    expect(m).toContain("failed before producing output");
+    expect(m).toContain("exit code 2");
+  });
+  it("explains a failure with waves but no output mismatch", () => {
+    expect(noDivergenceReason({ message: "$fatal at tb.sv:10", artifacts: { "waves.vcd": "waves.vcd" } })).toContain("came from elsewhere");
+  });
+});

@@ -255,12 +255,25 @@ class RunDB:
         return out
 
     def find_cached(self, cache_key: str) -> Optional[Run]:
-        """Latest successful run with this cache key, whose result is not itself pending."""
+        """Latest reusable run with this cache key.
+
+        Passed / done runs are reusable. A failed run is reused only when the failure is a result
+        of the design (its output was compared and diverged): failures before any output exists
+        (build error, a race in the user's build, a missing tool) may not repeat, so they rerun."""
         with self._conn() as c:
-            row = c.execute(
-                "SELECT id FROM runs WHERE cache_key = ? AND status IN ('passed','failed','done')"
-                " AND metrics IS NOT NULL ORDER BY created_at DESC LIMIT 1", (cache_key,)).fetchone()
-        return self.get_run(row["id"]) if row else None
+            rows = c.execute(
+                "SELECT id, status, metrics FROM runs WHERE cache_key = ? AND status IN ('passed','failed','done')"
+                " AND metrics IS NOT NULL ORDER BY created_at DESC LIMIT 20", (cache_key,)).fetchall()
+        for row in rows:
+            if row["status"] != "failed":
+                return self.get_run(row["id"])
+            try:
+                m = json.loads(row["metrics"])
+            except (TypeError, ValueError):
+                continue
+            if isinstance(m, dict) and m.get("divergence"):
+                return self.get_run(row["id"])
+        return None
 
     def add_tag(self, run_id: str, tag: str) -> None:
         with self._conn() as c:

@@ -129,7 +129,7 @@ export function RunDetail({ id }: { id: string }) {
             {sim.passed === false && <span className="chip bad">✕ failed</span>}
             {sim.passed == null && <span className="chip">undetermined</span>}
             <span className="spacer" />
-            {sim.passed === false && <DivergenceLink runId={r.id} />}
+            {sim.passed === false && <DivergenceLink runId={r.id} run={r} />}
           </div>
           <div className="panel-body small">
             {sim.reason && <div className="anywhere">{sim.reason}</div>}

@@ -10,9 +10,18 @@ import { fmtAgo, fmtDate, fmtDuration, fmtInt } from "../lib/format";
 import { useAsync, useServerEvents } from "../lib/hooks";
 import { href, navigate } from "../lib/router";
 
+/** Why a failed run has no divergence to jump to, in words the user can act on. */
+export function noDivergenceReason(run?: Pick<RunSummary, "message" | "artifacts" | "cached_from">): string {
+  const why = run?.message ? ` (${run.message})` : "";
+  if (run && !Object.keys(run.artifacts ?? {}).some((n) => /^waves\./.test(n)))
+    return `no divergence: the test failed before producing output to compare${why}. Open "details" for the log, then run it again.`;
+  return `no divergence: the output matched or was not compared; the failure came from elsewhere${why}.`;
+}
+
 /** Button: ask the backend for the first divergence and open the waveform there. */
-export function DivergenceLink({ runId, label = "Open waves at divergence" }: { runId: string; label?: string }) {
+export function DivergenceLink({ runId, run, label = "Open waves at divergence" }: { runId: string; run?: RunSummary; label?: string }) {
   const [state, setState] = useState<"idle" | "busy" | string>("idle");
+  const hasWaves = run ? Object.keys(run.artifacts ?? {}).some((n) => /^waves\./.test(n)) : true;
   const go = async () => {
     setState("busy");
     try {
@@ -24,11 +33,14 @@ export function DivergenceLink({ runId, label = "Open waves at divergence" }: { 
       }
       navigate(href(`/waves/${runId}`, { t: d.time }));
     } catch (e) {
-      setState(e instanceof ApiError && e.notAvailable ? "divergence not available for this run" : String(e));
+      if (e instanceof ApiError && e.notAvailable) {
+        setState(noDivergenceReason(run));
+        if (hasWaves) navigate(href(`/waves/${runId}`));
+      } else setState(String(e));
     }
   };
   return (
-    <span className="row" style={{ gap: 6 }}>
+    <span className="row" style={{ gap: 6, minWidth: 0 }}>
       <button onClick={go} disabled={state === "busy"}>
         {label}
       </button>
@@ -96,7 +108,7 @@ export function TestsView() {
         r.run ? (
           <span className="row" style={{ gap: 6 }} onClick={(e) => e.stopPropagation()}>
             {r.run.status === "failed" ? (
-              <DivergenceLink runId={r.run.id} label="Waves at divergence" />
+              <DivergenceLink runId={r.run.id} run={r.run} label="Waves at divergence" />
             ) : (
               <a href={href(`/waves/${r.run.id}`)}>waves</a>
             )}

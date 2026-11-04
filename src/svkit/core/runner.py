@@ -333,8 +333,15 @@ class Runner:
                 hint = "" if rs.shims else tools_hint(adapter, name)
                 raise ConfigError(f"build_cmd `{fl.build_cmd}` failed (exit {rc}); see .svkit/build-{g.id}.log"
                                   + (f"\n{hint}" if hint else "") + (f"\n{tail}" if tail else ""))
+        one = lambda t: self.sim(t, flow=flow, group_id=g.id, use_cache=use_cache)  # noqa: E731
+        runs = []
+        if jobs > 1 and fl.mode == "wrap" and len(tests) > 1:
+            # warm-up: the first test runs alone, so prerequisites the user's build creates on
+            # demand and shares between tests (tools, generated files) exist before tests fan out
+            runs.append(one(tests[0]))
+            tests = tests[1:]
         with ThreadPoolExecutor(max_workers=max(1, jobs)) as ex:
-            runs = list(ex.map(lambda t: self.sim(t, flow=flow, group_id=g.id, use_cache=use_cache), tests))
+            runs += list(ex.map(one, tests))
         status = "done" if all(r.status in ("passed", "done") for r in runs) else "failed"
         self.db.update_group(g.id, status=status,
                              result={"passed": sum(r.status == "passed" for r in runs), "total": len(runs)})
