@@ -112,6 +112,21 @@ def make_router(st) -> APIRouter:
         out["netlist"] = Path(nl.source).name
         return out
 
+    # schematic netlists (Yosys JSON) drawn by netlistsvg in the browser: same drawing for both
+    @r.get("/design/schematic/block")
+    def schematic_block(module: Optional[str] = None) -> dict[str, Any]:
+        from svkit.design import schematic as S
+        return S.block_netlist(block(module))
+
+    @r.get("/design/schematic/cone")
+    def schematic_cone(run: str, net: Optional[str] = None, depth: int = 4, path: Optional[int] = None) -> dict[str, Any]:
+        from svkit.design import schematic as S
+        c = cone(run, net, depth, path)
+        nl = load_netlist(find_netlist(st.db, run_or_404(run)), (run_or_404(run).metrics or {}).get("top") or st.cfg.project.top)
+        out = S.cone_netlist(c, nl)
+        out.update(run=run, netlist_file=c["netlist"])
+        return out
+
     @r.get("/xtrace")
     def xtrace(signal: str, time: int, run: Optional[str] = None, depth: int = 12) -> dict[str, Any]:
         from svkit.analysis import xtrace as X

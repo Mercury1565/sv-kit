@@ -21,6 +21,7 @@ import type {
   WaveScope,
   WaveSearchHit,
   XTraceNode,
+  Schematic,
 } from "./types";
 
 export class ApiError extends Error {
@@ -154,6 +155,10 @@ export const api = {
   hierarchy: () => req<DesignHierarchy>("GET", "/api/design/hierarchy"),
   block: (module: string) => req<BlockGraph>("GET", "/api/design/block", { module }),
   cone: (q: { run: string; net?: string; depth?: number; path?: number | string }) => req<ConeGraph>("GET", "/api/design/cone", q),
+  /** Yosys-JSON netlists drawn by netlistsvg: one module level (Blocks) or a gate cone (Gates). */
+  schematicBlock: (module: string) => req<Schematic>("GET", "/api/design/schematic/block", { module }),
+  schematicCone: (q: { run: string; net?: string; depth?: number; path?: number | string }) =>
+    req<Schematic>("GET", "/api/design/schematic/cone", q),
 
   xtrace: (q: { run: string; signal: string; time: number; depth?: number }) => req<XTraceNode>("GET", "/api/xtrace", q),
   source: (file: string, line = 1, context = 20) => req<SourceSlice>("GET", "/api/source", { file, line, context }),

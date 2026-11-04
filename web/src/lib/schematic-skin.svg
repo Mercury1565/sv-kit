@@ -1,0 +1,429 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+  xmlns:s="https://github.com/nturley/netlistsvg"
+  width="800" height="400">
+  <!--
+    svkit schematic skin for netlistsvg (original drawing; same template format as netlistsvg's skins).
+    Colours are not set here: the page styles every class below with its theme tokens (index.css, .schematic).
+    Cell types are Yosys internal gate names ($_AND_ ...) plus svkit's own ($svkit_*): the server
+    (svkit/design/schematic.py) maps library cells and module instances onto them.
+    Rules netlistsvg imposes: in a template, every <g> child is a port (s:pid); a generic template's first
+    child is a <text> (netlistsvg writes the cell type into it) and its last four children are in0, in1,
+    out0, out1, whose first child is the port label <text>.
+  -->
+  <s:properties constants="true" splitsAndJoins="true" genericsLaterals="false">
+    <s:layoutEngine
+      org.eclipse.elk.layered.spacing.nodeNodeBetweenLayers="40"
+      org.eclipse.elk.spacing.nodeNode="28"
+      org.eclipse.elk.layered.spacing.edgeNodeBetweenLayers="14"
+      org.eclipse.elk.spacing.edgeEdge="10"
+      org.eclipse.elk.layered.layering.strategy="NETWORK_SIMPLEX"
+      org.eclipse.elk.layered.nodePlacement.strategy="BRANDES_KOEPF"
+      org.eclipse.elk.layered.crossingMinimization.strategy="LAYER_SWEEP"
+    />
+  </s:properties>
+
+  <!-- ===================================================================== gates -->
+  <g s:type="buf" transform="translate(20,20)" s:width="24" s:height="20">
+    <s:alias val="$_BUF_"/>
+    <text x="12" y="-5" class="ref" s:attribute="ref">ref</text>
+    <path d="M0,0 L0,20 L22,10 Z" class="sym $cell_id"/>
+    <text x="12" y="32" class="delay" s:attribute="delay">delay</text>
+    <g s:x="0" s:y="10" s:pid="A"/>
+    <g s:x="24" s:y="10" s:pid="Y"/>
+  </g>
+  <g s:type="not" transform="translate(70,20)" s:width="28" s:height="20">
+    <s:alias val="$_NOT_"/>
+    <text x="12" y="-5" class="ref" s:attribute="ref">ref</text>
+    <path d="M0,0 L0,20 L20,10 Z" class="sym $cell_id"/>
+    <circle cx="23.5" cy="10" r="3.5" class="sym $cell_id"/>
+    <text x="12" y="32" class="delay" s:attribute="delay">delay</text>
+    <g s:x="0" s:y="10" s:pid="A"/>
+    <g s:x="28" s:y="10" s:pid="Y"/>
+  </g>
+
+  <g s:type="and" transform="translate(120,20)" s:width="30" s:height="26">
+    <s:alias val="$_AND_"/>
+    <text x="14" y="-5" class="ref" s:attribute="ref">ref</text>
+    <path d="M0,0 L14,0 A13,13 0 0 1 14,26 L0,26 Z" class="sym $cell_id"/>
+    <text x="14" y="38" class="delay" s:attribute="delay">delay</text>
+    <g s:x="0" s:y="7" s:pid="A"/>
+    <g s:x="0" s:y="19" s:pid="B"/>
+    <g s:x="30" s:y="13" s:pid="Y"/>
+  </g>
+  <g s:type="and3" transform="translate(170,20)" s:width="32" s:height="34">
+    <s:alias val="$svkit_and3"/>
+    <text x="15" y="-5" class="ref" s:attribute="ref">ref</text>
+    <path d="M0,0 L15,0 A17,17 0 0 1 15,34 L0,34 Z" class="sym $cell_id"/>
+    <text x="15" y="46" class="delay" s:attribute="delay">delay</text>
+    <g s:x="0" s:y="7" s:pid="A"/>
+    <g s:x="0" s:y="17" s:pid="B"/>
+    <g s:x="0" s:y="27" s:pid="C"/>
+    <g s:x="32" s:y="17" s:pid="Y"/>
+  </g>
+  <g s:type="and4" transform="translate(220,20)" s:width="34" s:height="44">
+    <s:alias val="$svkit_and4"/>
+    <text x="16" y="-5" class="ref" s:attribute="ref">ref</text>
+    <path d="M0,0 L16,0 A22,22 0 0 1 16,44 L0,44 Z" class="sym $cell_id"/>
+    <text x="16" y="56" class="delay" s:attribute="delay">delay</text>
+    <g s:x="0" s:y="7" s:pid="A"/>
+    <g s:x="0" s:y="17" s:pid="B"/>
+    <g s:x="0" s:y="27" s:pid="C"/>
+    <g s:x="0" s:y="37" s:pid="D"/>
+    <g s:x="34" s:y="22" s:pid="Y"/>
+  </g>
+
+  <g s:type="nand" transform="translate(120,90)" s:width="35" s:height="26">
+    <s:alias val="$_NAND_"/>
+    <text x="14" y="-5" class="ref" s:attribute="ref">ref</text>
+    <path d="M0,0 L14,0 A13,13 0 0 1 14,26 L0,26 Z" class="sym $cell_id"/>
+    <circle cx="30.5" cy="13" r="3.5" class="sym $cell_id"/>
+    <text x="14" y="38" class="delay" s:attribute="delay">delay</text>
+    <g s:x="0" s:y="7" s:pid="A"/>
+    <g s:x="0" s:y="19" s:pid="B"/>
+    <g s:x="35" s:y="13" s:pid="Y"/>
+  </g>
+  <g s:type="nand3" transform="translate(170,90)" s:width="37" s:height="34">
+    <s:alias val="$svkit_nand3"/>
+    <text x="15" y="-5" class="ref" s:attribute="ref">ref</text>
+    <path d="M0,0 L15,0 A17,17 0 0 1 15,34 L0,34 Z" class="sym $cell_id"/>
+    <circle cx="33.5" cy="17" r="3.5" class="sym $cell_id"/>
+    <text x="15" y="46" class="delay" s:attribute="delay">delay</text>
+    <g s:x="0" s:y="7" s:pid="A"/>
+    <g s:x="0" s:y="17" s:pid="B"/>
+    <g s:x="0" s:y="27" s:pid="C"/>
+    <g s:x="37" s:y="17" s:pid="Y"/>
+  </g>
+  <g s:type="nand4" transform="translate(220,90)" s:width="39" s:height="44">
+    <s:alias val="$svkit_nand4"/>
+    <text x="16" y="-5" class="ref" s:attribute="ref">ref</text>
+    <path d="M0,0 L16,0 A22,22 0 0 1 16,44 L0,44 Z" class="sym $cell_id"/>
+    <circle cx="41.5" cy="22" r="3.5" class="sym $cell_id"/>
+    <text x="16" y="56" class="delay" s:attribute="delay">delay</text>
+    <g s:x="0" s:y="7" s:pid="A"/>
+    <g s:x="0" s:y="17" s:pid="B"/>
+    <g s:x="0" s:y="27" s:pid="C"/>
+    <g s:x="0" s:y="37" s:pid="D"/>
+    <g s:x="45" s:y="22" s:pid="Y"/>
+  </g>
+
+  <g s:type="or" transform="translate(120,160)" s:width="32" s:height="26">
+    <s:alias val="$_OR_"/>
+    <text x="14" y="-5" class="ref" s:attribute="ref">ref</text>
+    <path d="M0,0 Q6,13 0,26 Q20,26 32,13 Q20,0 0,0 Z" class="sym $cell_id"/>
+    <text x="14" y="38" class="delay" s:attribute="delay">delay</text>
+    <g s:x="2" s:y="7" s:pid="A"/>
+    <g s:x="2" s:y="19" s:pid="B"/>
+    <g s:x="32" s:y="13" s:pid="Y"/>
+  </g>
+  <g s:type="or3" transform="translate(170,160)" s:width="34" s:height="34">
+    <s:alias val="$svkit_or3"/>
+    <text x="15" y="-5" class="ref" s:attribute="ref">ref</text>
+    <path d="M0,0 Q7,17 0,34 Q22,34 34,17 Q22,0 0,0 Z" class="sym $cell_id"/>
+    <text x="15" y="46" class="delay" s:attribute="delay">delay</text>
+    <g s:x="3" s:y="7" s:pid="A"/>
+    <g s:x="4" s:y="17" s:pid="B"/>
+    <g s:x="3" s:y="27" s:pid="C"/>
+    <g s:x="34" s:y="17" s:pid="Y"/>
+  </g>
+  <g s:type="or4" transform="translate(220,160)" s:width="36" s:height="44">
+    <s:alias val="$svkit_or4"/>
+    <text x="16" y="-5" class="ref" s:attribute="ref">ref</text>
+    <path d="M0,0 Q8,22 0,44 Q24,44 36,22 Q24,0 0,0 Z" class="sym $cell_id"/>
+    <text x="16" y="56" class="delay" s:attribute="delay">delay</text>
+    <g s:x="2" s:y="7" s:pid="A"/>
+    <g s:x="5" s:y="17" s:pid="B"/>
+    <g s:x="5" s:y="27" s:pid="C"/>
+    <g s:x="2" s:y="37" s:pid="D"/>
+    <g s:x="36" s:y="22" s:pid="Y"/>
+  </g>
+
+  <g s:type="nor" transform="translate(120,230)" s:width="39" s:height="26">
+    <s:alias val="$_NOR_"/>
+    <text x="14" y="-5" class="ref" s:attribute="ref">ref</text>
+    <path d="M0,0 Q6,13 0,26 Q20,26 32,13 Q20,0 0,0 Z" class="sym $cell_id"/>
+    <circle cx="35.5" cy="13" r="3.5" class="sym $cell_id"/>
+    <text x="14" y="38" class="delay" s:attribute="delay">delay</text>
+    <g s:x="2" s:y="7" s:pid="A"/>
+    <g s:x="2" s:y="19" s:pid="B"/>
+    <g s:x="39" s:y="13" s:pid="Y"/>
+  </g>
+  <g s:type="nor3" transform="translate(170,230)" s:width="41" s:height="34">
+    <s:alias val="$svkit_nor3"/>
+    <text x="15" y="-5" class="ref" s:attribute="ref">ref</text>
+    <path d="M0,0 Q7,17 0,34 Q22,34 34,17 Q22,0 0,0 Z" class="sym $cell_id"/>
+    <circle cx="37.5" cy="17" r="3.5" class="sym $cell_id"/>
+    <text x="15" y="46" class="delay" s:attribute="delay">delay</text>
+    <g s:x="3" s:y="7" s:pid="A"/>
+    <g s:x="4" s:y="17" s:pid="B"/>
+    <g s:x="3" s:y="27" s:pid="C"/>
+    <g s:x="41" s:y="17" s:pid="Y"/>
+  </g>
+  <g s:type="nor4" transform="translate(220,230)" s:width="43" s:height="44">
+    <s:alias val="$svkit_nor4"/>
+    <text x="16" y="-5" class="ref" s:attribute="ref">ref</text>
+    <path d="M0,0 Q8,22 0,44 Q24,44 36,22 Q24,0 0,0 Z" class="sym $cell_id"/>
+    <circle cx="39.5" cy="22" r="3.5" class="sym $cell_id"/>
+    <text x="16" y="56" class="delay" s:attribute="delay">delay</text>
+    <g s:x="2" s:y="7" s:pid="A"/>
+    <g s:x="5" s:y="17" s:pid="B"/>
+    <g s:x="5" s:y="27" s:pid="C"/>
+    <g s:x="2" s:y="37" s:pid="D"/>
+    <g s:x="43" s:y="22" s:pid="Y"/>
+  </g>
+
+  <g s:type="xor" transform="translate(300,20)" s:width="36" s:height="26">
+    <s:alias val="$_XOR_"/>
+    <text x="17" y="-5" class="ref" s:attribute="ref">ref</text>
+    <path d="M0,0 Q6,13 0,26" class="sym open $cell_id"/>
+    <path d="M4,0 Q10,13 4,26 Q24,26 36,13 Q24,0 4,0 Z" class="sym $cell_id"/>
+    <text x="17" y="38" class="delay" s:attribute="delay">delay</text>
+    <g s:x="2" s:y="7" s:pid="A"/>
+    <g s:x="2" s:y="19" s:pid="B"/>
+    <g s:x="36" s:y="13" s:pid="Y"/>
+  </g>
+  <g s:type="xnor" transform="translate(300,90)" s:width="43" s:height="26">
+    <s:alias val="$_XNOR_"/>
+    <text x="17" y="-5" class="ref" s:attribute="ref">ref</text>
+    <path d="M0,0 Q6,13 0,26" class="sym open $cell_id"/>
+    <path d="M4,0 Q10,13 4,26 Q24,26 36,13 Q24,0 4,0 Z" class="sym $cell_id"/>
+    <circle cx="39.5" cy="13" r="3.5" class="sym $cell_id"/>
+    <text x="17" y="38" class="delay" s:attribute="delay">delay</text>
+    <g s:x="2" s:y="7" s:pid="A"/>
+    <g s:x="2" s:y="19" s:pid="B"/>
+    <g s:x="43" s:y="13" s:pid="Y"/>
+  </g>
+
+  <!-- A when S=0, B when S=1 (Yosys $_MUX_) -->
+  <g s:type="mux" transform="translate(370,20)" s:width="24" s:height="44">
+    <s:alias val="$_MUX_"/>
+    <text x="12" y="-5" class="ref" s:attribute="ref">ref</text>
+    <path d="M0,0 L24,8 L24,36 L0,44 Z" class="sym $cell_id"/>
+    <text x="4" y="15" class="pin">0</text>
+    <text x="4" y="35" class="pin">1</text>
+    <text x="12" y="62" class="delay" s:attribute="delay">delay</text>
+    <g s:x="0" s:y="11" s:pid="A"/>
+    <g s:x="0" s:y="31" s:pid="B"/>
+    <g s:x="12" s:y="40" s:pid="S"/>
+    <g s:x="24" s:y="22" s:pid="Y"/>
+  </g>
+
+  <!-- ===================================================================== storage -->
+  <g s:type="dff" transform="translate(440,20)" s:width="34" s:height="44">
+    <s:alias val="$_DFF_P_"/>
+    <text x="17" y="-5" class="ref" s:attribute="ref">ref</text>
+    <rect width="34" height="44" class="sym $cell_id"/>
+    <path d="M0,28 L7,33 L0,38" class="sym open $cell_id"/>
+    <text x="4" y="14" class="pin">D</text>
+    <text x="30" y="14" class="pin end">Q</text>
+    <text x="17" y="56" class="delay" s:attribute="delay">delay</text>
+    <g s:x="0" s:y="10" s:pid="D"/>
+    <g s:x="0" s:y="33" s:pid="C"/>
+    <g s:x="34" s:y="10" s:pid="Q"/>
+  </g>
+  <g s:type="dffn" transform="translate(500,20)" s:width="34" s:height="44">
+    <s:alias val="$_DFF_N_"/>
+    <text x="17" y="-5" class="ref" s:attribute="ref">ref</text>
+    <rect width="34" height="44" class="sym $cell_id"/>
+    <path d="M0,28 L7,33 L0,38" class="sym open $cell_id"/>
+    <circle cx="-3.5" cy="33" r="3.5" class="sym $cell_id"/>
+    <text x="4" y="14" class="pin">D</text>
+    <text x="30" y="14" class="pin end">Q</text>
+    <text x="17" y="56" class="delay" s:attribute="delay">delay</text>
+    <g s:x="0" s:y="10" s:pid="D"/>
+    <g s:x="-7" s:y="33" s:pid="C"/>
+    <g s:x="34" s:y="10" s:pid="Q"/>
+  </g>
+  <!-- flop with an asynchronous reset/clear pin R on the bottom edge -->
+  <g s:type="dffr" transform="translate(560,20)" s:width="34" s:height="44">
+    <s:alias val="$svkit_dffr"/>
+    <s:alias val="$_DFF_PP0_"/>
+    <s:alias val="$_DFF_PN0_"/>
+    <s:alias val="$_DFF_PP1_"/>
+    <s:alias val="$_DFF_PN1_"/>
+    <text x="17" y="-5" class="ref" s:attribute="ref">ref</text>
+    <rect width="34" height="44" class="sym $cell_id"/>
+    <path d="M0,28 L7,33 L0,38" class="sym open $cell_id"/>
+    <text x="4" y="14" class="pin">D</text>
+    <text x="30" y="14" class="pin end">Q</text>
+    <text x="17" y="40" class="pin mid">R</text>
+    <text x="17" y="62" class="delay" s:attribute="delay">delay</text>
+    <g s:x="0" s:y="10" s:pid="D"/>
+    <g s:x="0" s:y="33" s:pid="C"/>
+    <g s:x="17" s:y="44" s:pid="R"/>
+    <g s:x="34" s:y="10" s:pid="Q"/>
+  </g>
+  <g s:type="latch" transform="translate(620,20)" s:width="34" s:height="44">
+    <s:alias val="$_DLATCH_P_"/>
+    <s:alias val="$_DLATCH_N_"/>
+    <text x="17" y="-5" class="ref" s:attribute="ref">ref</text>
+    <rect width="34" height="44" class="sym $cell_id"/>
+    <text x="4" y="14" class="pin">D</text>
+    <text x="4" y="37" class="pin">E</text>
+    <text x="30" y="14" class="pin end">Q</text>
+    <text x="17" y="56" class="delay" s:attribute="delay">delay</text>
+    <g s:x="0" s:y="10" s:pid="D"/>
+    <g s:x="0" s:y="33" s:pid="E"/>
+    <g s:x="34" s:y="10" s:pid="Q"/>
+  </g>
+
+  <!-- ===================================================================== module boundary -->
+  <g s:type="inputExt" transform="translate(20,320)" s:width="30" s:height="18">
+    <s:alias val="$_inputExt_"/>
+    <text x="15" y="-5" class="io" s:attribute="ref">input</text>
+    <path d="M0,0 L20,0 L30,9 L20,18 L0,18 Z" class="io-sym $cell_id"/>
+    <g s:x="30" s:y="9" s:pid="Y"/>
+  </g>
+  <g s:type="outputExt" transform="translate(80,320)" s:width="30" s:height="18">
+    <s:alias val="$_outputExt_"/>
+    <text x="15" y="-5" class="io" s:attribute="ref">output</text>
+    <path d="M0,9 L10,0 L30,0 L30,18 L10,18 Z" class="io-sym $cell_id"/>
+    <g s:x="0" s:y="9" s:pid="A"/>
+  </g>
+  <g s:type="constant" transform="translate(140,320)" s:width="26" s:height="18">
+    <s:alias val="$_constant_"/>
+    <text x="13" y="-5" class="io" s:attribute="ref">constant</text>
+    <rect width="26" height="18" rx="9" class="io-sym const $cell_id"/>
+    <g s:x="26" s:y="9" s:pid="Y"/>
+  </g>
+  <g s:type="split" transform="translate(200,320)" s:width="4" s:height="40">
+    <rect width="4" height="40" class="splitjoin" s:generic="body"/>
+    <s:alias val="$_split_"/>
+    <g s:x="0" s:y="20" s:pid="in"/>
+    <g transform="translate(4, 10)" s:x="4" s:y="10" s:pid="out0">
+      <text x="4" y="-3" class="bits">hi:lo</text>
+    </g>
+    <g transform="translate(4, 30)" s:x="4" s:y="30" s:pid="out1">
+      <text x="4" y="-3" class="bits">hi:lo</text>
+    </g>
+  </g>
+  <g s:type="join" transform="translate(260,320)" s:width="4" s:height="40">
+    <rect width="4" height="40" class="splitjoin" s:generic="body"/>
+    <s:alias val="$_join_"/>
+    <g s:x="4" s:y="20" s:pid="out"/>
+    <g transform="translate(0, 10)" s:x="0" s:y="10" s:pid="in0">
+      <text x="-3" y="-3" class="bits end">hi:lo</text>
+    </g>
+    <g transform="translate(0, 30)" s:x="0" s:y="30" s:pid="in1">
+      <text x="-3" y="-3" class="bits end">hi:lo</text>
+    </g>
+  </g>
+
+  <!-- ===================================================================== boxes
+    Module instances, glue logic and library cells without a gate symbol. One template per width:
+    the server picks $svkit_box_<w> from the longest port names. The header shows the `type_label`
+    attribute (module or cell type); the instance name sits above the box. -->
+  <g s:type="generic" transform="translate(320,320)" s:width="100" s:height="62">
+    <text x="50" y="-5" class="hidden">generic</text>
+    <s:alias val="$svkit_box_100"/>
+    <text x="0" y="-5" class="ref box-ref" s:attribute="ref">ref</text>
+    <rect width="100" height="62" rx="3" s:generic="body" class="box $cell_id"/>
+    <text x="50" y="15" class="box-type" s:attribute="type_label">type</text>
+    <g transform="translate(100, 32)" s:x="100" s:y="32" s:pid="out0">
+      <text x="-5" y="4" class="port end">out0</text>
+    </g>
+    <g transform="translate(100, 48)" s:x="100" s:y="48" s:pid="out1">
+      <text x="-5" y="4" class="port end">out1</text>
+    </g>
+    <g transform="translate(0, 32)" s:x="0" s:y="32" s:pid="in0">
+      <text x="5" y="4" class="port">in0</text>
+    </g>
+    <g transform="translate(0, 48)" s:x="0" s:y="48" s:pid="in1">
+      <text x="5" y="4" class="port">in1</text>
+    </g>
+  </g>
+  <g s:type="generic" transform="translate(440,320)" s:width="140" s:height="62">
+    <text x="70" y="-5" class="hidden">generic</text>
+    <s:alias val="$svkit_box_140"/>
+    <text x="0" y="-5" class="ref box-ref" s:attribute="ref">ref</text>
+    <rect width="140" height="62" rx="3" s:generic="body" class="box $cell_id"/>
+    <text x="70" y="15" class="box-type" s:attribute="type_label">type</text>
+    <g transform="translate(140, 32)" s:x="140" s:y="32" s:pid="out0">
+      <text x="-5" y="4" class="port end">out0</text>
+    </g>
+    <g transform="translate(140, 48)" s:x="140" s:y="48" s:pid="out1">
+      <text x="-5" y="4" class="port end">out1</text>
+    </g>
+    <g transform="translate(0, 32)" s:x="0" s:y="32" s:pid="in0">
+      <text x="5" y="4" class="port">in0</text>
+    </g>
+    <g transform="translate(0, 48)" s:x="0" s:y="48" s:pid="in1">
+      <text x="5" y="4" class="port">in1</text>
+    </g>
+  </g>
+  <g s:type="generic" transform="translate(600,320)" s:width="200" s:height="62">
+    <text x="100" y="-5" class="hidden">generic</text>
+    <s:alias val="$svkit_box_200"/>
+    <text x="0" y="-5" class="ref box-ref" s:attribute="ref">ref</text>
+    <rect width="200" height="62" rx="3" s:generic="body" class="box $cell_id"/>
+    <text x="100" y="15" class="box-type" s:attribute="type_label">type</text>
+    <g transform="translate(200, 32)" s:x="200" s:y="32" s:pid="out0">
+      <text x="-5" y="4" class="port end">out0</text>
+    </g>
+    <g transform="translate(200, 48)" s:x="200" s:y="48" s:pid="out1">
+      <text x="-5" y="4" class="port end">out1</text>
+    </g>
+    <g transform="translate(0, 32)" s:x="0" s:y="32" s:pid="in0">
+      <text x="5" y="4" class="port">in0</text>
+    </g>
+    <g transform="translate(0, 48)" s:x="0" s:y="48" s:pid="in1">
+      <text x="5" y="4" class="port">in1</text>
+    </g>
+  </g>
+  <g s:type="generic" transform="translate(20,420)" s:width="280" s:height="62">
+    <text x="140" y="-5" class="hidden">generic</text>
+    <s:alias val="$svkit_box_280"/>
+    <text x="0" y="-5" class="ref box-ref" s:attribute="ref">ref</text>
+    <rect width="280" height="62" rx="3" s:generic="body" class="box $cell_id"/>
+    <text x="140" y="15" class="box-type" s:attribute="type_label">type</text>
+    <g transform="translate(280, 32)" s:x="280" s:y="32" s:pid="out0">
+      <text x="-5" y="4" class="port end">out0</text>
+    </g>
+    <g transform="translate(280, 48)" s:x="280" s:y="48" s:pid="out1">
+      <text x="-5" y="4" class="port end">out1</text>
+    </g>
+    <g transform="translate(0, 32)" s:x="0" s:y="32" s:pid="in0">
+      <text x="5" y="4" class="port">in0</text>
+    </g>
+    <g transform="translate(0, 48)" s:x="0" s:y="48" s:pid="in1">
+      <text x="5" y="4" class="port">in1</text>
+    </g>
+  </g>
+  <g s:type="generic" transform="translate(320,420)" s:width="380" s:height="62">
+    <text x="190" y="-5" class="hidden">generic</text>
+    <s:alias val="$svkit_box_380"/>
+    <text x="0" y="-5" class="ref box-ref" s:attribute="ref">ref</text>
+    <rect width="380" height="62" rx="3" s:generic="body" class="box $cell_id"/>
+    <text x="190" y="15" class="box-type" s:attribute="type_label">type</text>
+    <g transform="translate(380, 32)" s:x="380" s:y="32" s:pid="out0">
+      <text x="-5" y="4" class="port end">out0</text>
+    </g>
+    <g transform="translate(380, 48)" s:x="380" s:y="48" s:pid="out1">
+      <text x="-5" y="4" class="port end">out1</text>
+    </g>
+    <g transform="translate(0, 32)" s:x="0" s:y="32" s:pid="in0">
+      <text x="5" y="4" class="port">in0</text>
+    </g>
+    <g transform="translate(0, 48)" s:x="0" s:y="48" s:pid="in1">
+      <text x="5" y="4" class="port">in1</text>
+    </g>
+  </g>
+  <!-- fallback for any type without an alias: the last generic template -->
+  <g s:type="generic" transform="translate(20,520)" s:width="140" s:height="62">
+    <text x="70" y="-5" class="hidden">generic</text>
+    <text x="0" y="-5" class="ref box-ref" s:attribute="ref">ref</text>
+    <rect width="140" height="62" rx="3" s:generic="body" class="box $cell_id"/>
+    <text x="70" y="15" class="box-type" s:attribute="type_label">type</text>
+    <g transform="translate(140, 32)" s:x="140" s:y="32" s:pid="out0">
+      <text x="-5" y="4" class="port end">out0</text>
+    </g>
+    <g transform="translate(140, 48)" s:x="140" s:y="48" s:pid="out1">
+      <text x="-5" y="4" class="port end">out1</text>
+    </g>
+    <g transform="translate(0, 32)" s:x="0" s:y="32" s:pid="in0">
+      <text x="5" y="4" class="port">in0</text>
+    </g>
+    <g transform="translate(0, 48)" s:x="0" s:y="48" s:pid="in1">
+      <text x="5" y="4" class="port">in1</text>
+    </g>
+  </g>
+</svg>

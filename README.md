@@ -9,7 +9,7 @@ repo and get a local web dashboard plus a CLI for:
 - **Waveforms:** VCD/FST with struct/enum decoding, next-change / next-X, and failing tests opened
   at their first divergence from golden.
 - **CPI / TPI** per test program.
-- **Diagrams:** a module-level block diagram, and gate-level cones with the critical path highlighted.
+- **Diagrams:** a module-level block diagram, and gate-level cones drawn as schematics (gate symbols from your Liberty cell functions) with the critical path highlighted.
 - **X tracer:** `svkit xtrace` walks an X back to its root cause.
 
 svkit **wraps your existing build** (Makefile, scripts). Izt never edits your Makefile or TCL and
@@ -193,7 +193,7 @@ stalls = { load_use = 'load-use stalls\D*(\d+)' }   # optional
 
 [library]
 vt_suffix = { "_R" = "RVT", "_L" = "LVT", "_SL" = "SLVT" }   # cell-name suffix -> Vt class (longest wins)
-liberty = ["lib/tt.lib"]                                      # open-source flow
+liberty = ["lib/tt.lib"]                                      # open-source flow; also gives the Gates view its symbols
 corners = { TT = ["lib/tt.lib"], SS = ["lib/ss.lib"] }
 
 [tools]                           # executable overrides

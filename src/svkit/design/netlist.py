@@ -1,5 +1,5 @@
 """Gate-level netlist reader: Yosys JSON (``write_json``) and structural Verilog (DC ``.vg``,
-Yosys ``write_verilog``), plus a minimal Liberty pin-direction reader.
+Yosys ``write_verilog``), plus a minimal Liberty reader (pin directions, functions, ff/latch groups).
 
 The structural-Verilog reader is a small hand-written tokenizer/parser (module, port/wire
 declarations, ``assign``, cell instances with named or ordered port connections) - fast enough
@@ -39,6 +39,7 @@ class Netlist:
     loads: dict[str, list[tuple[str, str]]] = field(default_factory=dict)  # net -> [(cell, pin)]
     alias: dict[str, str] = field(default_factory=dict)        # net name -> canonical net
     source: str = ""
+    lib: dict[str, "LibCell"] = field(default_factory=dict)    # cell type -> Liberty info (when given)
 
     # -------------------------------------------------------------- build helpers
     def canon(self, net: str) -> str:
@@ -130,10 +131,19 @@ def _name_keys(n: str) -> list[str]:
 
 
 # ------------------------------------------------------------------ Liberty
-def read_liberty_dirs(paths: Iterable[Path | str]) -> dict[str, dict[str, str]]:
-    """Minimal Liberty reader: ``{cell: {pin: "in"|"out"|"inout"}}`` (bus/bundle pins included)."""
-    out: dict[str, dict[str, str]] = {}
-    tok = re.compile(r"/\*.*?\*/|\"(?:\\.|[^\"])*\"|[{}();:]|[^\s{}();:\"]+", re.S)
+@dataclass
+class LibCell:
+    """What svkit reads from a Liberty ``cell`` group."""
+    dirs: dict[str, str] = field(default_factory=dict)        # pin -> "in" | "out" | "inout"
+    functions: dict[str, str] = field(default_factory=dict)   # output pin -> boolean function
+    ff: Optional[dict[str, str]] = None      # ff group attributes (next_state, clocked_on, clear, preset) + "vars"
+    latch: Optional[dict[str, str]] = None   # latch group attributes (data_in, enable, ...) + "vars"
+
+
+def read_liberty_cells(paths: Iterable[Path | str]) -> dict[str, LibCell]:
+    """Minimal Liberty reader: pin directions, output functions and ff/latch groups per cell."""
+    out: dict[str, LibCell] = {}
+    tok = re.compile(r"/\*.*?\*/|\"(?:\\.|[^\"])*\"|[{}();:,]|[^\s{}();:,\"]+", re.S)
     for p in paths:
         try:
             text = Path(p).read_text(errors="replace")
@@ -143,7 +153,6 @@ def read_liberty_dirs(paths: Iterable[Path | str]) -> dict[str, dict[str, str]]:
         stack: list[tuple[str, str]] = []   # (group, name)
         toks = [t for t in tok.findall(text) if not t.startswith("/*")]
         i = 0
-        pending_group = None
         while i < len(toks):
             t = toks[i]
             if t == "}":
@@ -161,21 +170,38 @@ def read_liberty_dirs(paths: Iterable[Path | str]) -> dict[str, dict[str, str]]:
                     j += 1
                 if j + 1 < len(toks) and toks[j + 1] == "{":
                     stack.append((t, args[0] if args else ""))
+                    cell = next((nm for g, nm in reversed(stack) if g == "cell"), None)
+                    if cell and t in ("ff", "latch") and stack[-2][0] == "cell":
+                        setattr(out.setdefault(cell, LibCell()), t, {"vars": ",".join(args)})
                     i = j + 2
                     continue
                 i = j + 1
                 continue
             # attribute:  word : value ;
             if i + 2 < len(toks) and toks[i + 1] == ":":
-                if t == "direction" and stack and stack[-1][0] in ("pin", "bus", "bundle"):
-                    cell = next((nm for g, nm in reversed(stack) if g == "cell"), None)
-                    if cell:
-                        v = toks[i + 2].strip('"').lower()
-                        out.setdefault(cell, {})[stack[-1][1]] = {"input": "in", "output": "out"}.get(v, "inout")
+                cell = next((nm for g, nm in reversed(stack) if g == "cell"), None)
+                if cell and stack:
+                    g, nm = stack[-1]
+                    v = toks[i + 2].strip('"')
+                    lc = out.setdefault(cell, LibCell())
+                    if g in ("pin", "bus", "bundle"):
+                        if t == "direction":
+                            lc.dirs[nm] = {"input": "in", "output": "out"}.get(v.lower(), "inout")
+                        elif t == "function":
+                            lc.functions[nm] = v
+                    elif g in ("ff", "latch") and len(stack) >= 2 and stack[-2][0] == "cell":
+                        grp = getattr(lc, g)
+                        if grp is not None:
+                            grp[t] = v
                 i += 3
                 continue
             i += 1
     return out
+
+
+def read_liberty_dirs(paths: Iterable[Path | str]) -> dict[str, dict[str, str]]:
+    """``{cell: {pin: "in"|"out"|"inout"}}`` (bus/bundle pins included)."""
+    return {c: lc.dirs for c, lc in read_liberty_cells(paths).items() if lc.dirs}
 
 
 def heuristic_dir(pin: str, cell_pins: Iterable[str] = ()) -> str:
@@ -617,7 +643,11 @@ def _vflatten(nl: Netlist, mods: dict, m: _VMod, prefix: str, pmap: dict, lib: d
 def load(path: Path | str, *, top: Optional[str] = None, liberty: Iterable[Path | str] = ()) -> Netlist:
     """Read a gate netlist by extension: ``.json`` (Yosys) or Verilog (``.v``/``.vg``/``.sv``)."""
     p = Path(path)
+    cells = read_liberty_cells(liberty) if liberty else {}
     if p.suffix.lower() == ".json":
-        return read_yosys_json(p, top)
-    lib = read_liberty_dirs(liberty) if liberty else {}
-    return read_verilog(p, top, lib)
+        nl = read_yosys_json(p, top)
+    else:
+        nl = read_verilog(p, top, {c: lc.dirs for c, lc in cells.items() if lc.dirs})
+    used = {c.type for c in nl.cells.values()}
+    nl.lib = {t: lc for t, lc in cells.items() if t in used}
+    return nl

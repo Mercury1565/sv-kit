@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import type { WaveSignalData } from "../api/types";
-import { blockToElk, splitEndpoint } from "./graph";
 import { buildSegments, fitLabel, formatTime, formatValue, needsFetch, niceTicks, normBits, panView, sliceBits, tToX, valueAt, xToT, zoomView } from "./waves";
 import { moduleForSignal, splitPath } from "../views/waves/locate";
 
@@ -114,17 +113,6 @@ describe("time axis", () => {
 });
 
 describe("design graph helpers", () => {
-  it("splits node.port endpoints with dotted node ids", () => {
-    const ids = new Set(["u_a", "gen[1].u_b"]);
-    expect(splitEndpoint("gen[1].u_b.in", ids)).toEqual(["gen[1].u_b", "in"]);
-    expect(splitEndpoint("u_a", ids)).toEqual(["u_a", null]);
-    expect(splitEndpoint("clk", ids)).toEqual(["clk", null]);
-  });
-  it("builds an ELK graph with ports and io nodes for unknown endpoints", () => {
-    const g = blockToElk({ nodes: [{ id: "u_a", label: "u_a", ports: [{ name: "y", dir: "output" }] }], edges: [{ src: "u_a.y", dst: "out_port", width: 8 }] });
-    expect(g.children!.map((c) => c.id)).toEqual(["u_a", "io:out_port"]);
-    expect(g.edges![0].sources).toEqual(["u_a.y"]);
-  });
   it("maps wave paths to declaring modules", () => {
     expect(splitPath("tb.dut.gen[1].u_x.sig")).toEqual(["tb", "dut", "gen[1]", "u_x", "sig"]);
     const h = { top: "core", modules: { core: { ports: [], instances: [{ name: "u_exec", module: "exec" }] }, exec: { ports: [], instances: [] } } };

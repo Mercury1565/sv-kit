@@ -158,7 +158,7 @@ Each feature lists user stories, the approach, and its MVP cut.
 - I see the critical path from the timing report highlighted on the gates, with per-cell delays.
 
 **Approach**
-- Block view: DesignGraph → ELK.js layered layout → interactive SVG with bus widths and port directions.
+- Block view: DesignGraph → schematic netlist → netlistsvg (ELK.js layered layout, svkit symbol skin) in a background worker → sanitized, interactive SVG with buses and port directions. The gate view uses the same drawing, with gate symbols from the Liberty cell functions.
 - Gate view: parse the `.vg` netlist (pyslang handles structural Verilog) or Yosys JSON. **Render only the cone of a selected net, N levels deep**, because a full netlist is unreadable.
 - Critical-path overlay: map timing-report path points to netlist instances.
 

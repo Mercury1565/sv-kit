@@ -366,6 +366,40 @@ export interface ConeGraph {
   unresolved: string[];
 }
 
+/** One cell (or module port) of a drawn schematic, keyed like the netlist's cells/ports. */
+export interface SchematicCell {
+  kind: "instance" | "logic" | "port" | "cell";
+  name: string;
+  /** child module (instance) */
+  module?: string | null;
+  /** library cell type (cell), "PORT" / "cone output" (port) */
+  type?: string | null;
+  dir?: string | null;
+  width?: number | null;
+  /** drawn as a gate symbol (cell) rather than a box */
+  symbol?: boolean;
+  on_path?: boolean;
+  /** cell delay on the critical path, ps */
+  delay?: number | null;
+  pins?: Record<string, string>;
+}
+
+/** GET /api/design/schematic/{block,cone}: a Yosys-JSON netlist plus what each drawn cell is. */
+export interface Schematic {
+  netlist: { modules: Record<string, unknown> };
+  cells: Record<string, SchematicCell>;
+  /** netlistsvg wire classes (net_<bits>) on the critical path */
+  path_nets: string[];
+  counts: Record<string, number>;
+  module?: string | null;
+  instance?: string | null;
+  run?: string;
+  root_net?: string;
+  netlist_file?: string;
+  slack?: number | null;
+  unresolved?: { index: number; inst: string; pin: string; reason: string }[];
+}
+
 export interface SourceSlice {
   file: string;
   start: number;

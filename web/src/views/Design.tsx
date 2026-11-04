@@ -1,116 +1,122 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { api } from "../api/client";
-import type { BlockGraph, ConeGraph, DesignHierarchy } from "../api/types";
+import type { DesignHierarchy, Schematic, SchematicCell } from "../api/types";
 import { Empty, ErrorState, Loading } from "../components/States";
-import { fmtNum, plural } from "../lib/format";
-import { blockToElk, coneToElk, getElk, toDrawing, type Drawing } from "../lib/graph";
+import { plural } from "../lib/format";
+import { cellKey, decorate, draw, sanitize, setZoom } from "../lib/schematic";
 import { useAsync } from "../lib/hooks";
 import { Info } from "../components/Info";
 import { href, navigate } from "../lib/router";
 
-function useLayout(build: (() => Promise<Drawing>) | null, key: string) {
-  const [d, setD] = useState<Drawing | null>(null);
-  const [err, setErr] = useState<unknown>(null);
-  useEffect(() => {
-    let live = true;
-    setD(null);
-    setErr(null);
-    if (!build) return;
-    build().then(
-      (x) => live && setD(x),
-      (e) => live && setErr(e),
-    );
-    return () => {
-      live = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
-  return { drawing: d, error: err };
-}
+const ZOOM_MIN = 0.1;
+const ZOOM_MAX = 4;
+const ZOOM_READABLE = 0.7;
 
-function DiagramSvg({ d, onNode, zoom }: { d: Drawing; onNode?: (id: string, module?: string | null) => void; zoom: number }) {
+/** Draws a schematic (Blocks or Gates: same code) in the background worker and shows it. */
+function SchematicView({
+  data,
+  what,
+  clickable,
+  onOpen,
+  allNames = true,
+}: {
+  data: Schematic;
+  what: string;
+  clickable?: (c: SchematicCell) => boolean;
+  onOpen?: (key: string, c: SchematicCell) => void;
+  allNames?: boolean;
+}) {
+  const host = useRef<HTMLDivElement>(null);
+  const [svg, setSvg] = useState<string | null>(null);
+  const [err, setErr] = useState<Error | null>(null);
+  const [zoom, setZ] = useState<number | null>(null); // null = fit on first draw
+  const [size, setSize] = useState({ w: 0, h: 0 });
+
+  useEffect(() => {
+    setSvg(null);
+    setErr(null);
+    setZ(null);
+    const job = draw(data.netlist);
+    job.promise.then((r) => setSvg(sanitize(r.svg)), (e: Error) => setErr(e));
+    return job.cancel;
+  }, [data]);
+
+  useLayoutEffect(() => {
+    const h = host.current;
+    if (!h || svg == null) return;
+    h.innerHTML = svg;
+    const el = h.querySelector("svg");
+    if (!el) return;
+    const sz = decorate(el, data, { clickable });
+    setSize({ w: sz.width, h: sz.height });
+    // start at 100%, or smaller to show more of a wide drawing, but never below a readable size
+    const fit = sz.width > 0 ? (h.clientWidth - 2) / sz.width : 1;
+    setZ((z) => z ?? Math.min(1, Math.max(ZOOM_READABLE, fit)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [svg]);
+
+  useLayoutEffect(() => {
+    const el = host.current?.querySelector("svg");
+    if (el && zoom != null) setZoom(el, zoom);
+  }, [zoom, svg]);
+
+  const open = (target: EventTarget | null) => {
+    const key = cellKey(target as Element | null);
+    const c = key != null ? data.cells[key] : undefined;
+    if (key != null && c && clickable?.(c)) onOpen?.(key, c);
+  };
+  const fit = () => {
+    const w = host.current?.clientWidth ?? 0;
+    if (size.w > 0 && w > 0) setZ(Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, (w - 2) / size.w)));
+  };
+  const n = Object.keys(data.cells).length;
+
   return (
-    <svg width={d.width * zoom} height={d.height * zoom} viewBox={`-10 -10 ${d.width} ${d.height}`} role="img" aria-label={`diagram with ${d.nodes.length} nodes`}>
-      <defs>
-        <marker id="arr" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
-          <path d="M0,0 L8,4 L0,8 z" fill="currentColor" style={{ color: "var(--fg-faint)" }} />
-        </marker>
-      </defs>
-      {d.edges.map((e) =>
-        e.points.length ? (
-          <g key={e.id} className={`edge ${e.onPath ? "on" : ""} ${e.width && e.width > 1 ? "bus" : ""}`}>
-            <path d={"M" + e.points.map((p) => `${p.x},${p.y}`).join(" L")} markerEnd="url(#arr)" />
-            {e.label && (
-              <text x={e.points[0].x + 6} y={e.points[0].y - 4}>
-                {e.label}
-              </text>
-            )}
-          </g>
-        ) : null,
+    <>
+      <div className="row wrap" style={{ justifyContent: "flex-end" }}>
+        <ZoomBar zoom={zoom ?? 1} setZoom={setZ} onFit={fit} disabled={svg == null} />
+      </div>
+      {err ? (
+        <ErrorState error={err} feature="Schematic drawing" />
+      ) : (
+        <>
+          {svg == null && <Loading what={`Laying out ${plural(n, what)}`} />}
+          <div
+            ref={host}
+            className={`diagram schematic ${allNames ? "" : "path-names"}`}
+            hidden={svg == null}
+            onClick={(e) => open(e.target)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                open(e.target);
+              }
+            }}
+          />
+        </>
       )}
-      {d.nodes.map((n) => {
-        const click = !!onNode && !n.io && !!n.module;
-        return (
-          <g key={n.id} className={`node ${click ? "click" : ""} ${n.onPath ? "on" : ""}`} onClick={click ? () => onNode!(n.id, n.module) : undefined}>
-            <title>{[n.label, n.sub].filter(Boolean).join("\n")}</title>
-            <rect x={n.x} y={n.y} width={n.w} height={n.h} rx={n.io ? 11 : 3} />
-            {n.ports.length > 0 ? (
-              // ported blocks: names outside the box so they never collide with port labels
-              <>
-                <text x={n.x} y={n.y - 5}>
-                  {n.label}
-                </text>
-                {n.sub && (
-                  <text className="sub" x={n.x} y={n.y + n.h + 12}>
-                    {n.sub}
-                  </text>
-                )}
-              </>
-            ) : (
-              <>
-                <text x={n.x + n.w / 2} y={n.y + 15} textAnchor="middle">
-                  {n.label}
-                </text>
-                {n.sub && (
-                  <text className="sub" x={n.x + n.w / 2} y={n.y + 29} textAnchor="middle">
-                    {n.sub}
-                  </text>
-                )}
-              </>
-            )}
-            {n.delay != null && (
-              <text className="delay" x={n.x + n.w / 2} y={n.y + n.h - 7} textAnchor="middle" fontSize={11}>
-                {fmtNum(n.delay, 1)} ps
-              </text>
-            )}
-            {n.ports.map((p) => (
-              <g key={p.id} className="port">
-                <rect x={p.x} y={p.y} width={6} height={6} />
-                <text x={p.side === "W" ? p.x + 9 : p.x - 3} y={p.y + 6} textAnchor={p.side === "W" ? "start" : "end"}>
-                  {p.name}
-                </text>
-              </g>
-            ))}
-          </g>
-        );
-      })}
-    </svg>
+    </>
   );
 }
 
-function ZoomBar({ zoom, setZoom }: { zoom: number; setZoom: (z: number) => void }) {
+function ZoomBar({ zoom, setZoom, onFit, disabled }: { zoom: number; setZoom: (z: number) => void; onFit: () => void; disabled?: boolean }) {
   return (
     <span className="row" style={{ gap: 4 }}>
-      <button className="icon" onClick={() => setZoom(Math.max(0.2, zoom / 1.25))} aria-label="Zoom out">
+      <button className="icon" disabled={disabled} onClick={() => setZoom(Math.max(ZOOM_MIN, zoom / 1.25))} aria-label="Zoom out">
         −
       </button>
-      <span className="small muted num" style={{ width: 40 }}>
+      <span className="small muted num" style={{ width: 40, textAlign: "center" }}>
         {Math.round(zoom * 100)}%
       </span>
-      <button className="icon" onClick={() => setZoom(Math.min(4, zoom * 1.25))} aria-label="Zoom in">
+      <button className="icon" disabled={disabled} onClick={() => setZoom(Math.min(ZOOM_MAX, zoom * 1.25))} aria-label="Zoom in">
         +
       </button>
-      <button onClick={() => setZoom(1)}>100%</button>
+      <button disabled={disabled} onClick={() => setZoom(1)}>
+        100%
+      </button>
+      <button disabled={disabled} onClick={onFit}>
+        Fit
+      </button>
     </span>
   );
 }
@@ -120,35 +126,17 @@ function BlockDiagram({ module, trail }: { module: string; trail: string[] }) {
   const hier = useAsync(() => api.hierarchy(), []);
   const top = hier.data?.top;
   const mod = module || top || "";
-  const block = useAsync(() => (mod ? api.block(mod) : Promise.resolve<BlockGraph | null>(null)), [mod]);
-  const [zoom, setZoom] = useState(1);
+  const block = useAsync(() => (mod ? api.schematicBlock(mod) : Promise.resolve<Schematic | null>(null)), [mod]);
   const g = block.data;
-  const layout = useLayout(
-    g
-      ? async () => {
-          const elk = await getElk();
-          const laid = await elk.layout(blockToElk(g));
-          const byId = new Map(g.nodes.map((n) => [n.id, n]));
-          return toDrawing(
-            laid,
-            (id) => {
-              const n = byId.get(id);
-              return { label: n?.label ?? id, sub: n?.module ?? undefined, module: n?.module };
-            },
-            (i) => ({ width: g.edges[i]?.width, label: g.edges[i]?.width && g.edges[i].width! > 1 ? `[${g.edges[i].width! - 1}:0]` : undefined }),
-          );
-        }
-      : null,
-    `${mod}:${g ? g.nodes.length : -1}`,
-  );
-  const descend = (inst: string, child?: string | null) => {
-    if (!child) return;
-    const h = hier.data as DesignHierarchy | undefined;
-    if (h && !h.modules[child]) return;
-    navigate(href("/design", { module: child, trail: [...trail, `${inst}:${child}`].join(",") }));
+  const h = hier.data as DesignHierarchy | undefined;
+  const canOpen = (c: SchematicCell) => c.kind === "instance" && !!c.module && (!h || !!h.modules[c.module]);
+  const descend = (_key: string, c: SchematicCell) => {
+    navigate(href("/design", { module: c.module!, trail: [...trail, `${c.name}:${c.module}`].join(",") }));
   };
   if (hier.error && !module) return <ErrorState error={hier.error} feature="Design hierarchy" onRetry={hier.reload} />;
   if (!mod) return hier.loading ? <Loading what="Loading hierarchy" /> : <Empty title="No design loaded" cmd="svkit init" />;
+  const instances = g?.counts.instances ?? 0;
+  const hasLogic = !!g && Object.values(g.cells).some((c) => c.kind === "logic");
   return (
     <>
       <div className="row wrap">
@@ -168,23 +156,22 @@ function BlockDiagram({ module, trail }: { module: string; trail: string[] }) {
           <span className="faint">({mod})</span>
         </div>
         <span className="spacer" />
-        {g && <span className="small muted">{plural(g.nodes.length, "instance")} · {plural(g.edges.length, "connection")}</span>}
-        <ZoomBar zoom={zoom} setZoom={setZoom} />
+        {g && (
+          <span className="small muted">
+            {plural(instances, "instance")} · {plural(g.counts.ports ?? 0, "port")} · {plural(g.counts.nets ?? 0, "net")}
+          </span>
+        )}
       </div>
       {block.error ? (
         <ErrorState error={block.error} feature="Block diagrams" onRetry={block.reload} />
-      ) : layout.error ? (
-        <ErrorState error={layout.error} />
-      ) : g && g.nodes.length === 0 ? (
+      ) : !g ? (
+        <Loading what="Loading block diagram" />
+      ) : instances === 0 && !hasLogic ? (
         <Empty title={`${mod} has no child instances`}>It is a leaf module.</Empty>
-      ) : !layout.drawing ? (
-        <Loading what="Laying out" />
       ) : (
-        <div className="diagram">
-          <DiagramSvg d={layout.drawing} zoom={zoom} onNode={(id, m) => descend(id, m)} />
-        </div>
+        <SchematicView data={g} what="block" clickable={canOpen} onOpen={descend} />
       )}
-      <div className="small muted">Click an instance to descend into it.</div>
+      <div className="small muted">Click an instance (or focus it and press Enter) to descend into it. Hover anything for details.</div>
     </>
   );
 }
@@ -193,31 +180,15 @@ function BlockDiagram({ module, trail }: { module: string; trail: string[] }) {
 function ConeDiagram({ run, path, net, depth }: { run: string; path: string; net: string; depth: number }) {
   const [netIn, setNetIn] = useState(net);
   const [depthIn, setDepthIn] = useState(depth);
-  const [zoom, setZoom] = useState(1);
+  const [allNames, setAllNames] = useState(false);
   const cone = useAsync(
-    () => api.cone({ run, net: net || undefined, depth, path: path === "" ? undefined : path }),
+    () => api.schematicCone({ run, net: net || undefined, depth, path: path === "" ? undefined : path }),
     [run, net, depth, path],
   );
-  const g = cone.data as ConeGraph | undefined;
-  const layout = useLayout(
-    g
-      ? async () => {
-          const elk = await getElk();
-          const laid = await elk.layout(coneToElk(g));
-          const byId = new Map(g.nodes.map((n) => [n.id, n]));
-          return toDrawing(
-            laid,
-            (id) => {
-              const n = byId.get(id);
-              return { label: id, sub: n?.cell ?? undefined, onPath: !!n?.on_path, delay: n?.delay ?? null };
-            },
-            (i) => ({ onPath: !!g.edges[i]?.on_path }),
-          );
-        }
-      : null,
-    `${run}:${net}:${depth}:${path}:${g ? g.nodes.length : -1}`,
-  );
-  const onPathCount = g?.nodes.filter((n) => n.on_path).length ?? 0;
+  const g = cone.data;
+  const cells = g?.counts.cells ?? 0;
+  const onPath = g?.counts.on_path ?? 0;
+  const unresolved = g?.unresolved ?? [];
   return (
     <>
       <form
@@ -240,33 +211,43 @@ function ConeDiagram({ run, path, net, depth }: { run: string; path: string; net
           <input type="number" min={1} max={50} value={depthIn} onChange={(e) => setDepthIn(Number(e.target.value))} style={{ width: 56 }} />
         </label>
         <button type="submit">Show</button>
+        <label className="field">
+          <input type="checkbox" checked={allNames} onChange={(e) => setAllNames(e.target.checked)} />
+          all instance names
+        </label>
         <span className="spacer" />
         {g && (
           <span className="small muted">
-            {plural(g.nodes.length, "cell")} · {onPathCount} on path
+            {plural(cells, "cell")} · {onPath} on path
+            {cells > 0 && g.counts.symbols < cells && <> · {plural(cells - g.counts.symbols, "box", "boxes")}</>}
           </span>
         )}
-        <ZoomBar zoom={zoom} setZoom={setZoom} />
       </form>
-      {g && g.unresolved.length > 0 && (
+      {unresolved.length > 0 && (
         <div className="small worse anywhere">
-          {plural(g.unresolved.length, "path point")} could not be matched to gates in the synthesized netlist: <span className="mono">{g.unresolved.slice(0, 10).join(", ")}{g.unresolved.length > 10 ? " …" : ""}</span>
+          {plural(unresolved.length, "path point")} could not be matched to gates in the synthesized netlist:{" "}
+          <span className="mono">
+            {unresolved
+              .slice(0, 10)
+              .map((u) => (u.inst ? `${u.inst}/${u.pin}` : u.pin))
+              .join(", ")}
+            {unresolved.length > 10 ? " …" : ""}
+          </span>
         </div>
       )}
       {cone.error ? (
         <ErrorState error={cone.error} feature="Gate cone view" onRetry={cone.reload} />
-      ) : layout.error ? (
-        <ErrorState error={layout.error} />
-      ) : g && g.nodes.length === 0 ? (
+      ) : !g ? (
+        <Loading what="Loading gate cone" />
+      ) : cells === 0 ? (
         <Empty title="No gates found">Nothing in the synthesized design drives this signal.</Empty>
-      ) : !layout.drawing ? (
-        <Loading what="Laying out" />
       ) : (
-        <div className="diagram">
-          <DiagramSvg d={layout.drawing} zoom={zoom} />
-        </div>
+        <SchematicView data={g} what="cell" allNames={allNames} />
       )}
-      <div className="small muted">Cells on the critical path are outlined in red with their cell delay.</div>
+      <div className="small muted">
+        Cells on the critical path are drawn in red with their cell delay. Library cells without a gate symbol are boxes
+        with their pin names. Hover a cell for its type.
+      </div>
     </>
   );
 }
@@ -280,10 +261,10 @@ export default function DesignView({ query }: { query: URLSearchParams }) {
         <h1>Design</h1>
         <div className="seg">
           <button className={!cone ? "on" : ""} onClick={() => navigate("/design")}>
-            Block diagram
+            Blocks
           </button>
           <button className={cone ? "on" : ""} disabled={!cone} title={cone ? undefined : "Open the gates of a timing path from a synthesis run (\"Show gates\")"}>
-            Gate cone
+            Gates
           </button>
         </div>
         <Info term="gate_cone" />

@@ -4,7 +4,7 @@
 - **Phase:** Phases 0–3 implemented. **Both flows now run on real tools** (VCS + DC on CAEN; Verilator + Yosys + OpenSTA on the dev host). **~85 % to MVP.** Remaining: a frontend rebuild (sweep note, new API endpoints; needs Node), browser click-through of every view, web proposal 5, the Icarus decision, and the OSS flow on CAEN (blocked on OpenSTA).
 - **Dogfood checkpoint (EECS 470 copy in `~/svkit-work/dogfood`):** `svkit init` needs **no hand edits**. 21/21 tests pass on VCS, the DC matrix runs (TT/SS/FF), and the clock sweep finds **T_min = 4708 ps** (14 DC runs). TPI uses it, and the dashboard API works on the real CPU.
 - **Demoable on CAEN:** `cd ~/svkit-work/dogfood && svkit serve`, then `ssh -L 8470:localhost:8470 <caen host>` from your laptop.
-- **New (iter 4):** runs on a laptop without Synopsys (automatic Verilator/Yosys/OpenSTA fallback), plain-language dashboard with (i) explanations, and **unit tests as their own suite** (Tests → Unit tests, waves at the first error).
+- **New (iter 4–6):** runs on a laptop without Synopsys (automatic Verilator/Yosys/OpenSTA fallback), plain-language dashboard with (i) explanations, **unit tests as their own suite** (Tests → Unit tests, waves at the first error), FST waveform archive, and **schematic Blocks/Gates diagrams** (netlistsvg, gate symbols from Liberty).
 - **Needs owner:**
   1. **OpenSTA on CAEN:** installing it (micromamba + `litex-hub::openroad` into `~/tools`) was blocked by the permission classifier as running downloaded code. Approve it, or install it yourself, to run the OSS flow and its tests on CAEN.
   2. **X-trace parity on the OSS flow:** Verilator is 2-state, so it never shows X. Recommend pulling an Icarus sim adapter into the MVP (scope change vs decision #18).
@@ -202,4 +202,35 @@ svkit sim --all --flow unit      # same from the CLI
 ```
 svkit waves archive --to fst --dry-run    # what an existing project would save
 svkit waves archive --to fst              # shrink it (a running svkit serve picks it up)
+```
+
+## Iteration 6 — 2026-11-04 — Schematic diagrams: netlistsvg for Blocks and Gates
+**Status:** done
+**What works now:**
+- Design → **Blocks** and **Gates** are drawn as real schematics by netlistsvg. Gates get gate symbols (AND/NAND/OR/NOR up to 4 inputs, XOR/XNOR, inverter, buffer, 2:1 mux, flip-flop with or without reset, latch). Module instances, glue logic and unrecognised library cells are boxes with their port names. Module ports are pin shapes, buses are thick wires, and splits/joins are drawn where a bus is sliced.
+- The critical path is red, cells and wires, with each cell's delay under it. Hover any cell for its instance name, cell type or module, and delay. The "all instance names" toggle shows every gate's name (by default only the path's).
+- Blocks: click an instance (or Tab to it and press Enter) to descend. Fit / 100 % / ± zoom. Light and dark themes.
+- The layout runs in a Web Worker: a 970-cell cone (pipe5, depth 40) lays out in about 6 s without freezing the page. Leaving the view or changing the cone cancels a running layout.
+- On the pipe5 OSS run (svkit_tiny Liberty), 28 of the 42 cells in the depth-4 critical cone are drawn as symbols; the 14 boxes are AOI21/OAI21.
+**Decisions made (and why):**
+- Owner request: netlistsvg draws both diagrams, using elkjs 0.3.0 (its own dependency), our original skin (`web/src/lib/schematic-skin.svg`), DOMPurify on its output, and a Web Worker (`schematic.worker.ts`). This replaces the hand-drawn ELK 0.11 diagrams (`web/src/lib/graph.ts`, removed, with the `elkjs` 0.11 dependency). The stack line "ELK.js for diagrams" still holds: netlistsvg lays out with ELK.
+- The server sends netlistsvg's input format (one Yosys-JSON module), so the browser has a single drawing path. New endpoints are `/api/design/schematic/{block,cone}` (ARCHITECTURE §6). The old `/api/design/{block,cone}` stay unchanged as the analysis contract.
+- Gate symbols are found by the cell's logic, not its name. svkit evaluates the truth table of the Liberty `function` and matches it to and/nand/or/nor/xor/xnor/buf/not/mux, and reads `ff`/`latch` groups for flops and latches. This works for any library. Without Liberty it falls back to the name convention (`nand3`, `MUX21`, `DFF`, sky130 `__` prefixes). Anything ambiguous is a box, never a wrong symbol. Yosys internal gates (`$_AND_` …) are drawn as they are.
+- Box width comes from the longest port label. The skin has five widths (`$svkit_box_100`…`380`) because netlistsvg sizes boxes per template.
+- Three Node-only modules that netlistsvg/elkjs require get small browser shims (`web/shims/`: `assert`, `stream`, `webworker-threads`). `schematic.guard.ts` gives elkjs 0.3.0 a placeholder `document`; otherwise, inside a worker, it takes over `onmessage` as if it were ELK's own worker, and `new ELK()` fails.
+- The skin carries no colours. The page styles its classes from the theme tokens, and DOMPurify drops `<style>`, scripts, links and foreign content.
+**Known gaps / risks:**
+- netlistsvg highlights whole nets: when a path net also fans out to cells off the path, those branches are red too. Path cells (red outline + delay) are exact.
+- Deep cones are slow to lay out (about 6 s at 1000 cells) and dense to read. There is no drag-to-pan or minimap yet; scroll and zoom.
+- Complex cells (AOI/OAI, full adders, scan flops, flops with QN outputs) are boxes, with no dedicated symbols yet.
+- Licences of the bundled UI: netlistsvg is MIT, DOMPurify is MPL-2.0/Apache-2.0, and elkjs is EPL-2.0 (as before). Ship third-party notices with the built assets when the repo licence is chosen (owner item 4). `npm audit` flags old dependencies of netlistsvg's CLI (`yargs`, `json5`), which are not in the browser bundle.
+**Next iteration plan:**
+- Drag-to-pan and zoom-to-cursor in the Design view; a "focus path" mode that hides off-path cells in big cones.
+- AOI/OAI symbols, if the boxes read badly in practice.
+- Items from iterations 4–5 (CAEN `-m synopsys` run, retention).
+**How to see it:**
+```
+svkit serve                          # restart it: new API endpoints and UI
+# Design -> Blocks (click an instance); Synthesis -> a run -> a timing path -> "Show gates"
+.venv/bin/pytest tests/test_schematic.py && (cd web && npx vitest run src/lib/schematic.test.ts)
 ```

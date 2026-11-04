@@ -246,12 +246,24 @@ All JSON. Base `/api`. Errors: `{"detail": "..."}` with 4xx/5xx.
 | `GET /api/design/block?module=` | `{nodes:[{id, label, module, ports}], edges:[{src, dst, width, net}]}` (ELK-ready) |
 | `GET /api/design/signal?path=<wave path>` | `{path, module, file, line, type, width}`: declaration of a waveform signal (404 if not in the design) |
 | `GET /api/design/cone?run=&net=&depth=&path=` | `{nodes:[{id, cell, pins, on_path, delay?}], edges:[...], unresolved:[...]}` |
+| `GET /api/design/schematic/block?module=` | `Schematic` for one module level: `{netlist, cells, path_nets:[], counts:{instances, ports, nets}, module, instance}` |
+| `GET /api/design/schematic/cone?run=&net=&depth=&path=` | `Schematic` for a gate cone: `{netlist, cells, path_nets, counts:{cells, symbols, on_path}, root_net, path_cells, unresolved, slack, run, netlist_file}` |
+| ↳ `Schematic` | `netlist` = one Yosys-JSON module (`{modules:{name:{attributes:{top:1}, ports, cells}}}`) drawn by netlistsvg in the browser; `cells` = per drawn cell/port key `{kind: instance\|logic\|port\|cell, name, module?, type?, symbol?, on_path?, delay?}`; `path_nets` = netlistsvg wire classes (`net_<bits>`) on the critical path. Cell types are Yosys gate names (`$_NAND_`, ...) and `$svkit_*` (`$svkit_nand3`, `$svkit_dffr`, `$svkit_box_<width>`), one template each in `web/src/lib/schematic-skin.svg` |
 | `GET /api/xtrace?run=&signal=&time=&depth=` | `XTraceNode` |
 | `GET /api/source?file=&line=&context=` | `{file, start, lines:[...]}` (only files inside the project root) |
 | `WS /ws/events` | stream of events (`run.created`, `run.status`, `run.log`, `group.updated`, `job.updated`) |
 
 Static UI is served from `/` (SPA fallback to `index.html`). The server binds `127.0.0.1` by default;
 use `ssh -L 8470:localhost:8470 host`.
+
+**Diagrams (Design view).** Blocks and Gates share one drawing path; only the netlist differs.
+`svkit.design.schematic` turns a `DesignGraph.block()` level (instances, glue logic, ports) or an
+`analysis.cone` (library cells) into a Yosys-JSON module. A library cell gets a gate symbol when its
+Liberty `function` / `ff` / `latch` group (or, without Liberty, its name: `nand3`, `dff`, ...) matches a
+skin template; anything else is a box with its pin names. In the browser a Web Worker
+(`web/src/lib/schematic.worker.ts`) runs netlistsvg (layout by elkjs 0.3.0, symbols from the skin)
+and returns SVG text; the page sanitizes it with DOMPurify (SVG profile, no `<style>`/scripts/links),
+styles it from the theme tokens and adds tooltips, click targets and the critical-path highlight.
 
 ## 7. CLI (Typer — `src/svkit/cli.py`)
 

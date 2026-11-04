@@ -306,19 +306,41 @@ pre.log { margin: 0; padding: 8px 10px; font: var(--fs-sm)/1.45 var(--mono); bac
 /* ------------------------------------------------------------ diagrams */
 .diagram { overflow: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-raised); min-height: 360px; }
 .diagram svg { display: block; }
-.diagram .node rect { fill: var(--bg-sunken); stroke: var(--border-strong); }
-.diagram .node.click { cursor: pointer; }
-.diagram .node.click:hover rect { stroke: var(--accent); }
-.diagram .node.on rect { stroke: var(--bad); stroke-width: 2; fill: var(--bad-bg); }
-.diagram .node text { fill: var(--fg); font: var(--fs-sm) var(--mono); }
-.diagram .node .sub { fill: var(--fg-muted); font-size: var(--fs-xs); }
-.diagram .port rect { fill: var(--fg-faint); stroke: none; }
-.diagram .port text { fill: var(--fg-muted); font: 10px var(--mono); }
-.diagram .edge path { fill: none; stroke: var(--fg-faint); stroke-width: 1.2; }
-.diagram .edge.bus path { stroke-width: 2.4; }
-.diagram .edge.on path { stroke: var(--bad); stroke-width: 2.4; }
-.diagram .edge text { fill: var(--fg-muted); font: 10px var(--mono); }
-.diagram .delay { fill: var(--bad); font-weight: 600; }
+/* schematics drawn by netlistsvg with web/src/lib/schematic-skin.svg: the skin only names classes */
+.schematic { padding: 8px; }
+.schematic svg { overflow: visible; }
+.schematic svg * { vector-effect: non-scaling-stroke; }
+.schematic .sym, .schematic .box, .schematic .io-sym { fill: var(--bg-sunken); stroke: var(--fg-muted); stroke-width: 1.2; }
+.schematic .sym.open { fill: none; }
+.schematic .box { stroke: var(--border-strong); }
+.schematic .io-sym { fill: var(--bg-raised); stroke: var(--fg-faint); }
+.schematic .io-sym.const { stroke-dasharray: 2 2; }
+.schematic .splitjoin { fill: var(--fg-faint); stroke: none; }
+.schematic text { fill: var(--fg); stroke: none; font: 11px var(--mono); }
+.schematic text.hidden { display: none; }
+.schematic text.ref, .schematic text.io, .schematic text.box-type { text-anchor: middle; }
+.schematic text.ref { fill: var(--fg-muted); font-size: 10px; }
+.schematic text.box-ref { text-anchor: start; fill: var(--fg); font-size: 11px; font-weight: 600; }
+.schematic text.box-type { fill: var(--fg-muted); font-size: 10px; }
+.schematic text.io { fill: var(--fg-muted); font-size: 10px; }
+.schematic text.port { fill: var(--fg-muted); font-size: 10px; }
+.schematic text.pin { fill: var(--fg-faint); font-size: 8px; }
+.schematic text.bits { fill: var(--fg-faint); font-size: 8px; }
+.schematic text.end { text-anchor: end; }
+.schematic text.mid { text-anchor: middle; }
+.schematic text.delay { text-anchor: middle; fill: var(--bad); font-size: 10px; font-weight: 600; }
+.schematic .wire { stroke: var(--fg-faint); stroke-width: 1.2; }
+.schematic circle.wire { fill: var(--fg-faint); stroke: none; }
+.schematic .wire.bus { stroke-width: 2.6; }
+.schematic .wire.on { stroke: var(--bad); stroke-width: 2.2; }
+.schematic circle.wire.on { fill: var(--bad); }
+.schematic g.on .sym, .schematic g.on .box, .schematic g.on .io-sym { stroke: var(--bad); stroke-width: 2; fill: var(--bad-bg); }
+.schematic g.on .sym.open { fill: none; }
+.schematic.path-names g.k-cell:not(.on) text.ref { display: none; }
+.schematic g.click { cursor: pointer; }
+.schematic g.click:hover .box { stroke: var(--accent); }
+.schematic g.click:focus { outline: none; }
+.schematic g.click:focus-visible .box { stroke: var(--accent); stroke-width: 2; }
 .crumbs { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; font-family: var(--mono); font-size: var(--fs-sm); }
 
 /* ------------------------------------------------------------ dev toggle */
