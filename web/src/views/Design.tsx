@@ -60,6 +60,35 @@ function SchematicView({
     if (el && zoom != null) setZoom(el, zoom);
   }, [zoom, svg]);
 
+  // Ctrl/⌘ + wheel (and trackpad pinch, which browsers send as ctrl+wheel) zooms the diagram around
+  // the cursor instead of the page. Needs a non-passive listener to stop the browser's page zoom.
+  const zoomRef = useRef(1);
+  zoomRef.current = zoom ?? 1;
+  useEffect(() => {
+    const h = host.current;
+    if (!h || svg == null) return;
+    const onWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+      const el = h.querySelector("svg");
+      if (!el) return;
+      const z = zoomRef.current;
+      const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * 400 : e.deltaY;
+      const nz = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z * Math.exp(-dy * 0.002)));
+      if (nz === z) return;
+      const r = el.getBoundingClientRect();
+      const px = e.clientX - r.left;
+      const py = e.clientY - r.top;
+      setZoom(el, nz); // resize now so the scroll correction below lands on the new size
+      h.scrollLeft += px * (nz / z - 1);
+      h.scrollTop += py * (nz / z - 1);
+      zoomRef.current = nz;
+      setZ(nz);
+    };
+    h.addEventListener("wheel", onWheel, { passive: false });
+    return () => h.removeEventListener("wheel", onWheel);
+  }, [svg]);
+
   const open = (target: EventTarget | null) => {
     const key = cellKey(target as Element | null);
     const c = key != null ? data.cells[key] : undefined;
@@ -171,7 +200,9 @@ function BlockDiagram({ module, trail }: { module: string; trail: string[] }) {
       ) : (
         <SchematicView data={g} what="block" clickable={canOpen} onOpen={descend} />
       )}
-      <div className="small muted">Click an instance (or focus it and press Enter) to descend into it. Hover anything for details.</div>
+      <div className="small muted">
+        Click an instance (or focus it and press Enter) to descend into it. Hover anything for details. Ctrl + scroll (or pinch) zooms.
+      </div>
     </>
   );
 }
@@ -293,7 +324,7 @@ function ConeDiagram({ run, path, net, depth }: { run: string; path: string; net
       )}
       <div className="small muted">
         Cells on the critical path are drawn in red with their cell delay. Library cells without a gate symbol are boxes
-        with their pin names. Hover a cell for its type.
+        with their pin names. Hover a cell for its type. Ctrl + scroll (or pinch) zooms.
       </div>
     </>
   );
