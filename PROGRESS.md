@@ -4,6 +4,7 @@
 - **Phase:** Phases 0–3 implemented. **Both flows now run on real tools** (VCS + DC on CAEN; Verilator + Yosys + OpenSTA on the dev host). **~85 % to MVP.** Remaining: a frontend rebuild (sweep note, new API endpoints; needs Node), browser click-through of every view, web proposal 5, the Icarus decision, and the OSS flow on CAEN (blocked on OpenSTA).
 - **Dogfood checkpoint (EECS 470 copy in `~/svkit-work/dogfood`):** `svkit init` needs **no hand edits**. 21/21 tests pass on VCS, the DC matrix runs (TT/SS/FF), and the clock sweep finds **T_min = 4708 ps** (14 DC runs). TPI uses it, and the dashboard API works on the real CPU.
 - **Demoable on CAEN:** `cd ~/svkit-work/dogfood && svkit serve`, then `ssh -L 8470:localhost:8470 <caen host>` from your laptop.
+- **New (iter 4):** runs on a laptop without Synopsys (automatic Verilator/Yosys/OpenSTA fallback), plain-language dashboard with (i) explanations, and **unit tests as their own suite** (Tests → Unit tests, waves at the first error).
 - **Needs owner:**
   1. **OpenSTA on CAEN:** installing it (micromamba + `litex-hub::openroad` into `~/tools`) was blocked by the permission classifier as running downloaded code. Approve it, or install it yourself, to run the OSS flow and its tests on CAEN.
   2. **X-trace parity on the OSS flow:** Verilator is 2-state, so it never shows X. Recommend pulling an Icarus sim adapter into the MVP (scope change vs decision #18).
@@ -143,4 +144,38 @@ svkit runs ls                  # sims, matrix, sweep points
 svkit serve                    # laptop: ssh -L 8470:localhost:8470 <caen host>, open http://localhost:8470
 # Synopsys tests (CAEN): source the ASAP7 env block from docs/CAEN.md §2, then
 .venv/bin/pytest -m synopsys
+```
+
+## Iteration 4 — 2026-11-04 — Laptop-friendly: OSS fallback, plain-language UI, unit-test suites
+**Status:** done
+**What works now:**
+- **No Synopsys on the host? svkit falls back by itself.** A VCS Makefile flow runs the user's own build with a `vcs` stand-in that compiles with Verilator (DPI C, `$vcdplus*` rewritten in private copies, `-vpd2vcd` handled). DC falls back to builtin Yosys + OpenSTA. The header chip names the tool actually used ("sim: verilator (vcs not found)"). lab7 runs 146/146 on a laptop.
+- **Dashboard speaks plain language.** "Worst setup slack" instead of WNS, "Fastest passing clock" instead of T_min, and so on. A small (i) button explains each term (hover/focus, click to pin), with the abbreviation inside. svkit logo in the header.
+- **Unit tests are their own suite.** With `[flows.sim.unit] testbench = "test/{test}_test.sv"`, every unit testbench is a test, shown on the Tests page under **Unit tests**, apart from **System tests**. Runs have the same waveforms, logs, history and run page. svkit dumps a waveform of the whole testbench without editing it. A failing unit test opens its waveform at the time of the first `ERROR` line, with the testbench's signals already added. `svkit init` detects standalone testbenches and writes the suite. On lab7, `queue` fails at 111 ns (`full=0, expected 1`), which is visible straight from the Tests page.
+- Job errors show a one-line summary plus the full message (tool hint, build-log tail). Build/infra failures are rerun instead of cached. Cache hits point at the original run and show its log.
+**Decisions made (and why):**
+- Fallback order and labelling: PRODUCT §13 (2026-11-03), CONTEXT #21. Unit suites: PRODUCT §13 (2026-11-04), CONTEXT #22.
+- Suites are derived from flows (`suite`, else unit/system by `testbench`), not a new top-level table: an existing flow already has everything a suite needs (tests, simulator, pass rules). Fallback swaps flows only within a suite, and `svkit sim` with no `--flow` takes the first system flow, so adding a unit flow never changes what existing commands run.
+- New `SimFlow.adapter`: the flow key no longer has to be the adapter name (`[flows.sim.unit] adapter = "vcs"`).
+- Waveform for unit testbenches: a generated module `bind`-ed into the top calls `$dumpvars` on the whole design into `+svkit_waves=<run_dir>/waves.vcd`. This works the same on VCS and Verilator, keeps the user's files untouched, and does not change the build hash per run. It is skipped when the testbench dumps waves itself.
+- The first error comes from the log, since unit testbenches rarely have golden files: `Divergence.source = "log"`, first line matching `error_regex` or a generic ERROR/FAIL/mismatch pattern. The time is read from `[t]`, `@t` or `time=t`. `%t` prints in time-precision units, which match the VCD timescale (checked on Verilator: ps).
+- Run DB v2 adds `runs.flow`, migrated in place with `ALTER TABLE`. Older runs (NULL) belong to the default suite.
+- `init` picks the system testbench by "named in the Makefile" before size, so an equally sized unit testbench is not mistaken for it.
+- Waves opened from a first-error or first-mismatch link add the top scope's own signals (up to 32) via `auto=top` (owner feedback 2026-11-03: "opens with no signals").
+**Known gaps / risks:**
+- **The VCS path of unit suites is not run for real yet** (no VCS on this host). `tests/test_unit_suite.py::test_unit_suite_on_vcs` (`-m synopsys`) must pass on CAEN.
+- On Verilator, unit tests are 2-state like every Verilator run: X bugs in a unit DUT need VCS (or the open Icarus decision).
+- The generic first-error pattern can pick a line that merely mentions "error" (e.g. a phase banner). Set `error_regex` for such testbenches.
+- Owner items from iteration 3 still stand (OpenSTA on CAEN, Icarus, golden redistribution, remote/license).
+**Next iteration plan:**
+- On CAEN: `pytest -m synopsys` (including the unit suite on VCS); dogfood: add unit testbenches if the project has any.
+- Waves: open long runs at a readable zoom; keep the "could not be mapped" message readable.
+- Design view: make the Gate cone tab usable without picking a run first.
+- Remaining web API proposals; browser click-through of every view.
+**How to see it:**
+```
+cd lab7 && svkit serve           # restart it: the backend changed
+# open http://localhost:8470/#/tests/unit -> queue (failed) -> "Waves at first error"
+svkit sim --all --flow unit      # same from the CLI
+.venv/bin/pytest tests/test_unit_suite.py
 ```

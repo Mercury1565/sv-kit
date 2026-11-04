@@ -136,7 +136,7 @@ function Content({ route }: { route: Route }) {
       view = id ? <RunDetail id={id} /> : <RunsView />;
       break;
     case "tests":
-      view = <TestsView />;
+      view = <TestsView suite={id} />;
       break;
     case "waves":
       view = <WavesView runId={id} query={route.query} />;

@@ -199,8 +199,89 @@ def pick_tops(s: Scan) -> tuple[Optional[str], Optional[str], list[str]]:
     tb_top = None
     if tb_roots:
         cands = [m for m in tb_roots if top in m.insts] or tb_roots
-        tb_top = max(cands, key=lambda m: size(m.name)).name
+        # the testbench the build uses (named in the Makefile) wins over standalone unit testbenches
+        used = lambda m: bool(re.search(rf"(^|[\s/]){re.escape(m.file.name)}\b|\b{re.escape(m.name)}\b", s.make_text))
+        tb_top = max(cands, key=lambda m: (used(m), size(m.name))).name
     return top, tb_top, [m.name for m in tbs]
+
+
+def unit_testbenches(s: Scan, tb_top: Optional[str], tbs: list[str]) -> list[str]:
+    """Standalone testbenches besides the system one: top-level testbench modules, each in a
+    file of their own, that instantiate some design module."""
+    mods = s.modules
+    instantiated = {t for m in mods.values() for t in m.insts if t in mods}
+    main_file = mods[tb_top].file if tb_top in mods else None
+    tbset = set(tbs)
+    out = []
+    for n in tbs:
+        m = mods.get(n)
+        if m is None or n == tb_top or n in instantiated or m.file == main_file:
+            continue
+        if any(c in mods and c not in tbset for c in m.insts):
+            out.append(n)
+    files = Counter(mods[n].file for n in out)
+    return sorted(n for n in out if files[mods[n].file] == 1)
+
+
+def _verdict_regex(texts: list[str], word: str) -> Optional[str]:
+    """Literal `$display` text announcing a verdict (e.g. "@@@ PASSED") shared by all testbenches."""
+    found = []
+    for t in texts:
+        hits = re.findall(r'\$(?:display|write|info)\w*\s*\(\s*"([^"%]*?\b' + word + r'\w*)', t, re.I)
+        if not hits:
+            return None
+        found.append(hits[0].strip())
+    if len(set(found)) == 1 and found[0]:
+        return re.escape(found[0]).replace("\\ ", " ")
+    return None
+
+
+def unit_suite(g: "Guess", s: Scan, unit_tbs: list[str], tb_files: set[Path], adapter: str,
+               notes: list[str]) -> None:
+    """[flows.sim.unit]: one test per standalone testbench file."""
+    files = sorted(s.modules[n].file for n in unit_tbs)
+    dirs = {f.parent for f in files}
+    stems = [f.stem for f in files]
+    exts = {f.suffix for f in files}
+    ext = exts.pop() if len(exts) == 1 else ".sv"
+    d = _rel(dirs.pop(), s.root) + "/" if len(dirs) == 1 else None
+    tmpl, exclude = None, []
+    if d is not None:
+        for suf in ("_test", "_tb", "_unit", "Test", "TB"):
+            if all(st.endswith(suf) and len(st) > len(suf) for st in stems):
+                tmpl = f"{d}{{test}}{suf}{ext}"
+                break
+        if tmpl is None:
+            for pre in ("test_", "tb_", "unit_"):
+                if all(st.startswith(pre) and len(st) > len(pre) for st in stems):
+                    tmpl = f"{d}{pre}{{test}}{ext}"
+                    break
+        if tmpl is None:
+            tmpl = f"{d}{{test}}{ext}"
+        a, _, b = tmpl.partition("{test}")
+        unit_set = set(files)
+        for f in sorted(s.root.glob(a + "*" + b)):
+            if f.resolve() not in {u.resolve() for u in unit_set} and f not in tb_files:
+                rel = _rel(f, s.root)
+                exclude.append(rel[len(a):len(rel) - len(b)] if b else rel[len(a):])
+    g.add("", "[flows.sim.unit]   # unit tests: one testbench file per test, shown apart from the system tests",
+          f"adapter = {_q(adapter)}", 'mode = "builtin"                 # svkit compiles [project].sources + the testbench')
+    if tmpl:
+        g.add(f"testbench = {_q(tmpl)}")
+        if exclude:
+            g.add(f"tests = {{ exclude = {json.dumps(sorted(exclude))} }}   # files there that are not unit tests")
+    else:
+        g.add('testbench = "TODO/{test}_test.sv"   # TODO: unit testbenches live in several dirs')
+        g.add(f"tests = {{ names = {json.dumps(sorted(stems))} }}")
+    texts = [f.read_text(errors="replace") for f in files]
+    pr, fr = _verdict_regex(texts, "pass"), _verdict_regex(texts, "fail")
+    if pr:
+        g.add(f"pass_regex = {_lit(pr)}")
+    if fr:
+        g.add(f"fail_regex = {_lit(fr)}")
+    if not (pr or fr):
+        g.add("# pass_regex = '...'   # TODO: a test passes when it exits 0; add the line your testbenches print")
+    notes.append(f"unit testbenches found: {', '.join(unit_tbs)} -> [flows.sim.unit] (Tests page, \"Unit tests\")")
 
 
 def source_globs(s: Scan, names: set[str], exclude_files: set[Path]) -> list[str]:
@@ -447,7 +528,9 @@ def infer(root: Path) -> tuple[str, list[str]]:
             txt = f.read_text(errors="replace")
             if re.search(r"^\s*package\s+\w+", txt, re.M) and not any(Path(f).match(x) for x in srcs):
                 srcs.append(_rel(f, root))
-    tb_srcs = sorted({_rel(f, root) for f in tb_files})
+    unit_tbs = unit_testbenches(s, tb_top, tbs)
+    unit_files = {s.modules[n].file for n in unit_tbs}
+    tb_srcs = sorted({_rel(f, root) for f in tb_files - unit_files})
     incdirs = sorted({_rel(f.parent, root) for f in s.files if f.suffix in (".svh", ".vh")})
     top_mod = s.modules.get(top) if top else None
     inputs = top_mod.inputs if top_mod else []
@@ -597,6 +680,9 @@ def infer(root: Path) -> tuple[str, list[str]]:
             g.add('tests = { names = ["default"] }   # TODO: list tests or give a glob')
         if any(f.suffix == ".vpd" for f in s.files) or ".vpd" in s.make_text:
             g.add("# NOTE: the build writes VPD; svkit reads VCD/FST -- point `waves` at a converted VCD")
+
+    if unit_tbs:
+        unit_suite(g, s, unit_tbs, tb_files, "vcs" if has_vcs else "verilator", notes)
 
     # ---------------------------------------------------------------- synthesis flows
     libs = []

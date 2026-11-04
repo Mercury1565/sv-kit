@@ -15,7 +15,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterator, Optional
 
-DB_VERSION = 1
+DB_VERSION = 2
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT);
@@ -40,7 +40,8 @@ CREATE TABLE IF NOT EXISTS runs (
     metrics     TEXT,                          -- JSON: normalized SynthResult / SimResult
     artifacts   TEXT NOT NULL DEFAULT '{}',    -- JSON {name: relative path under runs/<id>/}
     group_id    TEXT,
-    message     TEXT                           -- short status / error text
+    message     TEXT,                          -- short status / error text
+    flow        TEXT                           -- [flows.<kind>.<name>] key that ran it (v2; NULL = default)
 );
 CREATE INDEX IF NOT EXISTS runs_kind ON runs(kind, created_at);
 CREATE INDEX IF NOT EXISTS runs_cache ON runs(cache_key);
@@ -86,6 +87,7 @@ class Run:
     artifacts: dict[str, str] = field(default_factory=dict)
     group_id: Optional[str] = None
     message: Optional[str] = None
+    flow: Optional[str] = None
     tags: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
@@ -136,7 +138,16 @@ class RunDB:
         self._id_lock = threading.Lock()
         with self._conn() as c:
             c.executescript(SCHEMA)
+            cols = {r["name"] for r in c.execute("PRAGMA table_info(runs)")}
+            if "flow" not in cols:       # v1 -> v2: which flow (suite) a run belongs to
+                try:
+                    c.execute("ALTER TABLE runs ADD COLUMN flow TEXT")
+                except sqlite3.OperationalError as e:   # another process migrated it first
+                    if "duplicate column" not in str(e):
+                        raise
             c.execute("INSERT OR IGNORE INTO meta VALUES ('version', ?)", (str(DB_VERSION),))
+            c.execute("UPDATE meta SET value = ? WHERE key = 'version' AND CAST(value AS INTEGER) < ?",
+                      (str(DB_VERSION), DB_VERSION))
 
     @classmethod
     def for_project(cls, root: Path) -> "RunDB":
@@ -179,17 +190,17 @@ class RunDB:
                    knobs: dict | None = None, experiment: str | None = None,
                    group_id: str | None = None, git_sha: str | None = None,
                    git_dirty: bool | None = None, source_hash: str | None = None,
-                   cache_key: str | None = None, status: str = "queued") -> Run:
+                   cache_key: str | None = None, status: str = "queued", flow: str | None = None) -> Run:
         with self._id_lock, self._conn() as c:
             c.execute("BEGIN IMMEDIATE")
             try:
                 rid = self._next_id(c, "runs", "r")
                 c.execute(
                     "INSERT INTO runs (id, kind, adapter, test, status, created_at, git_sha, git_dirty,"
-                    " source_hash, knobs, experiment, cache_key, group_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    " source_hash, knobs, experiment, cache_key, group_id, flow) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                     (rid, kind, adapter, test, status, time.time(), git_sha,
                      None if git_dirty is None else int(git_dirty), source_hash,
-                     json.dumps(knobs or {}, sort_keys=True), experiment, cache_key, group_id))
+                     json.dumps(knobs or {}, sort_keys=True), experiment, cache_key, group_id, flow))
                 c.execute("COMMIT")
             except BaseException:
                 c.execute("ROLLBACK")

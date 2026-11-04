@@ -115,12 +115,14 @@ class SimResult(_Model):
 
 
 class Divergence(_Model):
-    """First mismatch between actual and golden output (golden-diff jump)."""
-    line: int                       # 1-based line number in the actual output
+    """First mismatch between actual and golden output (golden-diff jump), or, for tests without
+    golden output (source = "log"), the first log line reporting a failed check."""
+    line: int                       # 1-based line number in the actual output (or the sim log)
     expected: Optional[str] = None
     actual: Optional[str] = None
     time: Optional[int] = None      # sim time (waves ticks) if it could be mapped
     cycle: Optional[int] = None
+    source: Optional[Literal["golden", "log"]] = None   # None = golden (older runs)
 
 
 # ---------------------------------------------------------------- perf

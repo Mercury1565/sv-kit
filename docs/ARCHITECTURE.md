@@ -48,7 +48,7 @@ Summary:
 | Table | Purpose |
 |---|---|
 | `[project]` | `name`, `top`, `tb_top`, `sources`/`tb_sources` (`glob`, `filelist`, `exclude`), `include`, `defines`, `clock`, `reset`, `workdir_exclude` |
-| `[flows.sim.<adapter>]` | `mode = "wrap"` (run `cmd`, the user's build) or `"builtin"` (adapter compiles sources). `waves`, `log`, `golden`, `tests`, `pass_regex`, `fail_regex`, `isolate` |
+| `[flows.sim.<name>]` | `mode = "wrap"` (run `cmd`, the user's build) or `"builtin"` (adapter compiles sources). `adapter` (default: the key), `waves`, `log`, `golden`, `tests` (`glob`, `names`, `exclude`), `pass_regex`, `fail_regex`, `isolate`. Unit suites: `testbench` (template with `{test}`: one file per test), `top`, `sources`, `suite`, `error_regex` (§2.1b) |
 | `[flows.synth.<adapter>]` | `mode`, `cmd`, `script` (user's TCL/ys), `reports`, `netlist`, `log`, `license_seats`, `sta` (name of an STA flow), `append_before` (anchor regex for experiment `tcl_append`) |
 | `[flows.sta.<adapter>]` | `mode`, `sdc`, `max_paths` |
 | `[flows]` | `default_sim`, `default_synth`, `fallback` (default `true`: run open-source stand-ins when a flow's tools are missing, §2.1a) |
@@ -90,6 +90,28 @@ Every such run:
 - has its own cache key.
 
 `GET /api/project` returns `backends` (what each kind runs on this host). The CLI prints a note.
+
+### 2.1b Test suites (unit tests)
+
+Sim flows are grouped into **suites**: `suite` if set, else `"unit"` for a flow with a
+`testbench` template and `"system"` otherwise. The Tests page lists each suite separately. A suite
+runs on its first flow, and tool fallback (§2.1a) only swaps flows **within** a suite, so unit
+tests never run as system tests. `svkit sim` without `--flow` runs the first system flow.
+
+A unit flow's tests are the `{test}` part of every file matching `testbench`, minus `tests.exclude`
+and the files of `[project].tb_sources`. In builtin mode (`svkit.core.unit`), each test compiles
+`[project].sources` + `sources` + its testbench file. The top is `top`, or the module declared in
+the file that nothing in it instantiates. Unless the testbench dumps waves itself
+(`$dumpfile`/`$dumpvars`/`$vcdplus*`/`$fsdb*`), svkit compiles a generated `svkit_waves` module,
+bound into the top, that runs `$dumpvars` on the whole design into `+svkit_waves=<run_dir>/waves.vcd`.
+It lives in `.svkit/build/unit/`, so user files are never edited, and it works the same on VCS
+and Verilator. A failed test without a golden divergence gets a log divergence
+(`Divergence.source = "log"`): the first log line matching `error_regex` (or a generic
+ERROR/FAIL/mismatch pattern), with its time taken from the named group `time` or from a `[123]`,
+`@123` or `time=123` token, in waveform ticks.
+
+Runs record their flow (`runs.flow`, DB v2; NULL on older runs = the default flow), so the
+dashboard assigns each run to its suite.
 
 Working open-source tools are located on PATH and in common user install dirs (`~/tools/bin`,
 `~/tools/oss-cad-suite/bin`, `$SVKIT_TOOL_PATH`, …). For Verilator, version 5+ is required, and a
@@ -189,7 +211,7 @@ All JSON. Base `/api`. Errors: `{"detail": "..."}` with 4xx/5xx.
 
 | Method & path | Returns |
 |---|---|
-| `GET /api/project` | `{name, root, top, git_sha, git_dirty, flows:{sim:[..], synth:[..], sta:[..]}, knobs:[..], experiments:[..], tests:[..], adapters:{name: available}}` |
+| `GET /api/project` | `{name, root, top, git_sha, git_dirty, flows:{sim:[..], synth:[..], sta:[..]}, knobs:[..], experiments:[..], tests:[..], adapters:{name: available}, backends, suites:[{id, label, flow, flows, tests, unit, golden, default}]}` (`tests` = the default suite's) |
 | `GET /api/runs?kind=&group=&status=&test=&tag=&limit=&offset=` | `[RunSummary]` (Run without metrics); header `X-Total-Count` = matching runs before limit/offset |
 | `GET /api/runs/{id}` | `Run` with `metrics` |
 | `GET /api/runs/{id}/artifacts/{name}` | the file (text/binary) |

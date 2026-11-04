@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { api, ApiError } from "../api/client";
-import type { RunSummary } from "../api/types";
+import type { Project, RunSummary, Suite } from "../api/types";
 import { JobButton } from "../components/JobButton";
 import { StatusChip } from "../components/StatusChip";
 import { Empty, ErrorState, Loading } from "../components/States";
@@ -20,7 +20,7 @@ export function noDivergenceReason(run?: Pick<RunSummary, "message" | "artifacts
 }
 
 /** Button: ask the backend for the first divergence and open the waveform there. */
-export function DivergenceLink({ runId, run, label = "Open waves at first mismatch" }: { runId: string; run?: RunSummary; label?: string }) {
+export function DivergenceLink({ runId, run, label = "Open waves at first mismatch", unit = false }: { runId: string; run?: RunSummary; label?: string; unit?: boolean }) {
   const [state, setState] = useState<"idle" | "busy" | string>("idle");
   const hasWaves = run ? Object.keys(run.artifacts ?? {}).some((n) => /^waves\./.test(n)) : true;
   const go = async () => {
@@ -28,15 +28,19 @@ export function DivergenceLink({ runId, run, label = "Open waves at first mismat
     try {
       const d = await api.divergence(runId);
       if (d.time === null || d.time === undefined) {
-        setState(`the first mismatch (output line ${d.line}) could not be matched to a time in the waveform`);
-        navigate(href(`/waves/${runId}`));
+        setState(
+          d.source === "log"
+            ? `the first error (log line ${d.line}) prints no time; opening the waveform at the start`
+            : `the first mismatch (output line ${d.line}) could not be matched to a time in the waveform`,
+        );
+        navigate(href(`/waves/${runId}`, { auto: "top" }));
         return;
       }
-      navigate(href(`/waves/${runId}`, { t: d.time }));
+      navigate(href(`/waves/${runId}`, { t: d.time, auto: "top" }));
     } catch (e) {
       if (e instanceof ApiError && e.notAvailable) {
         setState(noDivergenceReason(run));
-        if (hasWaves) navigate(href(`/waves/${runId}`));
+        if (hasWaves) navigate(href(`/waves/${runId}`, { auto: "top" }));
       } else setState(String(e));
     }
   };
@@ -45,7 +49,7 @@ export function DivergenceLink({ runId, run, label = "Open waves at first mismat
       <button onClick={go} disabled={state === "busy"}>
         {label}
       </button>
-      <Info term="divergence" />
+      <Info term={unit ? "first_error" : "divergence"} />
       {state !== "idle" && state !== "busy" && <span className="small muted ellipsis" title={state}>{state}</span>}
     </span>
   );
@@ -55,6 +59,19 @@ export interface TestRow {
   test: string;
   run?: RunSummary;
   history: RunSummary[]; // newest first
+}
+
+/** Suites the dashboard shows; projects served by an older backend get one implicit suite. */
+export function projectSuites(project?: Project | null): Suite[] {
+  if (project?.suites?.length) return project.suites;
+  const flow = project?.flows.sim[0] ?? "";
+  return [{ id: "system", label: "Tests", flow, flows: project?.flows.sim ?? [], tests: project?.tests ?? [], unit: false, golden: true, default: true }];
+}
+
+/** The suite a run belongs to (runs recorded before flows were stored belong to the default suite). */
+export function suiteOf(run: Pick<RunSummary, "flow">, suites: Suite[]): string | undefined {
+  const s = run.flow ? suites.find((x) => x.flows.includes(run.flow!)) : undefined;
+  return (s ?? suites.find((x) => x.default) ?? suites[0])?.id;
 }
 
 export function latestPerTest(runs: RunSummary[], tests: string[]): TestRow[] {
@@ -78,14 +95,24 @@ export function latestPerTest(runs: RunSummary[], tests: string[]): TestRow[] {
     });
 }
 
-export function TestsView() {
+export function TestsView({ suite: suiteId }: { suite?: string }) {
   const { project } = useApp();
   const runs = useAsync(() => api.allRuns({ kind: "sim" }), []);
   useServerEvents((ev) => {
     if (ev.type === "run.created" && ev.run.kind === "sim") runs.setData((rs) => (rs ? [ev.run, ...rs] : rs));
     if (ev.type === "run.status") runs.setData((rs) => rs?.map((r) => (r.id === ev.run_id ? { ...r, status: ev.status } : r)));
   });
-  const rows = useMemo(() => latestPerTest(runs.data ?? [], project?.tests ?? []), [runs.data, project]);
+  const suites = useMemo(() => projectSuites(project), [project]);
+  const suite = suites.find((s) => s.id === suiteId) ?? suites.find((s) => s.default) ?? suites[0];
+  const bySuite = useMemo(() => {
+    const m = new Map<string, RunSummary[]>();
+    for (const r of runs.data ?? []) {
+      const id = suiteOf(r, suites);
+      if (id) m.set(id, [...(m.get(id) ?? []), r]);
+    }
+    return m;
+  }, [runs.data, suites]);
+  const rows = useMemo(() => latestPerTest(bySuite.get(suite.id) ?? [], suite.tests), [bySuite, suite]);
   const failing = rows.filter((r) => r.run?.status === "failed" || r.run?.status === "error").length;
   const passing = rows.filter((r) => r.run?.status === "passed").length;
 
@@ -110,7 +137,7 @@ export function TestsView() {
         r.run ? (
           <span className="row" style={{ gap: 6 }} onClick={(e) => e.stopPropagation()}>
             {r.run.status === "failed" ? (
-              <DivergenceLink runId={r.run.id} run={r.run} label="Waves at first mismatch" />
+              <DivergenceLink runId={r.run.id} run={r.run} label={suite.unit ? "Waves at first error" : "Waves at first mismatch"} unit={suite.unit} />
             ) : (
               <a href={href(`/waves/${r.run.id}`)}>waves</a>
             )}
@@ -118,7 +145,7 @@ export function TestsView() {
           </span>
         ) : (
           <span onClick={(e) => e.stopPropagation()}>
-            <JobButton kind="sim" args={{ test: r.test }}>
+            <JobButton kind="sim" args={{ test: r.test, flow: suite.flow }}>
               Run
             </JobButton>
           </span>
@@ -132,24 +159,47 @@ export function TestsView() {
     <div className="view fill">
       <div className="view-head">
         <h1>Tests</h1>
+        {suites.length > 1 && <SuiteTabs suites={suites} current={suite.id} />}
         <span className="muted small">
           {fmtInt(rows.length)} tests · <span className="better">{fmtInt(passing)} passing</span> · <span className={failing ? "worse" : ""}>{fmtInt(failing)} failing</span>
         </span>
         <span className="spacer" />
-        <JobButton kind="sim-all" primary disabled={!project?.flows.sim.length}>
-          Run all tests
+        <JobButton key={suite.id} kind="sim-all" args={{ flow: suite.flow }} primary disabled={!suite.flow}>
+          {suites.length > 1 ? `Run all ${suite.label.toLowerCase()}` : "Run all tests"}
         </JobButton>
       </div>
       {rows.length === 0 ? (
-        <Empty title="No tests found" cmd={["svkit init", "svkit sim --all"]}>
-          svkit lists tests from <code>[flows.sim.&lt;adapter&gt;].tests</code> in <code>svkit.toml</code>.
-        </Empty>
+        suite.unit ? (
+          <Empty title="No unit tests found" cmd={[`svkit sim --all --flow ${suite.flow}`]}>
+            Each file matching <code>[flows.sim.{suite.flow}].testbench</code> in <code>svkit.toml</code> is one unit test.
+          </Empty>
+        ) : (
+          <Empty title="No tests found" cmd={["svkit init", "svkit sim --all"]}>
+            svkit lists tests from <code>[flows.sim.&lt;adapter&gt;].tests</code> in <code>svkit.toml</code>. Unit testbenches (one module each) go in a
+            separate suite: <code>[flows.sim.unit]</code> with <code>testbench = "test/{"{test}"}_test.sv"</code>.
+          </Empty>
+        )
       ) : (
         <div style={{ flex: "1 1 auto", minHeight: 240, display: "flex" }}>
           <VirtualTable rows={rows} columns={cols} rowKey={(r) => r.test} onRowClick={(r) => r.run && navigate(`#/runs/${r.run.id}`)} ariaLabel="Tests" />
         </div>
       )}
     </div>
+  );
+}
+
+export function SuiteTabs({ suites, current }: { suites: Suite[]; current: string }) {
+  return (
+    <span className="row" style={{ gap: 4 }}>
+      <span className="seg" role="tablist" aria-label="Test suite">
+        {suites.map((s) => (
+          <button key={s.id} role="tab" aria-selected={s.id === current} className={s.id === current ? "on" : ""} onClick={() => navigate(`#/tests/${s.id}`, true)}>
+            {s.label} <span className="muted">{fmtInt(s.tests.length)}</span>
+          </button>
+        ))}
+      </span>
+      <Info term={suites.find((s) => s.id === current)?.unit ? "unit_test" : "system_test"} />
+    </span>
   );
 }
 

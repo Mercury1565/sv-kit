@@ -79,6 +79,18 @@ export const GLOSSARY = {
     label: "Area",
     explain: "Total cell area in the library's unit (usually square micrometres).",
   },
+  first_error: {
+    label: "First error",
+    explain: "The first line the testbench printed reporting a failed check (a line with ERROR, FAIL or mismatch, or your error_regex). svkit opens the waveform at the time printed on that line.",
+  },
+  unit_test: {
+    label: "Unit tests",
+    explain: "Tests of one module on its own: each testbench file is one test, compiled with your design sources. They are listed apart from the system tests, with the same waveforms, logs and run history.",
+  },
+  system_test: {
+    label: "System tests",
+    explain: "Tests of the whole design, run through your own build (for example one program per test).",
+  },
   divergence: {
     label: "First mismatch",
     abbr: "divergence",

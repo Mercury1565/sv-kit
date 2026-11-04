@@ -81,7 +81,7 @@ def test_divergence_route(env):
     c, db = env
     rid = _sim_with_waves(db, divergence={"line": 7, "cycle": 2, "expected": "1", "actual": "0"})
     d = c.get(f"/api/runs/{rid}/divergence").json()
-    assert d == {"line": 7, "cycle": 2, "time": 45000, "expected": "1", "actual": "0"}
+    assert d == {"line": 7, "cycle": 2, "time": 45000, "expected": "1", "actual": "0", "source": None}
     other = _sim_with_waves(db)
     assert c.get(f"/api/runs/{other}/divergence").status_code == 404
     assert c.get("/api/runs/r_9999/divergence").status_code == 404

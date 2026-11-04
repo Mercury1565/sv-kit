@@ -58,14 +58,14 @@ def create_app(cfg: Config) -> FastAPI:
         adapters = {}
         for n in {*cfg.flows.sim, *cfg.flows.synth, *cfg.flows.sta}:
             try:
-                adapters[n] = registry.get(n, cfg).available()
+                adapters[n] = registry.get(cfg.sim_adapter(n) if n in cfg.flows.sim else n, cfg).available()
             except Exception:
                 adapters[n] = False
         return {"name": cfg.project.name, "root": str(cfg.root), "top": cfg.project.top, "version": __version__,
                 "git_sha": sha, "git_dirty": dirty,
                 "flows": {"sim": list(cfg.flows.sim), "synth": list(cfg.flows.synth), "sta": list(cfg.flows.sta)},
                 "knobs": list(cfg.knobs), "experiments": list(cfg.experiments), "tests": tests,
-                "adapters": adapters, "backends": backends(cfg)}
+                "adapters": adapters, "backends": backends(cfg), "suites": st.runner.suites()}
 
     # ------------------------------------------------------------ runs
     def _run(rid: str):

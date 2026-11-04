@@ -1,7 +1,8 @@
 """Verilator simulation adapter (open-source flow).
 
 Modes
-  builtin : compile `[project].sources + tb_sources` with Verilator 5
+  builtin : compile `[project].sources + tb_sources` (unit suites: + the test's own testbench
+            file, see svkit.core.unit) with Verilator 5
             (`--binary --timing --trace`), top = `[project].tb_top`, then run the binary once per
             test with `+TEST=<name>` (env `SVKIT_TEST` too). The executable is built once per
             content hash under `<root>/.svkit/build/verilator-<hash>/` and shared by all tests.
@@ -29,6 +30,7 @@ from svkit.adapters.perf.regex import parse_perf
 from svkit.config import Config, SimFlow
 from svkit.core import golden as G
 from svkit.core import project as P
+from svkit.core import unit as U
 from svkit.core.fsutil import copy_file
 from svkit.schemas import Msg, Severity, SimResult
 
@@ -175,6 +177,8 @@ def finish_sim(ctx: RunContext, flow: SimFlow, test: str, *, tool: str, cwd: Pat
     passed, reason, div = G.evaluate(exit_code=exit_code, log_text=log_text, pass_regex=flow.pass_regex,
                                      fail_regex=flow.fail_regex, actual=actual, expected=expected,
                                      golden=flow.golden)
+    if passed is False and div is None and (flow.testbench or flow.error_regex):
+        div = U.log_divergence(log_text, flow.error_regex)    # no golden: the first failed check
     res.passed, res.reason, res.divergence = passed, reason, div
 
     # perf
@@ -231,14 +235,21 @@ class VerilatorAdapter(SimAdapter):
                               log_text=log_text, warnings=warnings)
 
         # ---- builtin: build (cached) then run
-        binary, build_log, ok = self._build(ctx, flow, exe, extra)
+        unit = None
+        if flow.testbench:
+            unit = U.UnitBuild(cfg, flow, test, (ctx.cache_dir or cfg.root / ".svkit" / "build") / "unit")
+            if unit.waves:      # the generated dump writes to the run dir
+                flow = flow.model_copy(update={"waves": "{run_dir}/waves.vcd"})
+            ctx.log(f"[svkit] unit test {test}: {_rel(unit.testbench, cfg.root)} (top {unit.top})"
+                    + (", waveform of every signal" if unit.waves else ""))
+        binary, build_log, ok = self._build(ctx, flow, exe, extra, unit)
         if build_log.is_file():
             ctx.keep(build_log, "build.log")
             warnings = parse_tool_messages(build_log.read_text(errors="replace"))
         if not ok:
             return SimResult(tool="verilator", test=test, passed=False,
                              reason="verilator compile failed (see build.log)", warnings=warnings)
-        args = [str(binary), f"+TEST={test}"]
+        args = [str(binary), f"+TEST={test}", *(unit.run_args(ctx.run_dir) if unit else [])]
         ctx.log(f"[svkit] {' '.join(args)}  (cwd {cwd})")
         t0 = time.time()
         rc = ctx.sh(args, cwd=cwd, timeout=flow.timeout_s, log_file=sim_log, extra_env=extra)
@@ -248,15 +259,20 @@ class VerilatorAdapter(SimAdapter):
                           log_text=log_text, warnings=warnings)
 
     # ------------------------------------------------------------------ build
-    def compile_args(self, cfg: Config, flow: SimFlow, defines: dict[str, str]) -> tuple[list[str], list[Path]]:
-        srcs = P.resolve_sources(cfg) + [f for f in P.resolve_sources(cfg, cfg.project.tb_sources)]
+    def compile_args(self, cfg: Config, flow: SimFlow, defines: dict[str, str],
+                     unit: "U.UnitBuild | None" = None) -> tuple[list[str], list[Path]]:
+        if unit is not None:
+            srcs = unit.files
+        else:
+            srcs = (P.resolve_sources(cfg) + P.resolve_sources(cfg, cfg.project.tb_sources)
+                    + P.resolve_sources(cfg, flow.sources))
         seen, files = set(), []
         for f in srcs:
             if f not in seen:
                 seen.add(f)
                 files.append(f)
         files = order_sources(files)
-        top = cfg.project.tb_top or cfg.project.top
+        top = unit.top if unit else (cfg.project.tb_top or cfg.project.top)
         fst = bool(flow.waves and flow.waves.endswith(".fst"))
         args = ["--binary", "--timing", "-Wno-fatal", "--trace-fst" if fst else "--trace",
                 "--top-module", top]
@@ -269,9 +285,10 @@ class VerilatorAdapter(SimAdapter):
         args += list(flow.args)
         return args, files
 
-    def _build(self, ctx: RunContext, flow: SimFlow, exe: str, extra_env: dict[str, str]) -> tuple[Path, Path, bool]:
+    def _build(self, ctx: RunContext, flow: SimFlow, exe: str, extra_env: dict[str, str],
+               unit: "U.UnitBuild | None" = None) -> tuple[Path, Path, bool]:
         cfg = ctx.cfg
-        args, files = self.compile_args(cfg, flow, ctx.plan.defines)
+        args, files = self.compile_args(cfg, flow, ctx.plan.defines, unit)
         h = hashlib.sha256()
         h.update(str(shutil.which(exe) or exe).encode())
         h.update("\0".join(args).encode())

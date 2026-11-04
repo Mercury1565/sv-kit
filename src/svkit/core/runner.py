@@ -78,9 +78,14 @@ class Resolved:
 
 def _available(cfg: Config, name: str) -> bool:
     try:
-        return not missing_tools(registry.get(name, cfg))
+        return not missing_tools(registry.get(cfg.sim_adapter(name) if name in cfg.flows.sim else name, cfg))
     except Exception:
         return False
+
+
+def sim_adapter(cfg: Config, name: str):
+    """Adapter instance for the sim flow `name` (its `adapter` field, else the flow key)."""
+    return registry.get(cfg.sim_adapter(name), cfg)
 
 
 def generic_liberty() -> Path:
@@ -89,13 +94,15 @@ def generic_liberty() -> Path:
 
 def resolve_sim(cfg: Config, flow: str | None) -> Resolved:
     name, fl = cfg.sim_flow(flow)
-    adapter = registry.get(name, cfg)
+    adapter = sim_adapter(cfg, name)
+    aname = cfg.sim_adapter(name)
     if not missing_tools(adapter) or not cfg.flows.fallback:
-        return Resolved(name, fl, adapter, name)
-    if flow is None:          # not asked for by name: another configured flow that can run here
+        return Resolved(name, fl, adapter, aname)
+    if flow is None or fl.suite_id != "system":
+        # another configured flow of the same suite (same tests) that can run here
         for other, ofl in cfg.flows.sim.items():
-            if other != name and _available(cfg, other):
-                return Resolved(other, ofl, registry.get(other, cfg), other,
+            if other != name and ofl.suite_id == fl.suite_id and _available(cfg, other):
+                return Resolved(other, ofl, sim_adapter(cfg, other), cfg.sim_adapter(other),
                                 f"{', '.join(missing_tools(adapter))} not found on this host: "
                                 f"using the '{other}' sim flow instead of '{name}'")
     if "vcs" in adapter.tools and _which(cfg, "verilator"):
@@ -105,7 +112,7 @@ def resolve_sim(cfg: Config, flow: str | None) -> Resolved:
                             "for vcs (2-state: X/Z read as 0)", shims=["vcs"])
         return Resolved(name, fl, registry.get("verilator", cfg), "verilator",
                         "vcs not found on this host: compiling the sources with Verilator instead")
-    return Resolved(name, fl, adapter, name)
+    return Resolved(name, fl, adapter, aname)
 
 
 def resolve_synth(cfg: Config, flow: str | None) -> Resolved:
@@ -140,7 +147,7 @@ def backends(cfg: Config) -> dict[str, Any]:
         try:
             rs = fn(cfg, None)
             conf, _ = (cfg.sim_flow if kind == "sim" else cfg.synth_flow)(None)
-            missing = missing_tools(registry.get(conf, cfg)) if rs.note else []
+            missing = missing_tools(sim_adapter(cfg, conf) if kind == "sim" else registry.get(conf, cfg)) if rs.note else []
             out[kind] = {"flow": rs.name, "configured": conf, "missing": missing, "runs_on": rs.label, "note": rs.note,
                          "available": not missing_tools(rs.adapter) or bool(rs.shims)}
         except ConfigError:
@@ -265,9 +272,14 @@ class Runner:
             extra += [p for p in self.cfg.root.glob(fl.tests.glob) if p.stem == test]
         if fl.golden:
             extra.append(self.cfg.root / P.tmpl(fl.golden.expected, self.cfg, test=test))
+        if fl.testbench:    # unit test: its own testbench file
+            from svkit.core import unit as U
+            extra.append(U.testbench_file(self.cfg, fl, test))
+        extra += P.resolve_sources(self.cfg, fl.sources)
         src = P.source_hash(self.cfg, extra)
         key = P.cache_key("sim", label if label == name else f"{name}~{label}", src, values, test)
-        common = dict(test=test, knobs=values, group_id=group_id, git_sha=sha, git_dirty=dirty, source_hash=src)
+        common = dict(test=test, knobs=values, group_id=group_id, git_sha=sha, git_dirty=dirty, source_hash=src,
+                      flow=name)
         if use_cache and (hit := self._cached(key, "sim", label, **common)):
             return hit
         run = self.db.create_run("sim", label, cache_key=key, **common)
@@ -304,11 +316,24 @@ class Runner:
                 shutil.rmtree(workdir, ignore_errors=True)
 
     def tests(self, flow: str | None = None) -> list[str]:
+        from svkit.core import unit as U
         _, fl = self.cfg.sim_flow(flow)
-        names = list(fl.tests.names)
-        if fl.tests.glob:
-            names += [p.stem for p in sorted(self.cfg.root.glob(fl.tests.glob))]
-        return list(dict.fromkeys(names))
+        return U.discover(self.cfg, fl)
+
+    def suites(self) -> list[dict[str, Any]]:
+        """Test suites for the dashboard: each runs on its first flow (with fallback)."""
+        out = []
+        for sid, flows in self.cfg.suites().items():
+            fl = self.cfg.flows.sim[flows[0]]
+            try:
+                tests = self.tests(flows[0])
+            except (ConfigError, OSError):
+                tests = []
+            label = {"system": "System tests", "unit": "Unit tests"}.get(sid, sid)
+            out.append({"id": sid, "label": label, "flow": flows[0], "flows": flows, "tests": tests,
+                        "unit": bool(fl.testbench), "golden": fl.golden is not None,
+                        "default": flows[0] == self.cfg.sim_flow(None)[0]})
+        return out
 
     def sim_all(self, *, flow: str | None = None, jobs: int = 4, tests: list[str] | None = None,
                 use_cache: bool = True) -> tuple[str, list[Run]]:

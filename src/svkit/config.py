@@ -71,6 +71,7 @@ class Golden(_M):
 class Tests(_M):
     glob: Optional[str] = None           # e.g. "programs/*.mem"; test name = file stem
     names: list[str] = Field(default_factory=list)   # explicit names (in addition to glob)
+    exclude: list[str] = Field(default_factory=list)  # test names (fnmatch patterns) to leave out
 
 
 class SimFlow(_M):
@@ -78,8 +79,20 @@ class SimFlow(_M):
 
     mode 'wrap'   : run `cmd` (the user's existing build) — preferred.
     mode 'builtin': the adapter compiles project sources itself in an isolated work dir.
+
+    Unit-test suites: with `testbench = "test/{test}_test.sv"` every matching file is one test.
+    A builtin flow compiles `[project].sources` + `sources` + that file, with the module declared
+    in it as top (or `top`), and dumps a waveform of the whole testbench unless it dumps one itself.
+    Flows are grouped into suites (`suite`, default "unit" with a testbench, else "system"); the
+    dashboard lists each suite separately and fallback only swaps flows inside one suite.
     """
     mode: Literal["wrap", "builtin"] = "wrap"
+    adapter: Optional[str] = None        # simulator adapter ('vcs', 'verilator', ...); default: the flow key
+    suite: Optional[str] = None          # suite this flow runs; default "unit" with `testbench`, else "system"
+    testbench: Optional[str] = None      # template with {test}: one testbench file per test
+    top: Optional[str] = None            # template: testbench top module (default: declared in `testbench`)
+    sources: Sources = Field(default_factory=Sources)   # extra sim-only sources for this flow
+    error_regex: Optional[str] = None    # a log line reporting a failed check; group `time` = sim time
     cmd: Optional[str] = None            # template; required for wrap mode
     cwd: str = "."                       # relative to project (or work dir) root
     isolate: bool = False                # run inside an isolated copy of the project
@@ -99,7 +112,13 @@ class SimFlow(_M):
     def _check(self):
         if self.mode == "wrap" and not self.cmd:
             raise ValueError("wrap mode needs `cmd`")
+        if self.testbench is not None and "{test}" not in self.testbench:
+            raise ValueError("`testbench` must contain {test} (one testbench file per test)")
         return self
+
+    @property
+    def suite_id(self) -> str:
+        return self.suite or ("unit" if self.testbench else "system")
 
 
 class SynthFlow(_M):
@@ -257,7 +276,21 @@ class Config(_M):
 
     # convenience
     def sim_flow(self, name: Optional[str] = None) -> tuple[str, SimFlow]:
+        if name is None and self.flows.default_sim is None:   # default: the first system-test flow
+            name = next((n for n, f in self.flows.sim.items() if f.suite_id == "system"), None)
         return _pick(self.flows.sim, name or self.flows.default_sim, "sim")
+
+    def sim_adapter(self, name: str) -> str:
+        """Adapter name of the sim flow `name` (its `adapter`, else the key)."""
+        fl = self.flows.sim.get(name)
+        return (fl.adapter if fl and fl.adapter else name)
+
+    def suites(self) -> dict[str, list[str]]:
+        """suite id -> sim flow names, in config order; the first flow of a suite runs it."""
+        out: dict[str, list[str]] = {}
+        for n, f in self.flows.sim.items():
+            out.setdefault(f.suite_id, []).append(n)
+        return out
 
     def synth_flow(self, name: Optional[str] = None) -> tuple[str, SynthFlow]:
         return _pick(self.flows.synth, name or self.flows.default_synth, "synth")

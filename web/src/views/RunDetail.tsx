@@ -8,7 +8,8 @@ import { useAsync, useServerEvents } from "../lib/hooks";
 import { href } from "../lib/router";
 import { isSynthKind } from "./Runs";
 import { Term } from "../components/Info";
-import { DivergenceLink } from "./Tests";
+import { DivergenceLink, projectSuites } from "./Tests";
+import { useApp } from "../lib/appState";
 
 const MAX_LOG = 5000;
 
@@ -80,6 +81,7 @@ export function LogTail({ runId, live }: { runId: string; live: boolean }) {
 }
 
 export function RunDetail({ id }: { id: string }) {
+  const { project } = useApp();
   const run = useAsync(() => api.run(id), [id]);
   useServerEvents((ev) => {
     if (ev.type === "run.status" && ev.run_id === id) run.reload();
@@ -90,10 +92,13 @@ export function RunDetail({ id }: { id: string }) {
   const sim = isSimResult(r.metrics) ? (r.metrics as SimResult) : null;
   const wavesArtifact = sim?.waves ?? Object.keys(r.artifacts).find((a) => /\.(vcd|fst)$/i.test(a));
   const live = r.status === "running" || r.status === "queued";
+  const suites = projectSuites(project);
+  const suite = r.kind === "sim" ? (suites.find((s) => r.flow && s.flows.includes(r.flow)) ?? suites.find((s) => s.default)) : undefined;
+  const fromLog = sim?.divergence?.source === "log";
   const info: [string, React.ReactNode, React.ReactNode?][] = [
     ["Kind", r.kind],
     ["Tool", r.adapter, <Term id="tool" />],
-    ["Test", r.test ?? DASH],
+    ["Test", r.test ? (suite && suites.length > 1 ? <>{r.test} <a className="muted" href={`#/tests/${suite.id}`}>({suite.label.toLowerCase()})</a></> : r.test) : DASH],
     ["Experiment", r.experiment ?? DASH],
     ["Created", fmtDate(r.created_at)],
     ["Duration", fmtDuration(r.duration_s)],
@@ -130,7 +135,7 @@ export function RunDetail({ id }: { id: string }) {
             {sim.passed === false && <span className="chip bad">✕ failed</span>}
             {sim.passed == null && <span className="chip">undetermined</span>}
             <span className="spacer" />
-            {sim.passed === false && <DivergenceLink runId={r.id} run={r} />}
+            {sim.passed === false && <DivergenceLink runId={r.id} run={r} unit={!!suite?.unit} label={suite?.unit ? "Open waves at first error" : undefined} />}
           </div>
           <div className="panel-body small">
             {sim.reason && <div className="anywhere">{sim.reason}</div>}
@@ -138,19 +143,21 @@ export function RunDetail({ id }: { id: string }) {
               <table className="t" style={{ marginTop: 6 }}>
                 <tbody>
                   <tr>
-                    <th><Term id="divergence">First mismatch at line</Term></th>
+                    <th>{fromLog ? <Term id="first_error">First error at log line</Term> : <Term id="divergence">First mismatch at line</Term>}</th>
                     <td className="mono">{sim.divergence.line}</td>
                     <th>Time</th>
                     <td className="mono">{sim.divergence.time ?? DASH}</td>
                     <th>Cycle</th>
                     <td className="mono">{sim.divergence.cycle ?? DASH}</td>
                   </tr>
+                  {!fromLog && (
+                    <tr>
+                      <th>Expected</th>
+                      <td colSpan={5} className="mono anywhere">{sim.divergence.expected ?? DASH}</td>
+                    </tr>
+                  )}
                   <tr>
-                    <th>Expected</th>
-                    <td colSpan={5} className="mono anywhere">{sim.divergence.expected ?? DASH}</td>
-                  </tr>
-                  <tr>
-                    <th>Actual</th>
+                    <th>{fromLog ? "Message" : "Actual"}</th>
                     <td colSpan={5} className="mono anywhere worse">{sim.divergence.actual ?? DASH}</td>
                   </tr>
                 </tbody>

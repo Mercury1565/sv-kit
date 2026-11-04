@@ -37,6 +37,7 @@ from svkit.adapters.waves import vpd as V
 from svkit.config import SimFlow
 from svkit.core import golden as G
 from svkit.core import project as P
+from svkit.core import unit as U
 from svkit.core.fsutil import copy_file
 from svkit.schemas import Msg, Severity, SimResult
 
@@ -153,10 +154,16 @@ class VcsAdapter(SimAdapter):
         shimmed = ctx.env.get("SVKIT_VCS_SHIM") == "1"     # svkit.compat: Verilator stands in for vcs
         res = SimResult(tool="verilator" if shimmed else "vcs", test=test)
         prepare_outputs(ctx, flow, test, cwd)
+        unit = None
+        if flow.mode == "builtin" and flow.testbench:
+            unit = U.UnitBuild(self.cfg, flow, test, (ctx.cache_dir or ctx.run_dir.parent.parent / "build") / "unit")
+            if unit.waves:      # the generated dump writes to the run dir
+                flow = flow.model_copy(update={"waves": "{run_dir}/waves.vcd"})
+            ctx.log(f"[svkit] unit test {test}: {unit.testbench} (top {unit.top})")
         t0 = time.time()
         with (nullcontext() if shimmed else synopsys_seat(ctx.cancel, ctx.log)):
             if flow.mode == "builtin":
-                rc, stdout_log, compile_fail = self._run_builtin(ctx, flow, test, cwd, res)
+                rc, stdout_log, compile_fail = self._run_builtin(ctx, flow, test, cwd, res, unit)
             else:
                 rc, stdout_log = self._run_wrap(ctx, flow, test, cwd)
                 compile_fail = None
@@ -200,6 +207,8 @@ class VcsAdapter(SimAdapter):
             res.passed, res.reason, res.divergence = passed, reason, div
             if failures and res.passed is not False:
                 res.passed, res.reason = False, failures[0]
+            if res.passed is False and res.divergence is None and (flow.testbench or flow.error_regex):
+                res.divergence = U.log_divergence(log_text, flow.error_regex)
         if actual is not None and actual.is_file() and output_current(ctx, flow, actual, t0, []):
             ctx.keep(actual, actual.name if actual.name not in ctx.artifacts else f"actual.{actual.name}")
 
@@ -246,7 +255,8 @@ class VcsAdapter(SimAdapter):
         return rc, out
 
     # ------------------------------------------------------------ builtin
-    def compile_args(self, ctx: RunContext, flow: SimFlow) -> tuple[list[str], list[str]]:
+    def compile_args(self, ctx: RunContext, flow: SimFlow,
+                     unit: "U.UnitBuild | None" = None) -> tuple[list[str], list[str]]:
         """(compile argv without the vcs executable, simv runtime args)."""
         cfg, proj = self.cfg, self.cfg.project
         comp_extra, run_extra = _split_args(flow.args)
@@ -254,23 +264,28 @@ class VcsAdapter(SimAdapter):
         if proj.sources.filelist:
             defines.update(P.parse_filelist(cfg.root / proj.sources.filelist)[2])
         defines.update(ctx.plan.defines)
-        srcs = P.resolve_sources(cfg) + P.resolve_sources(cfg, proj.tb_sources)
+        if unit is not None:
+            srcs = list(unit.files)
+        else:
+            srcs = P.resolve_sources(cfg) + P.resolve_sources(cfg, proj.tb_sources) + P.resolve_sources(cfg, flow.sources)
         srcs = list(dict.fromkeys(srcs))
         if not srcs:
             from svkit.config import ConfigError
             raise ConfigError("builtin VCS flow: [project].sources / tb_sources matched no files")
-        args = [*BASE_COMPILE_ARGS, "-top", proj.tb_top or proj.top]
+        args = [*BASE_COMPILE_ARGS, "-top", unit.top if unit else (proj.tb_top or proj.top)]
         args += [f"+incdir+{d}" for d in P.include_dirs(cfg)]
         args += [_define_arg(k, v) for k, v in defines.items() if v is not False]
         args += [str(s) for s in srcs]
         args += comp_extra
         return args, run_extra
 
-    def _build(self, ctx: RunContext, flow: SimFlow) -> tuple[Optional[Path], Path, Optional[str]]:
+    def _build(self, ctx: RunContext, flow: SimFlow,
+               unit: "U.UnitBuild | None" = None) -> tuple[Optional[Path], Path, Optional[str]]:
         """Compile once per (sources, args, defines). Returns (simv or None, compile log, failure)."""
-        args, _ = self.compile_args(ctx, flow)
+        args, _ = self.compile_args(ctx, flow, unit)
         vcs = self.cfg.tool("vcs")
-        key = hashlib.sha256(json.dumps({"src": P.source_hash(self.cfg), "args": args, "vcs": vcs},
+        files = unit.files if unit else P.resolve_sources(self.cfg, flow.sources)
+        key = hashlib.sha256(json.dumps({"src": P.source_hash(self.cfg, list(files)), "args": args, "vcs": vcs},
                                         sort_keys=True).encode()).hexdigest()[:16]
         build_root = ctx.cache_dir or ctx.run_dir.parent.parent / "build"     # .svkit/build (runs live in .svkit/runs/<id>)
         build_root.mkdir(parents=True, exist_ok=True)
@@ -305,8 +320,8 @@ class VcsAdapter(SimAdapter):
                 fcntl.flock(lf.fileno(), fcntl.LOCK_UN)
 
     def _run_builtin(self, ctx: RunContext, flow: SimFlow, test: str, cwd: Path,
-                     res: SimResult) -> tuple[int, Path, Optional[str]]:
-        simv, clog, fail = self._build(ctx, flow)
+                     res: SimResult, unit: "U.UnitBuild | None" = None) -> tuple[int, Path, Optional[str]]:
+        simv, clog, fail = self._build(ctx, flow, unit)
         if clog.is_file():
             ctx.keep(clog, "compile.log")
         out = ctx.run_dir / "sim.log"
@@ -314,8 +329,8 @@ class VcsAdapter(SimAdapter):
             # surface compile messages through the same log parsing
             out.write_text(clog.read_text(errors="replace") if clog.is_file() else "")
             return 1, out, fail
-        _, run_extra = self.compile_args(ctx, flow)
-        cmd = [str(simv), f"+TEST={test}", "+vcs+lic+wait", *run_extra]
+        _, run_extra = self.compile_args(ctx, flow, unit)
+        cmd = [str(simv), f"+TEST={test}", "+vcs+lic+wait", *(unit.run_args(ctx.run_dir) if unit else []), *run_extra]
         ctx.log("[svkit] vcs (builtin run): " + " ".join(cmd))
         rc = ctx.sh(cmd, cwd=cwd, timeout=flow.timeout_s, log_file=out, extra_env=self._env(ctx, flow, test))
         return rc, out, None

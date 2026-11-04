@@ -102,6 +102,7 @@ function toRows(sigs: Sig[]): RenderRow[] {
 }
 
 const RADIXES: Radix[] = ["hex", "bin", "dec", "signed", "enum"];
+const AUTO_MAX = 32;   // signals added by `auto=top`
 
 function WaveSession({ runId, query }: { runId: string; query: URLSearchParams }) {
   const meta = useAsync(() => api.waveMeta(runId), [runId]);
@@ -228,6 +229,24 @@ function WaveWorkspace({ runId, meta, query }: { runId: string; meta: WaveMeta; 
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qSignals, runId]);
+
+  // `auto=top` (links to a first error / mismatch): start with the top scope's own signals,
+  // e.g. a unit testbench's DUT ports, instead of an empty list
+  const qAuto = query.get("auto");
+  useEffect(() => {
+    if (qSignals || qAuto !== "top") return;
+    let off = false;
+    (async () => {
+      const root = await api.waveScope(runId, "");
+      const top = root.vars.length ? root : root.scopes.length ? await api.waveScope(runId, root.scopes[0].path) : null;
+      if (off || !top) return;
+      addSignals(top.vars.slice(0, AUTO_MAX).map((v) => (v.width === null ? { path: v.path, width: 64, kind: "real" } : { path: v.path, width: v.width })));
+    })().catch(() => {});
+    return () => {
+      off = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [qAuto, runId]);
 
   // external navigation to a new cursor time
   useEffect(() => {

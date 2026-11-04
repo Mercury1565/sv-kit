@@ -109,9 +109,34 @@ the project root unless noted. String fields marked *template* accept `{test}`, 
 | `parallel` | `false` if tests can't run concurrently (e.g. a shared build dir). |
 | `waves`, `log` | *Templates.* The waveform the test writes (VCD/FST; VPD is converted) and a log to keep. |
 | `golden` | `{ actual, expected, ignore = [regex...], time_regex, time_unit = "ticks" \| "cycle" }`. `time_regex` captures a time or cycle from the first mismatching line, which places the waveform cursor. |
-| `tests` | `{ glob = "programs/*.mem" }` (test name = file stem) and/or `{ names = [...] }`. |
+| `tests` | `{ glob = "programs/*.mem" }` (test name = file stem) and/or `{ names = [...] }`; `exclude = [...]` drops names. |
 | `pass_regex`, `fail_regex` | Optional log checks. |
 | `isolate`, `cwd`, `timeout_s`, `env`, `args` | Run in an isolated copy; working dir; timeout; extra environment; extra tool args (builtin mode). |
+| `adapter` | The simulator (`vcs`, `verilator`, ...) when the flow key is not an adapter name, e.g. `[flows.sim.unit]`. |
+| `testbench`, `top`, `sources`, `suite`, `error_regex` | Unit-test suites, below. |
+
+#### Unit tests
+
+Unit testbenches (one module each) form their own suite, shown on the Tests page under
+**Unit tests**, apart from the system tests. Their runs have the same waveforms, logs and history:
+
+```toml
+[flows.sim.unit]
+adapter = "vcs"                    # Verilator stands in when VCS is missing
+mode = "builtin"
+testbench = "test/{test}_test.sv"  # every matching file is one test: test/queue_test.sv -> "queue"
+pass_regex = '@@@ PASSED'
+fail_regex = '@@@ FAILED'
+```
+
+Each test compiles `[project].sources`, the flow's `sources` and its testbench file. The top is the
+module declared in that file (or `top = "{test}_tb"`). The system testbench (`[project].tb_sources`)
+is never a unit test. If the testbench does not dump a waveform itself, svkit adds a generated
+module, bound into the top, that dumps every signal; your files are not edited. When a unit test
+fails, **Waves at first error** opens the waveform at the time printed on the first log line
+reporting a failed check (`ERROR`, `FAIL`, `mismatch`, or `error_regex`, whose group `time` captures
+the time), with the testbench's signals added. `svkit init` writes this section when it finds
+standalone testbenches. CLI: `svkit sim --all --flow unit`.
 
 ### `[flows.synth.<adapter>]` (`dc`, `yosys`)
 

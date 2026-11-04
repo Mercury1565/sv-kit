@@ -67,6 +67,8 @@ export interface Divergence {
   actual?: string | null;
   time?: number | null;
   cycle?: number | null;
+  /** "log": no golden output; the first log line reporting a failed check (unit tests). */
+  source?: "golden" | "log" | null;
 }
 
 export interface PerfResult {
@@ -184,6 +186,8 @@ export interface RunSummary {
   artifacts: Record<string, string>;
   group_id?: string | null;
   message?: string | null;
+  /** [flows.<kind>.<name>] key that ran it; null on runs recorded before v0.2 (= default flow). */
+  flow?: string | null;
   tags: string[];
 }
 
@@ -216,6 +220,22 @@ export interface Project {
   adapters: Record<string, boolean>;
   /** What sim / synth run on this host when no flow is named (after tool fallback). */
   backends?: Partial<Record<"sim" | "synth", Backend>>;
+  /** Test suites (system tests, unit tests, ...): each runs on its first flow. */
+  suites?: Suite[];
+}
+
+export interface Suite {
+  id: string;
+  label: string;
+  flow: string;
+  flows: string[];
+  tests: string[];
+  /** one testbench file per test */
+  unit: boolean;
+  /** compared against expected output files */
+  golden: boolean;
+  /** the suite `svkit sim` runs when no flow is named */
+  default: boolean;
 }
 
 export interface Backend {
