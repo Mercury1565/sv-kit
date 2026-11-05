@@ -1,9 +1,9 @@
 # svkit
 
-A plug-in debug and PPA workbench for SystemVerilog projects. Add one `svkit.toml` to an existing
+A plug-in debug and PPA(power-performance-area) workbench for SystemVerilog projects. Add one `svkit.toml` to an existing
 repo and get a local web dashboard plus a CLI for:
 
-- **Synthesis:** QoR dashboards and an N-run compare table, for Design Compiler or Yosys + OpenSTA.
+- **Synthesis:** QoR(Quality of Results) dashboards and an N-run compare table, for Design Compiler or Yosys + OpenSTA.
 - **Experiments:** named synthesis variants (area effort, Vt mix, corner, …) run as a matrix.
 - **Clock sweep:** the minimum clock period that meets timing, with a slack-vs-period chart.
 - **Waveforms:** VCD/FST with struct/enum decoding, next-change / next-X, and failing tests opened
