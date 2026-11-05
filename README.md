@@ -1,4 +1,9 @@
-# svkit
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/svkit-banner-dark.svg">
+    <img alt="svkit: debug and PPA workbench for SystemVerilog" src="docs/assets/svkit-banner-light.svg" width="100%">
+  </picture>
+</p>
 
 A plug-in debug and PPA(power-performance-area) workbench for SystemVerilog projects. Add one `svkit.toml` to an existing
 repo and get a local web dashboard plus a CLI for:

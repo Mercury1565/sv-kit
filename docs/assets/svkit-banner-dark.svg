@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="940" height="200" viewBox="0 0 940 200" role="img" aria-labelledby="t d">
+<title id="t">svkit</title>
+<desc id="d">svkit: debug and PPA workbench for SystemVerilog. The logo's square wave draws itself while a waveform scrolls under a cursor.</desc>
+<style>
+  .word { font: 700 66px -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; letter-spacing: -1px; fill: #e3e7ed; }
+  .tag { font: 400 17px -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; fill: #9aa5b4; }
+  .chips { font: 500 12.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fill: #6b7685; }
+  .n { font: 12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fill: #9aa5b4; }
+  .v { font: 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .grid { stroke: #1b2028; stroke-width: 1; }
+  .draw { stroke-dasharray: 34; stroke-dashoffset: 34; animation: draw 6s cubic-bezier(.65,0,.35,1) infinite; }
+  @keyframes draw { 0% { stroke-dashoffset: 34; } 22% { stroke-dashoffset: 0; } 82% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: -34; } }
+  .scroll { animation: scroll 3.2s linear infinite; }
+  @keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-160px); } }
+  .blink { animation: blink 1.6s steps(2, jump-none) infinite; }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+  @media (prefers-reduced-motion: reduce) {
+    .draw { animation: none; stroke-dashoffset: 0; }
+    .scroll, .blink { animation: none; }
+  }
+</style>
+<defs><clipPath id="trace"><rect x="618" y="34" width="292" height="132"/></clipPath></defs>
+
+<g transform="translate(40 44) scale(5.6)">
+  <rect x="0.5" y="0.5" width="19" height="19" rx="4.5" fill="#5b93f5"/>
+  <path d="M3.5 13.5h3v-7h4v7h3v-7h3" class="draw" fill="none" stroke="#0b0d10" stroke-width="1.8"
+        stroke-linejoin="round" stroke-linecap="round"/>
+</g>
+
+<text x="178" y="106.0" class="word">svkit</text>
+<text x="180" y="136.0" class="tag">Debug &amp; PPA workbench for SystemVerilog</text>
+<text x="180" y="160.0" class="chips">waves · X-trace · QoR · T_min · CPI</text>
+
+<rect x="548" y="24" width="364" height="152" rx="10" fill="#0f1216" stroke="#262c35"/>
+<line x1="612" y1="30" x2="612" y2="170" stroke="#262c35"/>
+<text x="562" y="66" class="n">clk</text><text x="562" y="104" class="n">data</text><text x="562" y="142" class="n">q</text>
+<g clip-path="url(#trace)"><line x1="658" y1="36" x2="658" y2="164" class="grid"/><line x1="738" y1="36" x2="738" y2="164" class="grid"/><line x1="818" y1="36" x2="818" y2="164" class="grid"/><line x1="898" y1="36" x2="898" y2="164" class="grid"/><g class="scroll"><path d="M618 71 h20 v-18 h20 v18 h20 v-18 h20 v18 h20 v-18 h20 v18 h20 v-18 h20 v18 h20 v-18 h20 v18 h20 v-18 h20 v18 h20 v-18 h20 v18 h20 v-18 h20 v18 h20 v-18 h20 v18 h20 v-18 h20 v18 h20 v-18 h20 v18 h20 v-18 h20 v18 h20 v-18 h20 v18 h20 v-18 h20 v18 h20 v-18 h20 v18 h20 v-18 h20 v18" fill="none" stroke="#4cc26a" stroke-width="1.8" stroke-linejoin="round"/><path d="M618 100 L623 91 H693 L698 100 L693 109 H623 Z" fill="#4cc26a" fill-opacity="0" stroke="#4cc26a" stroke-width="1.6"/><text x="630" y="104" class="v" fill="#4cc26a">3a</text><path d="M698 100 L703 91 H773 L778 100 L773 109 H703 Z" fill="#4cc26a" fill-opacity="0" stroke="#4cc26a" stroke-width="1.6"/><text x="710" y="104" class="v" fill="#4cc26a">c4</text><path d="M778 100 L783 91 H853 L858 100 L853 109 H783 Z" fill="#4cc26a" fill-opacity="0" stroke="#4cc26a" stroke-width="1.6"/><text x="790" y="104" class="v" fill="#4cc26a">3a</text><path d="M858 100 L863 91 H933 L938 100 L933 109 H863 Z" fill="#4cc26a" fill-opacity="0" stroke="#4cc26a" stroke-width="1.6"/><text x="870" y="104" class="v" fill="#4cc26a">c4</text><path d="M938 100 L943 91 H1013 L1018 100 L1013 109 H943 Z" fill="#4cc26a" fill-opacity="0" stroke="#4cc26a" stroke-width="1.6"/><text x="950" y="104" class="v" fill="#4cc26a">3a</text><path d="M1018 100 L1023 91 H1093 L1098 100 L1093 109 H1023 Z" fill="#4cc26a" fill-opacity="0" stroke="#4cc26a" stroke-width="1.6"/><text x="1030" y="104" class="v" fill="#4cc26a">c4</text><path d="M1098 100 L1103 91 H1173 L1178 100 L1173 109 H1103 Z" fill="#4cc26a" fill-opacity="0" stroke="#4cc26a" stroke-width="1.6"/><text x="1110" y="104" class="v" fill="#4cc26a">3a</text><path d="M1178 100 L1183 91 H1253 L1258 100 L1253 109 H1183 Z" fill="#4cc26a" fill-opacity="0" stroke="#4cc26a" stroke-width="1.6"/><text x="1190" y="104" class="v" fill="#4cc26a">c4</text><path d="M618 138 L623 129 H693 L698 138 L693 147 H623 Z" fill="#4cc26a" fill-opacity="0" stroke="#4cc26a" stroke-width="1.6"/><text x="630" y="142" class="v" fill="#4cc26a">5f</text><path d="M698 138 L703 129 H773 L778 138 L773 147 H703 Z" fill="#ff6b6b" fill-opacity="0.16" stroke="#ff6b6b" stroke-width="1.6"/><text x="710" y="142" class="v" fill="#ff6b6b">xx</text><path d="M778 138 L783 129 H853 L858 138 L853 147 H783 Z" fill="#4cc26a" fill-opacity="0" stroke="#4cc26a" stroke-width="1.6"/><text x="790" y="142" class="v" fill="#4cc26a">5f</text><path d="M858 138 L863 129 H933 L938 138 L933 147 H863 Z" fill="#ff6b6b" fill-opacity="0.16" stroke="#ff6b6b" stroke-width="1.6"/><text x="870" y="142" class="v" fill="#ff6b6b">xx</text><path d="M938 138 L943 129 H1013 L1018 138 L1013 147 H943 Z" fill="#4cc26a" fill-opacity="0" stroke="#4cc26a" stroke-width="1.6"/><text x="950" y="142" class="v" fill="#4cc26a">5f</text><path d="M1018 138 L1023 129 H1093 L1098 138 L1093 147 H1023 Z" fill="#ff6b6b" fill-opacity="0.16" stroke="#ff6b6b" stroke-width="1.6"/><text x="1030" y="142" class="v" fill="#ff6b6b">xx</text><path d="M1098 138 L1103 129 H1173 L1178 138 L1173 147 H1103 Z" fill="#4cc26a" fill-opacity="0" stroke="#4cc26a" stroke-width="1.6"/><text x="1110" y="142" class="v" fill="#4cc26a">5f</text><path d="M1178 138 L1183 129 H1253 L1258 138 L1253 147 H1183 Z" fill="#ff6b6b" fill-opacity="0.16" stroke="#ff6b6b" stroke-width="1.6"/><text x="1190" y="142" class="v" fill="#ff6b6b">xx</text></g></g>
+<line x1="798" y1="30" x2="798" y2="170" stroke="#5b93f5" stroke-width="1.4"/>
+<path d="M793 28 h10 l-5 7 z" fill="#5b93f5" class="blink"/>
+</svg>
