@@ -1,0 +1,37 @@
+# Synthesis and compare
+
+Synthesis results (QoR: quality of results) from Design Compiler or from Yosys + OpenSTA, parsed into
+one shared format and shown as a dashboard instead of report files.
+
+![Synthesis dashboard with QoR cards, area by hierarchy, speed mix and slowest paths](images/synth.png)
+
+## One run
+
+- **Headline numbers**: worst and total setup slack, worst hold slack, clock period and frequency,
+  area, cell count, total / switching / leakage power, operating corner.
+- **Area by hierarchy**: which sub-modules take the area, as a sortable tree.
+- **Transistor speed mix**: how many cells of each threshold-voltage class (for example LVT and RVT),
+  from the cell-name suffixes you configure.
+- **Slowest paths**: the worst timing paths, each expandable to every point (instance, pin, cell,
+  incremental delay, arrival). *Show gates* draws the path as a schematic (see [design.md](design.md)).
+
+## Experiments
+
+Name variants of your synthesis settings in `svkit.toml` (another corner, a dont-use list, a different
+compile command, ...) and run them all at once:
+
+```
+svkit synth --matrix      # runs every [experiments] entry and prints the compare table
+```
+
+svkit applies each setting without editing your scripts (TCL variables, appended lines, files or
+environment variables, per flow).
+
+## Compare
+
+Pick two or more synthesis runs (on the Runs or Synthesis page) to see them side by side. The first
+column is the baseline; every other cell shows the change from it, marked better or worse in the
+direction that matters for that metric (less area is better, more slack is better). Any run can be made
+the baseline.
+
+![Compare table of three synthesis experiments against a baseline](images/compare.png)

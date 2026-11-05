@@ -12,12 +12,34 @@ repo and get a local web dashboard plus a CLI for:
 - **Diagrams:** a module-level block diagram, and gate-level cones drawn as schematics (gate symbols from your Liberty cell functions) with the critical path highlighted.
 - **X tracer:** `svkit xtrace` walks an X back to its root cause.
 
-svkit **wraps your existing build** (Makefile, scripts). Izt never edits your Makefile or TCL and
+svkit **wraps your existing build** (Makefile, scripts). It never edits your Makefile or TCL and
 never writes build files into your repo. Every simulation and synthesis is recorded as a *Run* in
 `.svkit/`, so history and comparisons come for free.
 
 Background: [PRODUCT.md](PRODUCT.md) (spec), [docs/MVP.md](docs/MVP.md) (v1 scope),
-[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) (contracts), [PROGRESS.md](PROGRESS.md) (status).
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) (contracts), [PROGRESS.md](PROGRESS.md) (status),
+[features/](features/README.md) (feature tour with screenshots).
+
+## Sneak peek
+
+A failing test opened at its first mismatch with golden, an X traced back to the register that was
+never reset, the critical path drawn as gates, the clock sweep, and synthesis experiments compared:
+
+<p align="center">
+  <img src="features/images/waves.png" width="49%" alt="Waveforms opened at a failing test's first mismatch">
+  <img src="features/images/xtrace.png" width="49%" alt="X tracer tree ending at the root cause">
+</p>
+<p align="center">
+  <img src="features/images/design-gates.png" width="49%" alt="Gate-level cone with the critical path highlighted">
+  <img src="features/images/sweep.png" width="49%" alt="Clock sweep chart with the fastest passing period">
+</p>
+<p align="center">
+  <img src="features/images/synth.png" width="49%" alt="Synthesis QoR dashboard">
+  <img src="features/images/compare.png" width="49%" alt="Compare table of synthesis experiments">
+</p>
+
+**Feature tour:** [`features/`](features/README.md) has a page per view (runs, tests, waveforms,
+design diagrams, X tracer, synthesis and compare, clock sweep, CPI/TPI) with screenshots.
 
 ## Install
 

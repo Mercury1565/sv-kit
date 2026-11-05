@@ -46,7 +46,7 @@ export function DivergenceLink({ runId, run, label = "Open waves at first mismat
   };
   return (
     <span className="row" style={{ gap: 6, minWidth: 0 }}>
-      <button onClick={go} disabled={state === "busy"}>
+      <button onClick={go} disabled={state === "busy"} style={{ flexShrink: 0, whiteSpace: "nowrap" }}>
         {label}
       </button>
       <Info term={unit ? "first_error" : "divergence"} />
@@ -132,7 +132,7 @@ export function TestsView({ suite: suiteId }: { suite?: string }) {
     {
       key: "act",
       header: "",
-      width: "220px",
+      width: "272px",
       render: (r) =>
         r.run ? (
           <span className="row" style={{ gap: 6 }} onClick={(e) => e.stopPropagation()}>
@@ -141,7 +141,7 @@ export function TestsView({ suite: suiteId }: { suite?: string }) {
             ) : (
               <a href={href(`/waves/${r.run.id}`)}>waves</a>
             )}
-            <a href={`#/runs/${r.run.id}`}>details</a>
+            <a href={`#/runs/${r.run.id}`} style={{ flexShrink: 0 }}>details</a>
           </span>
         ) : (
           <span onClick={(e) => e.stopPropagation()}>
