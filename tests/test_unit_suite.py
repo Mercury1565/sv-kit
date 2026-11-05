@@ -148,6 +148,18 @@ def test_log_divergence_first_error_with_time():
     assert U.log_divergence("all good\n", None) is None
 
 
+@pytest.mark.parametrize("line,t", [
+    ("[FAIL] @145601: pc=0: instructions[1] = c0000000, expected c0000001", 145601),  # index is not a time
+    ("ERROR: data[3] wrong at time 2500", 2500),
+    ("ERROR [120 ns] q[7] stuck", 120),
+    ("[  900] ERROR mismatch on bus[2]", 900),
+    ("1500: FAIL q[0]", 1500),
+    ("ERROR: out[4] = 0, expected 1", None),                                         # no time printed
+])
+def test_log_divergence_time_ignores_array_indices(line, t):
+    assert U.log_divergence(line + "\n", None).time == t
+
+
 def test_fallback_stays_inside_the_suite(tmp_path):
     cfg = make(tmp_path, adapter="vcs", tools='[tools]\nvcs = "svkit-no-such-vcs"\nverilator = "true"')
     rs = resolve_sim(cfg, "unit")

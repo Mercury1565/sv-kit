@@ -11,6 +11,7 @@ from typing import Optional
 
 from svkit.adapters.waves.locate import wave_path
 from svkit.adapters.waves.wellen import WaveFile, find_vars, open_wave
+from svkit.core import unit as U
 from svkit.core.rundb import Run, RunDB
 from svkit.schemas import Divergence
 
@@ -77,6 +78,8 @@ def run_divergence(cfg, db: RunDB, run: Run) -> Optional[Divergence]:
     if not raw:
         return None
     d = Divergence.model_validate(raw)
+    if d.source == "log":
+        d = _reread_log(cfg, db, run) or d
     if d.time is None and d.cycle is not None:
         p = wave_path(db, run)
         if p is not None:
@@ -85,3 +88,24 @@ def run_divergence(cfg, db: RunDB, run: Run) -> Optional[Divergence]:
             except Exception:
                 d.time = None
     return d
+
+
+def _reread_log(cfg, db: RunDB, run: Run) -> Optional[Divergence]:
+    """A log-based divergence is cheap to find again from the kept log. Doing it on every request
+    means runs recorded (or reused from cache) before a fix to the time parser, or to the flow's
+    `error_regex`, still open at the right time."""
+    rel = (run.artifacts or {}).get("sim.log")
+    if not rel:
+        return None
+    p = (db.runs_dir / run.id / rel).resolve()
+    if not p.is_file():
+        return None
+    error_regex = None
+    try:
+        error_regex = cfg.sim_flow(run.flow)[1].error_regex if run.flow else None
+    except Exception:
+        pass
+    try:
+        return U.log_divergence(p.read_text(errors="replace"), error_regex)
+    except Exception:          # a bad error_regex: keep the recorded answer
+        return None

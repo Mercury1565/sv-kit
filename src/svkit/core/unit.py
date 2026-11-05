@@ -23,7 +23,10 @@ _MODULE = re.compile(r"^\s*(?:macro)?module\s+(?:automatic\s+|static\s+)?(\w+)",
 _OWN_DUMP = re.compile(r"\$(?:dumpfile|dumpvars|vcdplus\w*|fsdbDump\w*)\b")
 # a check failing in the log (used to find the first error when no golden output is compared)
 DEFAULT_ERROR_RE = r"(?i)\b(?:error|fail(?:ed|ure)?|mismatch|assert(?:ion)?\s+failed)\b"
-_TIME_RES = [re.compile(p) for p in (r"\[\s*(\d+)\s*(?:[fpnum]?s)?\s*\]", r"@\s*(\d+)", r"(?i)\btime\s*[=:]?\s*(\d+)",
+# Most specific first. A bare "[n]" is a time only at the start of the line (or with a unit), so an
+# array index such as "data[1]" later on the line is never read as the time.
+_TIME_RES = [re.compile(p) for p in (r"@\s*(\d+)", r"(?i)\btime\s*[=:]?\s*(\d+)",
+                                     r"\[\s*(\d+)\s*[fpnum]?s\s*\]", r"^\s*\[\s*(\d+)\s*\]",
                                      r"^\s*(\d+)\s*[:|]")]
 
 

@@ -111,3 +111,23 @@ $enddefinitions $end
     wf = W.open_wave(p)
     assert W.find_vars(wf, "clk", under="tb")[0] == "tb.clk"          # shallowest first
     assert [D.cycle_to_time(cfg, wf, n) for n in range(4)] == [40, 47, 100, None]
+
+
+def test_log_divergence_reread_from_kept_log(tmp_path):
+    """Runs recorded with an older time parser (or reused from cache) still open at the right time."""
+    cfg, db = _setup(tmp_path)
+    log = "start\n[FAIL] @145601: pc=0: instructions[1] = c0000000, expected c0000001\n@@@ Failed\n"
+    stale = {"line": 2, "actual": "[FAIL] ...", "time": 1, "source": "log"}
+    r = _run(db, stale)
+    (db.runs_dir / r.id / "sim.log").write_text(log)
+    db.update_run(r.id, artifacts={**r.artifacts, "sim.log": "sim.log"})
+    d = D.run_divergence(cfg, db, db.get_run(r.id))
+    assert (d.line, d.time) == (2, 145601)
+    # a cached run points at the original run's files
+    c = db.create_run("sim", "verilator", test="t", status="failed")
+    db.update_run(c.id, metrics={"tool": "verilator", "test": "t", "passed": False, "divergence": stale},
+                  artifacts={"sim.log": f"../{r.id}/sim.log"}, cached_from=r.id)
+    assert D.run_divergence(cfg, db, db.get_run(c.id)).time == 145601
+    # no kept log: the recorded answer stands
+    n = _run(db, stale)
+    assert D.run_divergence(cfg, db, n).time == 1
