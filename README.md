@@ -21,10 +21,6 @@ svkit **wraps your existing build** (Makefile, scripts). It never edits your Mak
 never writes build files into your repo. Every simulation and synthesis is recorded as a *Run* in
 `.svkit/`, so history and comparisons come for free.
 
-Background: [PRODUCT.md](PRODUCT.md) (spec), [docs/MVP.md](docs/MVP.md) (v1 scope),
-[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) (contracts), [PROGRESS.md](PROGRESS.md) (status),
-[features/](features/README.md) (feature tour with screenshots).
-
 ## Sneak peek
 
 A failing test opened at its first mismatch with golden, an X traced back to the register that was
@@ -43,8 +39,8 @@ never reset, the critical path drawn as gates, the clock sweep, and synthesis ex
   <img src="features/images/compare.png" width="49%" alt="Compare table of synthesis experiments">
 </p>
 
-**Feature tour:** [`features/`](features/README.md) has a page per view (runs, tests, waveforms,
-design diagrams, X tracer, synthesis and compare, clock sweep, CPI/TPI) with screenshots.
+More in the **feature tour**: [`features/`](features/README.md), one page per view (runs, tests,
+waveforms, design diagrams, X tracer, synthesis and compare, clock sweep, CPI/TPI).
 
 ## Install
 
@@ -120,8 +116,8 @@ synthesis script (for example `set_fix_hold`) for a full result.
 
 ## `svkit.toml` reference
 
-The authoritative definition is the pydantic model in `src/svkit/config.py`. Paths are relative to
-the project root unless noted. String fields marked *template* accept `{test}`, `{top}`, `{root}`,
+Paths are relative to the project root unless noted. svkit reports any unknown or mistyped key
+when it loads the file. String fields marked *template* accept `{test}`, `{top}`, `{root}`,
 `{workdir}` and `{run_dir}`.
 
 ### `[project]`
@@ -260,45 +256,7 @@ svkit waves archive --to vcd
 ```
 
 `svkit waves archive --to fst` does the reverse, for example to shrink a project recorded before
-FST became the default (lab7: 607 MB of VCDs became 17 MB).
-
-## Adding an adapter
-
-Adapters run a tool and normalize its output to the shared schemas in `src/svkit/schemas.py`
-(`SimResult`, `SynthResult`, `TimingPath`, …). The UI and the analyses only ever see those
-schemas, so a new adapter needs no UI work.
-
-1. Subclass `SimAdapter`, `SynthAdapter` or `StaAdapter` from `svkit.adapters.base`. Set `name`
-   and `tools`, and implement `run()`. A synthesis adapter also implements `parse(files, top=...)`
-   so it can be tested against golden report files without the tool.
-2. Use the `RunContext`:
-   - `ctx.sh(cmd)` runs commands, niced and cancellable, with the output streamed to the live log.
-   - `ctx.keep(path, name)` stores artifacts. Keep the waveform as `waves.vcd`/`waves.fst`, logs as
-     `sim.log`/`synth.log`, and the netlist as `netlist.v`.
-   - Never write outside `ctx.workdir` / `ctx.run_dir`.
-3. Sim adapters decide pass/fail with `svkit.core.golden.evaluate()`, so every flow behaves the same.
-   Synthesis adapters fill `vt_mix` with `svkit.analysis.vt.vt_mix()`.
-4. Register the adapter from your own package:
-   ```toml
-   [project.entry-points."svkit.adapters"]
-   mysim = "my_pkg.mysim:MySimAdapter"
-   ```
-   It is then usable as `[flows.sim.mysim]`.
-5. Add golden-file tests: real tool output plus the expected normalized JSON. See
-   `tests/test_dc_reports.py` and `fixtures/golden/`.
-
-## Development
-
-```
-python3.11 -m venv .venv && .venv/bin/pip install -e '.[dev]'
-.venv/bin/pytest -q                 # tool-dependent tests skip when the tools are missing
-.venv/bin/pytest -m synopsys        # real VCS/DC runs (needs SVKIT_DC_TARGET_LIB or SVKIT_DC_LIBERTY)
-.venv/bin/pytest -m oss             # real Verilator/Yosys/OpenSTA runs
-```
-
-- **DC library setup** for the fixtures: see `fixtures/synopsys_common/README.md`.
-- **Web UI:** React + TypeScript in `web/`. Rebuild with `cd web && npm ci && npm run build`, which
-  needs a modern Node and writes to `src/svkit/server/static/`. Commit the built assets.
+FST became the default (VCD files are many times larger than FST).
 
 ## Known limitations
 
@@ -306,4 +264,8 @@ python3.11 -m venv .venv && .venv/bin/pip install -e '.[dev]'
   Verilator is 2-state and never shows X, so trace X on waves from a 4-state simulator (VCS).
 - The golden-diff jump needs output lines that carry a time or cycle (`golden.time_regex`).
   Final-state dumps, such as a memory image sorted by address, cannot be placed in time.
-- See [PROGRESS.md](PROGRESS.md) for current gaps.
+
+## Contributing
+
+To add support for another simulator or synthesis tool, or to work on svkit itself, see
+[CONTRIBUTING.md](CONTRIBUTING.md).
