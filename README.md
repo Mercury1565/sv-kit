@@ -50,7 +50,7 @@ Install straight from the project's GitHub repository,
 [github.com/Mercury1565/sv-kit](https://github.com/Mercury1565/sv-kit):
 
 ```
-python3.11 -m venv ~/.venvs/svkit
+python -m venv ~/.venvs/svkit
 ~/.venvs/svkit/bin/pip install "git+https://github.com/Mercury1565/sv-kit.git"
 export PATH=~/.venvs/svkit/bin:$PATH
 svkit --version
