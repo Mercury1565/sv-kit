@@ -50,7 +50,7 @@ Install straight from the project's GitHub repository,
 [github.com/Mercury1565/sv-kit](https://github.com/Mercury1565/sv-kit):
 
 ```
-python3.11 -m venv ~/.venvs/svkit          # on CAEN, `python3` is 3.9: use python3.11
+python3.11 -m venv ~/.venvs/svkit
 ~/.venvs/svkit/bin/pip install "git+https://github.com/Mercury1565/sv-kit.git"
 export PATH=~/.venvs/svkit/bin:$PATH
 svkit --version
@@ -76,7 +76,7 @@ Notes for shared Linux servers:
 - **RHEL 9 Perl.** The OSS CAD Suite `verilator` wrapper needs Perl's `FindBin` module, which RHEL 9
   ships as a separate package. Without root, put `FindBin.pm` in a directory on `PERL5LIB`.
 - **Stale `VERILATOR_ROOT`.** If one is set from an older install, unset it.
-- **Network home directories (CIFS/SMB, as on CAEN).** Building svkit from a source tree on such a
+- **Network home directories (CIFS/SMB).** Building svkit from a source tree on such a
   mount fails, because SMB leaves `.__smb*` temp files in setuptools' build dirs. Installing from GitHub
   avoids this (pip builds in a temporary directory). For a local checkout, build the wheel from a copy on
   local disk (e.g. under `/tmp`) and install that. Running svkit on projects in your home directory works.
@@ -90,11 +90,11 @@ svkit sim --all                 # run every test; pass/fail against golden outpu
 svkit synth --matrix            # run every [experiments] variant and print the compare table
 svkit sweep clock --jobs 2      # find T_min
 svkit xtrace tb.dut.result @35001
-svkit serve                     # http://127.0.0.1:8470
+svkit serve                     # http://127.0.0.1:3572
 ```
 
-Over SSH, forward the port from your laptop with `ssh -L 8470:localhost:8470 <server>`, then open
-`http://localhost:8470`.
+Over SSH, forward the port from your laptop with `ssh -L 3572:localhost:3572 <server>`, then open
+`http://localhost:3572`.
 
 | Command | Does |
 |---|---|
@@ -104,7 +104,7 @@ Over SSH, forward the port from your laptop with `ssh -L 8470:localhost:8470 <se
 | `svkit sweep clock [--tol 50] [--jobs N] [--start PS] [--flow NAME]` | Search for the minimum clock period. |
 | `svkit xtrace <hier.signal> @<time> [--run ID] [--depth N] [--json]` | Trace an X to its root cause in the latest (or given) sim run's waves. |
 | `svkit runs ls \| show <id> \| diff <a> <b> \| tag <id> <tag>` | Browse recorded Runs. |
-| `svkit serve [--port 8470] [--host 127.0.0.1]` | Start the dashboard. |
+| `svkit serve [--port 3572] [--host 127.0.0.1]` | Start the dashboard. |
 
 Exit codes: 0 ok, 1 a test failed or no passing period, 2 config error, 3 tool error.
 
@@ -231,7 +231,7 @@ corners = { TT = ["lib/tt.lib"], SS = ["lib/ss.lib"] }
 sta = "/opt/openroad/bin/sta"
 
 [server]
-port = 8470
+port = 3572
 
 [waves]
 max_size_mb = 2000                # don't archive larger dumps

@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 
 // The built UI is committed into the Python package so end users never need Node.
 const outDir = fileURLToPath(new URL("../src/svkit/server/static", import.meta.url));
-const backend = "http://127.0.0.1:8470";
+const backend = "http://127.0.0.1:3572";
 
 // netlistsvg (the schematic renderer, run in a Web Worker) and its elkjs 0.3.0 require Node-only modules.
 const shim = (f: string) => fileURLToPath(new URL(`./shims/${f}`, import.meta.url));

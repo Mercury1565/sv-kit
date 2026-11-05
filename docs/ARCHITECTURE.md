@@ -254,7 +254,7 @@ All JSON. Base `/api`. Errors: `{"detail": "..."}` with 4xx/5xx.
 | `WS /ws/events` | stream of events (`run.created`, `run.status`, `run.log`, `group.updated`, `job.updated`) |
 
 Static UI is served from `/` (SPA fallback to `index.html`). The server binds `127.0.0.1` by default;
-use `ssh -L 8470:localhost:8470 host`.
+use `ssh -L 3572:localhost:3572 host`.
 
 **Diagrams (Design view).** Blocks and Gates share one drawing path; only the netlist differs.
 `svkit.design.schematic` turns a `DesignGraph.block()` level (instances, glue logic, ports) or an
@@ -274,7 +274,7 @@ svkit synth [--flow NAME] [--set k=v ...] [--exp NAME | --matrix] [--jobs N] [--
 svkit sweep clock [--tol 50] [--jobs N] [--start PS]
 svkit xtrace <hier.signal> @<time> [--run ID] [--depth N] [--json]
 svkit runs ls|show <id>|diff <a> <b>|tag <id> <tag>
-svkit serve [--port 8470] [--host 127.0.0.1]
+svkit serve [--port 3572] [--host 127.0.0.1]
 ```
 Exit codes: 0 ok; 1 a test failed / timing not met where it matters; 2 config error; 3 tool error.
 

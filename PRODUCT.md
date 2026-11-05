@@ -297,7 +297,7 @@ svkit synth [--set knob=value ...] [--exp name | --matrix]
 svkit sweep clock [--tol 50ps] [--jobs N]
 svkit xtrace <hier.signal> @<time> [--depth N]
 svkit runs [ls|show|diff <a> <b>|tag]
-svkit serve [--port 8470]          # dashboard; tunnel with ssh -L
+svkit serve [--port 3572]          # dashboard; tunnel with ssh -L
 svkit report --html [runs...]
 ```
 

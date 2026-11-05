@@ -112,7 +112,7 @@ mkdir -p ~/svkit-work/fx && cp -r fixtures/pipe5 fixtures/lib ~/svkit-work/fx/ &
 svkit sim --all --flow vcs
 svkit synth --matrix --flow dc
 svkit sweep clock --flow dc --tol 50 --jobs 2   # jobs <= 2 (license cap)
-svkit serve                                     # from your laptop: ssh -L 8470:localhost:8470 <caen host>
+svkit serve                                     # from your laptop: ssh -L 3572:localhost:3572 <caen host>
 ```
 Stop the server (Ctrl-C) before leaving.
 

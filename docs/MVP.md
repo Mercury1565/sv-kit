@@ -184,7 +184,7 @@ svkit synth [--set knob=value ...] [--exp name | --matrix]
 svkit sweep clock [--tol 50ps] [--jobs N]
 svkit xtrace <hier.signal> @<time> [--depth N]
 svkit runs [ls|show|diff <a> <b>|tag]
-svkit serve [--port 8470]
+svkit serve [--port 3572]
 ```
 
 `svkit report --html` comes after the MVP.

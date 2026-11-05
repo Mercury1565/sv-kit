@@ -3,7 +3,7 @@
 ## Owner summary
 - **Phase:** Phases 0–3 implemented. **Both flows now run on real tools** (VCS + DC on CAEN; Verilator + Yosys + OpenSTA on the dev host). **~85 % to MVP.** Remaining: a frontend rebuild (sweep note, new API endpoints; needs Node), browser click-through of every view, web proposal 5, the Icarus decision, and the OSS flow on CAEN (blocked on OpenSTA).
 - **Dogfood checkpoint (EECS 470 copy in `~/svkit-work/dogfood`):** `svkit init` needs **no hand edits**. 21/21 tests pass on VCS, the DC matrix runs (TT/SS/FF), and the clock sweep finds **T_min = 4708 ps** (14 DC runs). TPI uses it, and the dashboard API works on the real CPU.
-- **Demoable on CAEN:** `cd ~/svkit-work/dogfood && svkit serve`, then `ssh -L 8470:localhost:8470 <caen host>` from your laptop.
+- **Demoable on CAEN:** `cd ~/svkit-work/dogfood && svkit serve`, then `ssh -L 3572:localhost:3572 <caen host>` from your laptop.
 - **New (iter 4–6):** runs on a laptop without Synopsys (automatic Verilator/Yosys/OpenSTA fallback), plain-language dashboard with (i) explanations, **unit tests as their own suite** (Tests → Unit tests, waves at the first error), FST waveform archive, and **schematic Blocks/Gates diagrams** (netlistsvg, gate symbols from Liberty).
 - **Needs owner:**
   1. **OpenSTA on CAEN:** installing it (micromamba + `litex-hub::openroad` into `~/tools`) was blocked by the permission classifier as running downloaded code. Approve it, or install it yourself, to run the OSS flow and its tests on CAEN.
@@ -71,7 +71,7 @@
 cp -r fixtures/pipe5 fixtures/lib /tmp/x/ && cd /tmp/x/pipe5
 export PATH=~/tools/bin:~/tools/oss-cad-suite/bin:$PATH; unset VERILATOR_ROOT
 svkit sim --all --flow verilator; svkit synth --matrix --flow yosys; svkit sweep clock --tol 20 --jobs 4
-svkit serve   # http://127.0.0.1:8470 ; remote: ssh -L 8470:localhost:8470 <host>
+svkit serve   # http://127.0.0.1:3572 ; remote: ssh -L 3572:localhost:3572 <host>
 ```
 
 ## Iteration 3 — 2026-11-02 — Real VCS/DC on CAEN, dogfood checkpoint, README
@@ -141,7 +141,7 @@ svkit serve   # http://127.0.0.1:8470 ; remote: ssh -L 8470:localhost:8470 <host
 ```
 cd ~/svkit-work/dogfood
 svkit runs ls                  # sims, matrix, sweep points
-svkit serve                    # laptop: ssh -L 8470:localhost:8470 <caen host>, open http://localhost:8470
+svkit serve                    # laptop: ssh -L 3572:localhost:3572 <caen host>, open http://localhost:3572
 # Synopsys tests (CAEN): source the ASAP7 env block from docs/CAEN.md §2, then
 .venv/bin/pytest -m synopsys
 ```
@@ -175,7 +175,7 @@ svkit serve                    # laptop: ssh -L 8470:localhost:8470 <caen host>,
 **How to see it:**
 ```
 cd lab7 && svkit serve           # restart it: the backend changed
-# open http://localhost:8470/#/tests/unit -> queue (failed) -> "Waves at first error"
+# open http://localhost:3572/#/tests/unit -> queue (failed) -> "Waves at first error"
 svkit sim --all --flow unit      # same from the CLI
 .venv/bin/pytest tests/test_unit_suite.py
 ```

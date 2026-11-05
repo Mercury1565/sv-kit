@@ -12,3 +12,5 @@ obj_dir/
 *.vcd
 !fixtures/golden/**/*.vcd
 !tests/data/**/*.vcd
+/lab7
+/lab7/.svkit

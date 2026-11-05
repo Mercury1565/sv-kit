@@ -240,7 +240,7 @@ class Library(_M):
 
 
 class Server(_M):
-    port: int = 8470
+    port: int = 3572
     host: str = "127.0.0.1"
 
 

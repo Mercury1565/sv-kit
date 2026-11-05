@@ -254,7 +254,7 @@ def waves_archive(to: str = typer.Option(..., "--to", help="fst (compact) or vcd
 
 @app.command()
 def serve(port: Optional[int] = typer.Option(None), host: Optional[str] = typer.Option(None)):
-    """Start the dashboard (tunnel with: ssh -L 8470:localhost:8470 <host>)."""
+    """Start the dashboard (tunnel with: ssh -L 3572:localhost:3572 <host>)."""
     import uvicorn
     from svkit.server.app import create_app
     cfg = _cfg()
