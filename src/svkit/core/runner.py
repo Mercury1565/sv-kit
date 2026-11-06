@@ -126,16 +126,20 @@ def resolve_synth(cfg: Config, flow: str | None) -> Resolved:
             if other != name and _available(cfg, other):
                 return Resolved(other, ofl, registry.get(other, cfg), other,
                                 f"{miss} not found on this host: using the '{other}' synth flow instead of '{name}'")
-    if name != "yosys" and _available(cfg, "yosys") and _which(cfg, "sta"):
+    if name != "yosys" and _available(cfg, "yosys"):
         from svkit.config import StaFlow, SynthFlow
         c2 = cfg.model_copy(deep=True)
-        note = f"{miss} not found on this host: synthesizing with Yosys + OpenSTA"
+        has_sta = bool(_which(cfg, "sta"))
+        note = f"{miss} not found on this host: synthesizing with Yosys" + (" + OpenSTA" if has_sta else "")
         if not (c2.library.liberty or c2.library.corners):
             c2.library.liberty = [str(generic_liberty())]
             note += (" on svkit's generic demo library (invented numbers: compare runs with each other, "
                      "not with your PDK)")
-        c2.flows.sta.setdefault("opensta", StaFlow())
-        yfl = SynthFlow(mode="builtin", sta="opensta")
+        if has_sta:
+            c2.flows.sta.setdefault("opensta", StaFlow())
+        else:
+            note += "; OpenSTA (sta) not found either, so area and cells only, no timing or power"
+        yfl = SynthFlow(mode="builtin", sta="opensta" if has_sta else None)
         return Resolved("yosys", yfl, registry.get("yosys", c2), "yosys", note, cfg=c2)
     return Resolved(name, fl, adapter, name)
 
@@ -182,6 +186,7 @@ class Runner:
         self.bus = bus or NULL_BUS
         self.work_root = self.db.state_dir / "work"
         self.tool_notes = compat.pin_tools(cfg)
+        self.db.reap_orphans()   # runs a previous (exited) svkit process left queued/running
 
     # ------------------------------------------------------------- helpers
     def _emit_status(self, run_id: str, status: str, message: str | None = None) -> None:
@@ -438,7 +443,9 @@ class Runner:
         except Exception as e:
             if ctx:
                 ctx.log(traceback.format_exc())
-            return self._finish(run, ctx, t0, "error", None, None, _error_text(e))
+            hint = "" if rs.shims or fl.mode != "wrap" else tools_hint(adapter, name)
+            return self._finish(run, ctx, t0, "error", None, None,
+                                _error_text(e) + (f"\n{hint}" if hint else ""))
         finally:
             if sem:
                 sem.release()

@@ -132,6 +132,22 @@ def test_resolve_synth_uses_yosys_with_generic_library(tmp_path):
     assert b["synth"]["runs_on"] == "yosys" and b["synth"]["note"]
 
 
+def test_resolve_synth_yosys_without_opensta(tmp_path):
+    cfg = _cfg(tmp_path, tools='yosys = "true"\nsta = "svkit-no-such-sta"')
+    rs = resolve_synth(cfg, None)
+    assert rs.name == "yosys" and rs.flow.sta is None
+    assert "no timing" in rs.note and "opensta" not in rs.cfg.flows.sta
+
+
+def test_locate_finds_pip_yosys(tmp_path, monkeypatch):
+    exe = tmp_path / "yowasp-yosys"
+    exe.write_text("#!/bin/sh\n")
+    exe.chmod(0o755)
+    monkeypatch.setenv("PATH", str(tmp_path))
+    monkeypatch.setattr(compat, "search_dirs", lambda: [])
+    assert compat.locate("yosys") == str(exe)
+
+
 # ---------------------------------------------------------------- end to end (real Verilator / Yosys)
 VCS_MAKEFILE = """\
 SHELL := $(SHELL) -o pipefail

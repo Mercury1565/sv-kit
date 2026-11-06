@@ -16,6 +16,7 @@ dependencies = [
   "websockets>=12",
   "pyslang>=8.0",
   "pywellen>=0.20",
+  "yowasp-yosys>=0.40",   # Yosys as a pip wheel: the synthesis fallback when DC (or a system yosys) is absent
 ]
 
 [project.optional-dependencies]

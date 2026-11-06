@@ -81,6 +81,8 @@ def tool_shims(shim_root: Path, tools: list[str]) -> Path:
 import subprocess  # noqa: E402
 
 OSS_TOOLS = ("verilator", "yosys", "sta", "iverilog")
+# pip-installed stand-ins (YoWASP: WebAssembly builds shipped as svkit dependencies), tried last
+PIP_TOOLS = {"yosys": "yowasp-yosys"}
 _LOCATE_CACHE: dict[tuple[str, str], str | None] = {}
 
 
@@ -89,7 +91,8 @@ def search_dirs() -> list[Path]:
     home = Path.home()
     extra = [Path(p) for p in os.environ.get("SVKIT_TOOL_PATH", "").split(os.pathsep) if p]
     return extra + [home / "tools" / "bin", home / "tools" / "oss-cad-suite" / "bin", home / ".local" / "bin",
-                    home / "oss-cad-suite" / "bin", Path("/opt/oss-cad-suite/bin"), Path("/usr/local/bin")]
+                    home / "oss-cad-suite" / "bin", Path("/opt/oss-cad-suite/bin"), Path("/usr/local/bin"),
+                    Path(sys.executable).parent]   # svkit's own venv (pip-installed tools), even when not on PATH
 
 
 def _candidates(name: str) -> list[str]:
@@ -121,10 +124,12 @@ def _works(name: str, exe: str) -> bool:
 
 
 def locate(name: str) -> str | None:
-    """First working executable for an open-source tool: PATH order, then search_dirs()."""
+    """First working executable for an open-source tool: PATH order, then search_dirs(), then its
+    pip-installed stand-in (PIP_TOOLS)."""
     key = (name, os.environ.get("PATH", ""))
     if key not in _LOCATE_CACHE:
-        _LOCATE_CACHE[key] = next((c for c in _candidates(name) if _works(name, c)), None)
+        cands = _candidates(name) + (_candidates(PIP_TOOLS[name]) if name in PIP_TOOLS else [])
+        _LOCATE_CACHE[key] = next((c for c in cands if _works(name, c)), None)
     return _LOCATE_CACHE[key]
 
 

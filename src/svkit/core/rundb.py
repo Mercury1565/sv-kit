@@ -7,6 +7,8 @@ SimResult JSON). Cache key = sha256(kind, adapter, source_hash, knobs, test).
 from __future__ import annotations
 
 import json
+import os
+import socket
 import sqlite3
 import threading
 import time
@@ -15,7 +17,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterator, Optional
 
-DB_VERSION = 2
+DB_VERSION = 3
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT);
@@ -41,7 +43,8 @@ CREATE TABLE IF NOT EXISTS runs (
     artifacts   TEXT NOT NULL DEFAULT '{}',    -- JSON {name: relative path under runs/<id>/}
     group_id    TEXT,
     message     TEXT,                          -- short status / error text
-    flow        TEXT                           -- [flows.<kind>.<name>] key that ran it (v2; NULL = default)
+    flow        TEXT,                          -- [flows.<kind>.<name>] key that ran it (v2; NULL = default)
+    owner       TEXT                           -- 'host:pid' of the svkit process running it (v3)
 );
 CREATE INDEX IF NOT EXISTS runs_kind ON runs(kind, created_at);
 CREATE INDEX IF NOT EXISTS runs_cache ON runs(cache_key);
@@ -88,6 +91,7 @@ class Run:
     group_id: Optional[str] = None
     message: Optional[str] = None
     flow: Optional[str] = None
+    owner: Optional[str] = None
     tags: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
@@ -108,6 +112,29 @@ class Group:
 
 
 _JSON_COLS = {"knobs", "metrics", "artifacts", "params", "result"}
+
+
+def _owner() -> str:
+    return f"{socket.gethostname()}:{os.getpid()}"
+
+
+def _owner_alive(owner: Optional[str]) -> bool:
+    """Is the process that owns a run still alive? Unknown owners (rows from before v3) count as dead;
+    processes on other hosts count as alive (they cannot be checked from here)."""
+    if not owner:
+        return False
+    host, _, pid = owner.rpartition(":")
+    if host != socket.gethostname() or not pid.isdigit():
+        return True
+    if int(pid) == os.getpid():
+        return True
+    try:
+        os.kill(int(pid), 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:      # alive, owned by another user
+        return True
+    return True
 
 
 def _wal(c: sqlite3.Connection, tries: int = 300) -> None:
@@ -139,12 +166,14 @@ class RunDB:
         with self._conn() as c:
             c.executescript(SCHEMA)
             cols = {r["name"] for r in c.execute("PRAGMA table_info(runs)")}
-            if "flow" not in cols:       # v1 -> v2: which flow (suite) a run belongs to
-                try:
-                    c.execute("ALTER TABLE runs ADD COLUMN flow TEXT")
-                except sqlite3.OperationalError as e:   # another process migrated it first
-                    if "duplicate column" not in str(e):
-                        raise
+            # v1 -> v2: which flow (suite) a run belongs to; v2 -> v3: which process runs it
+            for col in ("flow", "owner"):
+                if col not in cols:
+                    try:
+                        c.execute(f"ALTER TABLE runs ADD COLUMN {col} TEXT")
+                    except sqlite3.OperationalError as e:   # another process migrated it first
+                        if "duplicate column" not in str(e):
+                            raise
             c.execute("INSERT OR IGNORE INTO meta VALUES ('version', ?)", (str(DB_VERSION),))
             c.execute("UPDATE meta SET value = ? WHERE key = 'version' AND CAST(value AS INTEGER) < ?",
                       (str(DB_VERSION), DB_VERSION))
@@ -197,10 +226,11 @@ class RunDB:
                 rid = self._next_id(c, "runs", "r")
                 c.execute(
                     "INSERT INTO runs (id, kind, adapter, test, status, created_at, git_sha, git_dirty,"
-                    " source_hash, knobs, experiment, cache_key, group_id, flow) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    " source_hash, knobs, experiment, cache_key, group_id, flow, owner)"
+                    " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                     (rid, kind, adapter, test, status, time.time(), git_sha,
                      None if git_dirty is None else int(git_dirty), source_hash,
-                     json.dumps(knobs or {}, sort_keys=True), experiment, cache_key, group_id, flow))
+                     json.dumps(knobs or {}, sort_keys=True), experiment, cache_key, group_id, flow, _owner()))
                 c.execute("COMMIT")
             except BaseException:
                 c.execute("ROLLBACK")
@@ -223,6 +253,19 @@ class RunDB:
             vals.append(v)
         with self._conn() as c:
             c.execute(f"UPDATE runs SET {', '.join(cols)} WHERE id = ?", (*vals, run_id))
+
+    def reap_orphans(self) -> list[str]:
+        """Mark queued/running runs whose svkit process is gone (server restarted, Ctrl-C, crash) as
+        cancelled, so they do not stay pending forever. Runs owned by a live process, or by a process
+        on another host sharing this project directory, are left alone. Returns the reaped run ids."""
+        with self._conn() as c:
+            rows = c.execute("SELECT id, owner FROM runs WHERE status IN ('queued', 'running')").fetchall()
+        dead = [r["id"] for r in rows if not _owner_alive(r["owner"])]
+        now = time.time()
+        for rid in dead:
+            self.update_run(rid, status="cancelled", finished_at=now,
+                            message="interrupted: the svkit process running it exited before it finished")
+        return dead
 
     def get_run(self, run_id: str) -> Run:
         with self._conn() as c:

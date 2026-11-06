@@ -108,6 +108,27 @@ def test_rundb_roundtrip(tmp_path):
     assert (tmp_path / ".svkit" / "runs" / r1.id).is_dir()
 
 
+def test_rundb_reaps_orphaned_runs(tmp_path):
+    import socket
+    import subprocess
+    import sys
+    db = RunDB(tmp_path / ".svkit")
+    mine = db.create_run("synth", "dc")                       # owned by this (live) process
+    gone = db.create_run("synth", "dc")
+    other = db.create_run("synth", "dc")
+    old = db.create_run("synth", "dc")
+    done = db.create_run("synth", "dc")
+    dead = subprocess.run([sys.executable, "-c", "import os; print(os.getpid())"],
+                          capture_output=True, text=True).stdout.strip()
+    db.update_run(gone.id, owner=f"{socket.gethostname()}:{dead}", status="running")
+    db.update_run(other.id, owner="some-other-host:1")      # cannot be checked from here: kept
+    db.update_run(old.id, owner=None)                       # row from before owners were recorded
+    db.update_run(done.id, owner=None, status="done")
+    assert sorted(db.reap_orphans()) == sorted([gone.id, old.id])
+    assert db.get_run(gone.id).status == "cancelled" and "interrupted" in db.get_run(gone.id).message
+    assert [db.get_run(r.id).status for r in (mine, other, done)] == ["queued", "queued", "done"]
+
+
 def test_golden(tmp_path):
     a, e = tmp_path / "a.txt", tmp_path / "e.txt"
     e.write_text("@@ 10 r1=5\n@@ 20 r2=6\n@@ 30 r3=7\n")
