@@ -1,10 +1,11 @@
 import { useCallback, useMemo } from "react";
 import { api } from "../api/client";
-import type { PerfResult } from "../api/types";
+import type { Group, PerfResult } from "../api/types";
 import { axisStyle, baseOption, EChart, type ChartTheme } from "../components/EChart";
 import { Empty, ErrorState, Loading } from "../components/States";
 import { VirtualTable, type Column } from "../components/VirtualTable";
-import { DASH, fmtCompact, fmtInt, fmtNum, fmtPs, isNum } from "../lib/format";
+import { DASH, fmtCompact, fmtDate, fmtInt, fmtNum, fmtPs, isNum } from "../lib/format";
+import { href, navigate } from "../lib/router";
 import { Term } from "../components/Info";
 import { useAsync, useServerEvents } from "../lib/hooks";
 
@@ -21,12 +22,41 @@ function PeriodSource({ src }: { src?: string | null }) {
   );
 }
 
-export default function PerfView() {
-  const perf = useAsync(() => api.perf(), []);
+function batchLabel(g: Group): string {
+  const n = Array.isArray(g.params?.tests) ? (g.params.tests as unknown[]).length : null;
+  const parts = [g.id, fmtDate(g.created_at)];
+  if (n !== null) parts.push(`${n} ${n === 1 ? "test" : "tests"}`);
+  if (g.status !== "done") parts.push(g.status);
+  return parts.join(" · ");
+}
+
+/** group: a `sim --all` batch id; without one, the latest result per test across every run. */
+export default function PerfView({ group }: { group?: string }) {
+  const perf = useAsync(() => api.perf(group), [group]);
+  const batches = useAsync(() => api.groups("sim-all"), []);
   useServerEvents((ev) => {
     // TPI follows the latest synth / sweep period
     if (ev.type === "group.updated" || (ev.type === "run.status" && (ev.status === "done" || ev.status === "passed"))) perf.reload();
+    if (ev.type === "group.updated") batches.reload();
   });
+  const batchList = useMemo(() => [...(batches.data ?? [])].sort((a, b) => b.created_at - a.created_at), [batches.data]);
+  const picker = (
+    <select
+      value={group ?? ""}
+      onChange={(e) => navigate(href("/perf", { group: e.target.value }))}
+      aria-label="Which sim --all batch to show"
+      title="Each svkit sim --all is one batch"
+      style={{ maxWidth: 360 }}
+    >
+      <option value="">Latest result per test (all runs)</option>
+      {group && !batchList.some((g) => g.id === group) && <option value={group}>{group}</option>}
+      {batchList.map((g) => (
+        <option key={g.id} value={g.id}>
+          {batchLabel(g)}
+        </option>
+      ))}
+    </select>
+  );
   const rows = perf.data ?? [];
   const stallKeys = useMemo(() => Array.from(new Set(rows.flatMap((r) => Object.keys(r.stalls ?? {})))).sort(), [rows]);
   const sources = Array.from(new Set(rows.map((r) => r.period_source).filter(Boolean)));
@@ -77,20 +107,33 @@ export default function PerfView() {
 
   if (perf.error) return <div className="view"><ErrorState error={perf.error} feature="Performance (cycles and time per instruction)" onRetry={perf.reload} /></div>;
   if (!perf.data) return <div className="view"><Loading what="Loading perf" /></div>;
+  const scope = group ? (
+    <>
+      batch <span className="mono">{group}</span>
+    </>
+  ) : (
+    "latest result per test, across all runs"
+  );
   return (
     <div className="view">
       <div className="view-head">
         <h1>Performance</h1>
         <span className="muted small">
-          cycles per instruction = cycles ÷ instructions · time per instruction = cycles per instruction × clock period
+          {scope} · cycles per instruction = cycles ÷ instructions · time per instruction = cycles per instruction × clock period
           {sources.length === 1 && (
             <>
               {" "}· period from <PeriodSource src={sources[0]} />
             </>
           )}
         </span>
+        <span className="spacer" />
+        {picker}
       </div>
-      {rows.length === 0 ? (
+      {rows.length === 0 && group ? (
+        <Empty title={`No performance data in batch ${group}`}>
+          None of the runs in this batch reported cycle and instruction counts. Pick another batch above.
+        </Empty>
+      ) : rows.length === 0 ? (
         <Empty title="No performance data yet" cmd="svkit sim --all">
           Configure <code>[perf].source</code> in <code>svkit.toml</code> so svkit can read cycle and instruction counts from your test outputs.
         </Empty>

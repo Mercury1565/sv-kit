@@ -361,6 +361,15 @@ function buildState(dataset: Dataset): MockState {
     });
   });
   st.nextGroup = 3;
+  // each day's sim history above is one `sim --all` batch
+  for (let day = 3; day >= 0; day--) {
+    const id = `g_${pad4(st.nextGroup)}`;
+    const dayRuns = st.runs.filter((r) => r.kind === "sim" && !r.group_id && r.created_at <= NOW - day * 86400 && r.created_at > NOW - (day + 1) * 86400);
+    if (!dayRuns.length) continue;
+    dayRuns.forEach((r) => (r.group_id = id));
+    st.groups.push({ id, kind: "sim-all", created_at: Math.min(...dayRuns.map((r) => r.created_at)), status: "done", params: { flow: "verilator", tests: dayRuns.map((r) => r.test) }, result: null });
+    st.nextGroup++;
+  }
   for (const run of st.runs) {
     if (run.kind === "sim" && run.metrics) {
       const m = run.metrics as SimResult;
@@ -419,7 +428,7 @@ function compareOf(st: MockState, ids: string[]): CompareResult {
   };
 }
 
-function perfOf(st: MockState): PerfResult[] {
+function perfOf(st: MockState, group?: string): PerfResult[] {
   if (st.dataset === "worst") {
     return [
       { test: WORST_TESTS[0], cycles: 98765432101, instrs: 1, cpi: 98765432101, stalls: {}, period: 3250, period_source: "sweep:g_0002", tpi: 3.2e14 },
@@ -434,6 +443,7 @@ function perfOf(st: MockState): PerfResult[] {
   const seen = new Map<string, PerfResult>();
   for (const r of st.runs) {
     const m = r.metrics as SimResult | null;
+    if (group && r.group_id !== group) continue;
     if (r.kind === "sim" && m?.perf) seen.set(r.test!, m.perf);
   }
   return Array.from(seen.values()).map((p) => ({ ...p, period, period_source: src, tpi: p.cpi != null ? p.cpi * period : null }));
@@ -846,7 +856,7 @@ export class MockBackend implements Transport {
     }
     if (path === "/api/compare") return compareOf(st, (s("ids") ?? "").split(",").filter(Boolean));
     if ((m = /^\/api\/sweeps\/([^/]+)$/.exec(path))) return sweepOf(st, m[1]);
-    if (path === "/api/perf") return perfOf(st);
+    if (path === "/api/perf") return perfOf(st, s("group"));
     if (path === "/api/jobs" && method === "GET") return st.jobs;
     if (path === "/api/jobs" && method === "POST") return this.submit(String(body.kind), (body.args ?? {}) as Record<string, unknown>);
     if ((m = /^\/api\/waves\/([^/]+)\/(\w+)$/.exec(path))) return this.waves(m[2], q, body, path);

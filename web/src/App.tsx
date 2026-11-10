@@ -193,7 +193,7 @@ function Content({ route }: { route: Route }) {
       view = <SweepView gid={id} />;
       break;
     case "perf":
-      view = <PerfView />;
+      view = <PerfView group={route.query.get("group") ?? undefined} />;
       break;
     default:
       view = <Empty title={`No view called “${s}”`}>Pick one from the sidebar.</Empty>;
