@@ -82,6 +82,17 @@ export interface PerfResult {
   tpi?: number | null;
 }
 
+/** One run of one test in GET /api/perf/history (oldest first); period = the one in effect when it ran. */
+export interface PerfHistoryPoint extends PerfResult {
+  run_id: string;
+  run_name?: string | null;
+  status: string;
+  created_at: number;
+  cached_from?: string | null;
+  group_id?: string | null;
+  group_name?: string | null;
+}
+
 export interface SimResult {
   schema_version: number;
   tool: string;

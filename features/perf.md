@@ -15,6 +15,21 @@ For processor designs: cycles per instruction (CPI) for every test program, and 
 - **Where the clock period comes from**: the latest clock sweep's T_min (see [sweep.md](sweep.md)) or a
   synthesis run, linked so you can check it.
 
+## One test across runs
+
+Click a program in the table (or pick it from *See one test across runs…*) to see how its numbers
+changed over every run of it: two bar charts, **cycles per instruction** and **time per instruction**,
+one bar per run, oldest on the left. Each run has its own color, the same in both charts, and is
+labelled with its batch name (or run name, or id) and date. A table below repeats the numbers with the
+change from the previous run (red when it got worse, green when it got better). Click a bar to open
+that run.
+
+- Eight runs are shown at a time; *‹ Older* and *Newer ›* page through the rest.
+- Here, time per instruction uses the clock period svkit knew **when that run was made** (the latest
+  clock sweep's T_min, else the latest synthesis period, at that moment), so a faster clock from a
+  later design revision shows up in TPI. The main table uses the current period for every program.
+- Each chart has its own *Save image (PNG)*.
+
 ## Export
 
 - **Save image (PNG)** saves the chart as it is switched (CPI, IPC or TPI), with every program in it

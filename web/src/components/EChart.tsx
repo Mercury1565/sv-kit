@@ -13,6 +13,8 @@ export interface ChartTheme {
   bad: string;
   warn: string;
   mono: string;
+  /** categorical series colors, in fixed order (8 slots) */
+  series: string[];
 }
 
 export function readTheme(): ChartTheme {
@@ -29,6 +31,7 @@ export function readTheme(): ChartTheme {
     bad: v("--bad", "#c62828"),
     warn: v("--warn", "#9a6700"),
     mono: v("--mono", "monospace"),
+    series: "#2a78d6,#eb6834,#1baf7a,#eda100,#e87ba4,#008300,#6250d6,#e34948".split(",").map((d, i) => v(`--series-${i + 1}`, d)),
   };
 }
 

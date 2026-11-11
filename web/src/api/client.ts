@@ -9,7 +9,7 @@ import type {
   Group,
   Job,
   JobKind,
-  PerfResult,
+  PerfHistoryPoint, PerfResult,
   Project,
   Run,
   RunSummary,
@@ -145,6 +145,7 @@ export const api = {
   compare: (ids: string[]) => req<CompareResult>("GET", "/api/compare", { ids: ids.join(",") }),
   sweep: (gid: string) => req<SweepResult>("GET", `/api/sweeps/${enc(gid)}`),
   perf: (group?: string) => req<PerfResult[]>("GET", "/api/perf", { group }),
+  perfHistory: (test: string, limit?: number) => req<PerfHistoryPoint[]>("GET", "/api/perf/history", { test, limit }),
 
   submitJob: (kind: JobKind, args: Record<string, unknown> = {}) => req<{ job_id: string }>("POST", "/api/jobs", undefined, { kind, args }),
   jobs: () => req<Job[]>("GET", "/api/jobs"),

@@ -13,6 +13,7 @@ import { VirtualTable, type Column } from "../components/VirtualTable";
 import { DASH, fmtCompact, fmtDate, fmtInt, fmtNum, fmtPs, isNum } from "../lib/format";
 import { href, navigate } from "../lib/router";
 import { Term } from "../components/Info";
+import { PerfHistory } from "./PerfHistory";
 import { useAsync, useServerEvents } from "../lib/hooks";
 
 function PeriodSource({ src }: { src?: string | null }) {
@@ -193,6 +194,8 @@ export default function PerfView({ group }: { group?: string }) {
   const rows = perf.data ?? [];
   const [metric, setMetric] = useState<PerfMetric>("cpi");
   const chartRef = useRef<ECharts | null>(null);
+  const [historyOf, setHistoryOf] = useState<string | null>(null);
+  const testNames = useMemo(() => rows.map((r) => r.test).sort(), [rows]);
   const hasTpi = rows.some((r) => isNum(r.tpi));
   const shown: PerfMetric = metric === "tpi" && !hasTpi ? "cpi" : metric;
   const M = PERF_METRICS[shown];
@@ -318,14 +321,27 @@ export default function PerfView({ group }: { group?: string }) {
               <EChart option={option} height={300} chartRef={chartRef} ariaLabel={`${M.axis} for ${rows.length} programs`} />
             </div>
           </div>
+          {historyOf && <PerfHistory test={historyOf} tests={testNames} onTest={setHistoryOf} onClose={() => setHistoryOf(null)} />}
           <div className="row" style={{ gap: 6 }}>
-            <span className="muted small">{rows.length} {rows.length === 1 ? "program" : "programs"}</span>
+            <span className="muted small">
+              {rows.length} {rows.length === 1 ? "program" : "programs"} · click one to see it across runs
+            </span>
             <span className="spacer" />
+            {!historyOf && (
+              <select value="" onChange={(e) => e.target.value && setHistoryOf(e.target.value)} aria-label="See one test across runs" style={{ maxWidth: 260 }}>
+                <option value="">See one test across runs…</option>
+                {testNames.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+            )}
             <button onClick={() => downloadText(`${exportBase}.csv`, perfCsv(rows, stallKeys), "text/csv")} title="Download this table as a CSV file (raw numbers, opens in any spreadsheet)">
               Download CSV
             </button>
           </div>
-          <VirtualTable rows={rows} columns={cols} rowKey={(r) => r.test} height={Math.min(520, 26 * (rows.length + 1) + 4)} initialSort={{ key: "test", dir: 1 }} ariaLabel="Cycles and time per instruction per program" />
+          <VirtualTable rows={rows} columns={cols} rowKey={(r) => r.test} onRowClick={(r) => setHistoryOf(r.test)} selected={historyOf ? new Set([historyOf]) : undefined} height={Math.min(520, 26 * (rows.length + 1) + 4)} initialSort={{ key: "test", dir: 1 }} ariaLabel="Cycles and time per instruction per program" />
         </>
       )}
     </div>

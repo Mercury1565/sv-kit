@@ -49,6 +49,7 @@ And the follow-up:
 | 22 | Unit tests | Separate suite per `[flows.sim.<name>].testbench` (one testbench file per test), listed apart from system tests with the same waves / logs / run pages; jump to the first failed check in the log | Decided (lead, iter 3) |
 | 23 | Archived waveform format | FST by default (`[waves].archive`); `"vcd"` + `svkit waves archive --to vcd` reverts | Decided (lead, iter 5) |
 | 24 | Naming runs and choosing tests | User-given names on runs and batches (`--name`, `svkit rename`, UI); a batch can be any subset of the tests (`svkit sim a b c`, Perf → *Run tests…*) | Decided (owner request, iter 7) |
+| 25 | Exports and per-test history | Synth reports → one `.txt`; Perf charts → PNG; Perf table → CSV; CPI / IPC / TPI chart switch; one test across runs (TPI with the period of each run's time) | Decided (owner request, iter 8) |
 
 ## 3. Development environment findings (CAEN Linux, RHEL 9)
 

@@ -12,6 +12,15 @@
   --bg: #ffffff;
   --bg-sunken: #f6f7f9;
   --bg-raised: #ffffff;
+  /* categorical series, fixed order; validated for CVD separation on this surface */
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --series-5: #e87ba4;
+  --series-6: #008300;
+  --series-7: #6250d6;
+  --series-8: #e34948;
   --bg-hover: #f0f2f5;
   --bg-sel: #e6efff;
   --border: #e1e4e8;
@@ -52,6 +61,14 @@
     --bg: #0f1216;
     --bg-sunken: #0b0d10;
     --bg-raised: #161a20;
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+    --series-5: #d55181;
+    --series-6: #008300;
+    --series-7: #9085e9;
+    --series-8: #e66767;
     --bg-hover: #1c2129;
     --bg-sel: #1b2b47;
     --border: #262c35;
@@ -90,6 +107,14 @@
   --bg: #0f1216;
   --bg-sunken: #0b0d10;
   --bg-raised: #161a20;
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --series-5: #d55181;
+  --series-6: #008300;
+  --series-7: #9085e9;
+  --series-8: #e66767;
   --bg-hover: #1c2129;
   --bg-sel: #1b2b47;
   --border: #262c35;
@@ -476,3 +501,9 @@ button.link:hover { text-decoration: underline; }
   border-radius: 3px; cursor: pointer; font-family: var(--mono); font-size: var(--fs-sm); }
 .test-picker .tp-grid label:hover { background: var(--bg-hover); }
 .test-picker .tp-grid label span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+
+/* perf: one test across runs */
+.swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.perf-history-table { margin-top: var(--gap); }
+.perf-history-table td.nowrap, .perf-history-table .nowrap { white-space: nowrap; }
+.perf-history .panel { margin: 0; }

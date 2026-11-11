@@ -4,7 +4,7 @@
 - **Phase:** Phases 0–3 implemented. **Both flows now run on real tools** (VCS + DC on CAEN; Verilator + Yosys + OpenSTA on the dev host). **~85 % to MVP.** Remaining: a frontend rebuild (sweep note, new API endpoints; needs Node), browser click-through of every view, web proposal 5, the Icarus decision, and the OSS flow on CAEN (blocked on OpenSTA).
 - **Dogfood checkpoint (EECS 470 copy in `~/svkit-work/dogfood`):** `svkit init` needs **no hand edits**. 21/21 tests pass on VCS, the DC matrix runs (TT/SS/FF), and the clock sweep finds **T_min = 4708 ps** (14 DC runs). TPI uses it, and the dashboard API works on the real CPU.
 - **Demoable on CAEN:** `cd ~/svkit-work/dogfood && svkit serve`, then `ssh -L 3572:localhost:3572 <caen host>` from your laptop.
-- **New (iter 4–7):** runs on a laptop without Synopsys (automatic Verilator/Yosys/OpenSTA fallback), plain-language dashboard with (i) explanations, **unit tests as their own suite** (Tests → Unit tests, waves at the first error), FST waveform archive, and **schematic Blocks/Gates diagrams** (netlistsvg, gate symbols from Liberty); **choose which tests to run** (Perf → Run tests…, `svkit sim a b c`) and **name runs and batches** (iter 7).
+- **New (iter 4–7):** runs on a laptop without Synopsys (automatic Verilator/Yosys/OpenSTA fallback), plain-language dashboard with (i) explanations, **unit tests as their own suite** (Tests → Unit tests, waves at the first error), FST waveform archive, and **schematic Blocks/Gates diagrams** (netlistsvg, gate symbols from Liberty); **choose which tests to run** (Perf → Run tests…, `svkit sim a b c`) and **name runs and batches** (iter 7); **exports** (synth reports .txt, Perf PNG / CSV), a CPI / IPC / TPI switch and **one test across runs** (iter 8).
 - **Needs owner:**
   1. **OpenSTA on CAEN:** installing it (micromamba + `litex-hub::openroad` into `~/tools`) was blocked by the permission classifier as running downloaded code. Approve it, or install it yourself, to run the OSS flow and its tests on CAEN.
   2. **X-trace parity on the OSS flow:** Verilator is 2-state, so it never shows X. Recommend pulling an Icarus sim adapter into the MVP (scope change vs decision #18).
@@ -274,3 +274,28 @@ svkit sim fib gcd --name "after the fix" && svkit rename g_0004 "before the fix"
   `tests/test_names.py`.
 - Run DB v5: opening a v4 database clears names equal to the tool on synth / sweep-point runs, so the
   wrongly named runs show as unnamed again.
+
+## Iteration 8 — 2026-11-11 — Exports, CPI / IPC / TPI switch, one test across runs
+**Status:** done
+**What works now:**
+- **Synthesis → Download reports (.txt)** on a run's page, and a `.txt` link in every row of the list: one text file with svkit's summary of the run (name, tool, knobs, period, setup / hold slack, area, cells, power, worst paths), then every text report the run kept, verbatim (DC `.rpt` / `.rep`, Yosys `stat.txt`, OpenSTA output, a wrapped flow's own reports). Reused runs export the reports of the run they reuse.
+- **Perf chart switch:** cycles per instruction, instructions per cycle, time per instruction (TPI is disabled until a clock period is known). New IPC column in the table.
+- **Perf → Save image (PNG)** saves the chart as switched, every program even when zoomed, at 2×, titled with the batch. **Download CSV** saves the table with raw numbers.
+- **One test across runs:** click a program (or pick it) to see its CPI and TPI over every run of it, one colored bar per run (the same color in both charts), 8 at a time with paging, a table with the change from the previous run, PNG export of each chart. Click a bar to open the run.
+**Decisions made (and why):**
+- Reports export is generated on the server (`GET /api/runs/{id}/reports.txt`) so it works the same from the CLI host and the browser, and stays inside the run directories (paths are resolved and checked, as for artifacts). Netlists, scripts and logs are left out (they are not reports and can be large); DC's per-section copies of a combined report are left out because the combined file already holds them. OpenSTA's `sta.log` is included: it is that flow's timing report.
+- PNG and CSV are made in the browser (ECharts `getDataURL`, a Blob): no server round trip, and the image matches what is on screen. The PNG opens any zoom window to 100 % for the shot and puts it back. The CSV carries a UTF-8 BOM so spreadsheet programs read non-ASCII names correctly.
+- History TPI uses the period in effect when each run was made (PRODUCT §13, 2026-11-11). With the current period for every run, TPI would only rescale CPI and hide the effect of a faster clock.
+- Bar colors follow the validated 8-slot categorical palette (`--series-1..8`, separate light and dark steps, checked for colour-blind separation on each surface) in fixed order; more than 8 runs page instead of cycling hues. Three light-mode hues are under 3:1 contrast, so every bar carries a visible label and value and the table repeats the numbers.
+**Known gaps / risks:**
+- History pages 8 runs at a time; with hundreds of runs of one test, paging is slow to browse (a date filter would help).
+- The history lists runs by `test`; a perf adapter that reports a different test name than the run's is not matched.
+**Next iteration plan:**
+- Same as iteration 7.
+**How to see it:**
+```
+svkit serve      # restart it after upgrading
+# Synthesis -> open a run -> Download reports (.txt);  Perf -> CPI / IPC / TPI, Save image (PNG), Download CSV
+# Perf -> click a program -> its CPI and TPI over every run
+.venv/bin/pytest tests/test_exports.py tests/test_perf_history.py && (cd web && npx vitest run src/views/exports.test.tsx src/views/perfHistory.test.tsx)
+```

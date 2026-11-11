@@ -46,6 +46,11 @@ def make_router(st) -> APIRouter:
     def perf(group: Optional[str] = None) -> list[dict[str, Any]]:
         return [p.model_dump(mode="json") for p in PF.perf_table(st.cfg, st.db, group_id=group)]
 
+    @r.get("/perf/history")
+    def perf_history(test: str, limit: int = Query(500, ge=1, le=5000)) -> list[dict[str, Any]]:
+        """One test's perf over every run of it, oldest first."""
+        return PF.perf_history(st.db, test, limit=limit)
+
     @r.get("/runs/{rid}/divergence")
     def divergence(rid: str) -> dict[str, Any]:
         run = _run(rid)
