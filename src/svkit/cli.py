@@ -46,7 +46,8 @@ def _fmt_status(s: str) -> str:
 @app.callback(invoke_without_command=True)
 def _main(version: bool = typer.Option(False, "--version", help="Print version and exit")):
     if version:
-        typer.echo(__version__)
+        from svkit.update import version_string
+        typer.echo(version_string())
         raise typer.Exit()
 
 
@@ -286,7 +287,64 @@ def serve(port: Optional[int] = typer.Option(None), host: Optional[str] = typer.
     port = port or cfg.server.port
     host = host or cfg.server.host
     typer.echo(f"svkit dashboard on http://{host}:{port}  (remote: ssh -L {port}:localhost:{port} <server>)")
+    _notice_new_release()
     uvicorn.run(create_app(cfg), host=host, port=port, log_level="warning")
+
+
+def _notice_new_release() -> None:
+    """Tell the user about a newer release without delaying startup (checked at most once a day)."""
+    import threading
+
+    def check():
+        from svkit.update import newer_release_notice
+        if msg := newer_release_notice():
+            typer.secho(msg, fg="yellow", err=True)
+    threading.Thread(target=check, daemon=True, name="svkit-update-check").start()
+
+
+@app.command()
+def update(check: bool = typer.Option(False, "--check", help="Only say whether a newer release exists"),
+           to: Optional[str] = typer.Option(None, "--to", help="Install this release tag instead (e.g. v0.7.0)"),
+           force: bool = typer.Option(False, "--force", help="Reinstall even when already up to date")):
+    """Update svkit to the latest GitHub release (does nothing when already up to date)."""
+    from pathlib import Path as _P
+    from svkit import update as U
+    info = U.install_info()
+    repo = U.repo_slug(info)
+    typer.echo(f"installed: {U.version_string(info)}")
+    if info.kind == "local" and not check:
+        typer.secho("svkit runs from a local checkout here: update it with git (git pull), not svkit update.",
+                    fg="yellow")
+        raise typer.Exit(EXIT_FAIL)
+    try:
+        if to:
+            tag, notes = (to if to.startswith("v") else f"v{to}"), ""
+        else:
+            rel = U.latest_release(repo)
+            if rel is None:
+                typer.echo(f"{repo} has no published release yet; nothing to do.")
+                return
+            tag, notes = rel.tag, rel.notes
+            typer.echo(f"latest:    {tag}  ({rel.published_at[:10] or 'date unknown'})  {rel.url}")
+            if not force and not U.is_newer(tag, __version__):
+                typer.secho(f"svkit is up to date ({__version__}).", fg="green")
+                return
+        if check:
+            typer.secho(f"svkit {tag} is available: run `svkit update` to install it.", fg="yellow")
+            return
+        typer.echo(f"installing svkit {tag} from github.com/{repo} into {_P(sys.executable).parent.parent} ...")
+        got = U.install_release(repo, tag, log=typer.echo)
+    except U.UpdateError as e:
+        typer.secho(f"update failed: {e}", fg="red", err=True)
+        raise typer.Exit(EXIT_FAIL)
+    typer.secho(f"svkit updated: {__version__} -> {got} ({tag}).", fg="green")
+    if notes.strip():
+        typer.echo("\nWhat's new:\n" + "\n".join("  " + ln for ln in notes.strip().splitlines()[:40]))
+    if pids := U.running_servers(_P(sys.executable).parent):
+        typer.secho(f"\n`svkit serve` is still running the old version here (pid {', '.join(map(str, pids))}): "
+                    "stop it (Ctrl-C) and start it again, then reload the browser tab.", fg="yellow")
+    else:
+        typer.echo("Restart any running `svkit serve` (on any machine) and reload the browser tab.")
 
 
 def main() -> None:  # pragma: no cover

@@ -50,6 +50,7 @@ And the follow-up:
 | 23 | Archived waveform format | FST by default (`[waves].archive`); `"vcd"` + `svkit waves archive --to vcd` reverts | Decided (lead, iter 5) |
 | 24 | Naming runs and choosing tests | User-given names on runs and batches (`--name`, `svkit rename`, UI); a batch can be any subset of the tests (`svkit sim a b c`, Perf → *Run tests…*) | Decided (owner request, iter 7) |
 | 25 | Exports and per-test history | Synth reports → one `.txt`; Perf charts → PNG; Perf table → CSV; CPI / IPC / TPI chart switch; one test across runs (TPI with the period of each run's time) | Decided (owner request, iter 8) |
+| 26 | Releases and updates | GitHub releases `vX.Y.Z` cut with `scripts/release.py` (publishing = owner pushes the tag); `svkit update` / `--check` / `--to`; `svkit --version` names the release | Decided (owner request, iter 9) |
 
 ## 3. Development environment findings (CAEN Linux, RHEL 9)
 

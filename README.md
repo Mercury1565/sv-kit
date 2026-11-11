@@ -57,8 +57,13 @@ export PATH=~/.venvs/svkit/bin:$PATH
 svkit --version
 ```
 
-- **A specific version:** append a branch, tag or commit, e.g. `...sv-kit.git@main` or `...sv-kit.git@<tag>`.
-- **Update:** run the same command with `--upgrade` (add `--force-reinstall` to rebuild the same version number).
+- **Update:** `svkit update` installs the latest [release](https://github.com/Mercury1565/sv-kit/releases)
+  when it is newer than yours, and otherwise leaves svkit as it is. Stop `svkit serve` first, or restart it
+  afterwards. `svkit update --check` only tells you whether there is one, and `svkit update --to v0.9.0`
+  installs a given release (also to go back). `svkit serve` mentions a newer release when it starts
+  (checked at most once a day; turn it off with `SVKIT_NO_UPDATE_CHECK=1`).
+- **Which version you have:** `svkit --version`, for example `svkit 0.9.0 (release v0.9.0)`.
+- **A specific version:** append a release tag, branch or commit, e.g. `...sv-kit.git@v0.9.0` or `...sv-kit.git@main`.
 - **Over SSH** (if you prefer your SSH key): `pip install "git+ssh://git@github.com/Mercury1565/sv-kit.git"`.
 - **From a local checkout instead** (e.g. to try unpushed changes): `pip install /path/to/sv-kit`.
 
@@ -108,6 +113,8 @@ Over SSH, forward the port from your laptop with `ssh -L 3572:localhost:3572 <se
 | `svkit runs ls \| show <id> \| diff <a> <b> \| tag <id> <tag>` | Browse recorded Runs. |
 | `svkit rename <run or batch id> [NAME]` | Give a run (`r_0012`) or a batch (`g_0004`) your own name; leave the name out to remove it. |
 | `svkit serve [--port 3572] [--host 127.0.0.1]` | Start the dashboard. |
+| `svkit update [--check] [--to TAG] [--force]` | Install the latest GitHub release if it is newer than the installed svkit; otherwise do nothing. |
+| `svkit --version` | The installed version and where it came from (`release v0.9.0`, a git commit, or a local checkout). |
 
 Exit codes: 0 ok, 1 a test failed or no passing period, 2 config error, 3 tool error.
 

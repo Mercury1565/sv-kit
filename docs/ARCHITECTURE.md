@@ -284,8 +284,18 @@ svkit rename <r_id|g_id> [NAME]
 svkit sweep clock [--tol 50] [--jobs N] [--start PS]
 svkit xtrace <hier.signal> @<time> [--run ID] [--depth N] [--json]
 svkit runs ls|show <id>|diff <a> <b>|tag <id> <tag>
-svkit serve [--port 3572] [--host 127.0.0.1]
+svkit serve [--port 3572] [--host 127.0.0.1]                 # notes a newer release (GitHub, at most daily)
+svkit update [--check] [--to TAG] [--force]                   # install the latest GitHub release if newer
+svkit --version                                               # "svkit X.Y.Z (release vX.Y.Z | from git ref @ sha | local checkout)"
 ```
+Updates (`svkit/update.py`): the repository is `$SVKIT_REPO`, else the GitHub repo svkit was installed
+from (PEP 610 `direct_url.json`), else the default. `GET api.github.com/repos/<repo>/releases/latest`
+(generic User-Agent; `GITHUB_TOKEN` only if set), compare with `svkit.__version__`, then
+`<this python> -m pip install --upgrade --upgrade-strategy only-if-needed "svkit @ <tag source archive>"`
+(no git needed), verifying the installed version and falling back to `--force-reinstall --no-deps`
+when pip kept the old files. The `bin/svkit` launcher is renamed aside first: on NFS homes pip cannot
+remove a launcher a running svkit holds open (Errno 11). Releases: `scripts/release.py` +
+`.github/workflows/release.yml` (CONTRIBUTING.md).
 Exit codes: 0 ok; 1 a test failed / timing not met where it matters; 2 config error; 3 tool error.
 
 ## 8. Fixtures

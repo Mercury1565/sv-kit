@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "svkit"
-version = "0.1.0.dev0"
+dynamic = ["version"]   # from svkit.__version__ (scripts/release.py sets it)
 description = "Plug-in debug and PPA workbench for SystemVerilog projects"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -27,6 +27,9 @@ svkit = "svkit.cli:main"
 
 [project.entry-points."svkit.adapters"]
 # third-party adapters register here: name = "module:Class"
+
+[tool.setuptools.dynamic]
+version = { attr = "svkit.__version__" }
 
 [tool.setuptools.packages.find]
 where = ["src"]

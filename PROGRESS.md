@@ -4,11 +4,12 @@
 - **Phase:** Phases 0–3 implemented. **Both flows now run on real tools** (VCS + DC on CAEN; Verilator + Yosys + OpenSTA on the dev host). **~85 % to MVP.** Remaining: a frontend rebuild (sweep note, new API endpoints; needs Node), browser click-through of every view, web proposal 5, the Icarus decision, and the OSS flow on CAEN (blocked on OpenSTA).
 - **Dogfood checkpoint (EECS 470 copy in `~/svkit-work/dogfood`):** `svkit init` needs **no hand edits**. 21/21 tests pass on VCS, the DC matrix runs (TT/SS/FF), and the clock sweep finds **T_min = 4708 ps** (14 DC runs). TPI uses it, and the dashboard API works on the real CPU.
 - **Demoable on CAEN:** `cd ~/svkit-work/dogfood && svkit serve`, then `ssh -L 3572:localhost:3572 <caen host>` from your laptop.
-- **New (iter 4–7):** runs on a laptop without Synopsys (automatic Verilator/Yosys/OpenSTA fallback), plain-language dashboard with (i) explanations, **unit tests as their own suite** (Tests → Unit tests, waves at the first error), FST waveform archive, and **schematic Blocks/Gates diagrams** (netlistsvg, gate symbols from Liberty); **choose which tests to run** (Perf → Run tests…, `svkit sim a b c`) and **name runs and batches** (iter 7); **exports** (synth reports .txt, Perf PNG / CSV), a CPI / IPC / TPI switch and **one test across runs** (iter 8).
+- **New (iter 4–7):** runs on a laptop without Synopsys (automatic Verilator/Yosys/OpenSTA fallback), plain-language dashboard with (i) explanations, **unit tests as their own suite** (Tests → Unit tests, waves at the first error), FST waveform archive, and **schematic Blocks/Gates diagrams** (netlistsvg, gate symbols from Liberty); **choose which tests to run** (Perf → Run tests…, `svkit sim a b c`) and **name runs and batches** (iter 7); **exports** (synth reports .txt, Perf PNG / CSV), a CPI / IPC / TPI switch and **one test across runs** (iter 8); **releases + `svkit update`** (iter 9).
 - **Needs owner:**
   1. **OpenSTA on CAEN:** installing it (micromamba + `litex-hub::openroad` into `~/tools`) was blocked by the permission classifier as running downloaded code. Approve it, or install it yourself, to run the OSS flow and its tests on CAEN.
   2. **X-trace parity on the OSS flow:** Verilator is 2-state, so it never shows X. Recommend pulling an Icarus sim adapter into the MVP (scope change vs decision #18).
   3. **Synopsys-generated goldens are now committed** (`fixtures/golden/synopsys/real/`, paths and banner stripped). Their redistribution needs a check before the repo goes public.
+  5. **Publish the first release:** `git push origin main --follow-tags` publishes tag `v0.9.0`; GitHub Actions (`.github/workflows/release.yml`) then creates the release. Actions must be enabled for the repo. After that, `svkit update` on CAEN works.
   4. Git hosting, remote and license (#7, #12): the repo now has a GitHub `origin` (`Mercury1565/sv-kit`), presumably yours. Nothing has been pushed by me; confirm and record the decision.
 ---
 
@@ -298,4 +299,31 @@ svkit serve      # restart it after upgrading
 # Synthesis -> open a run -> Download reports (.txt);  Perf -> CPI / IPC / TPI, Save image (PNG), Download CSV
 # Perf -> click a program -> its CPI and TPI over every run
 .venv/bin/pytest tests/test_exports.py tests/test_perf_history.py && (cd web && npx vitest run src/views/exports.test.tsx src/views/perfHistory.test.tsx)
+```
+
+## Iteration 9 — 2026-11-11 — Releases and `svkit update`
+**Status:** done (the first release is tagged locally; publishing it needs the owner's push)
+**What works now:**
+- **`svkit update`** checks GitHub for the latest release. When it is newer than the installed svkit it installs it, prints the release notes, and says to restart `svkit serve` (it names the server processes still running the old version on this machine). Otherwise it says "up to date" and changes nothing. `--check` only reports; `--to v0.8.0` installs a given release (also to roll back); `--force` reinstalls.
+- **`svkit --version`** shows the version and where it came from: `svkit 0.9.0 (release v0.9.0)`, `(from git main @ c138519)` or `(local checkout)`.
+- **`svkit serve`** prints a one-line notice when a newer release exists (checked at most once a day in the background; never delays startup; off with `SVKIT_NO_UPDATE_CHECK=1`).
+- **Releases:** `python3 scripts/release.py minor|patch|major|X.Y.Z` sets the version, commits and tags; `git push origin main --follow-tags` publishes it through `.github/workflows/release.yml`.
+**Decisions made (and why):**
+- One version, in `svkit.__version__`; `pyproject.toml` reads it (`dynamic`), so the tag, the package and `--version` cannot disagree. The workflow refuses a tag that does not match it.
+- Updates install the tag's source archive (`/archive/refs/tags/vX.Y.Z.tar.gz`), not `git+https`: no git needed on the server, and the install records the tag, which is what `--version` shows.
+- pip runs as `<the running python> -m pip`, so the environment svkit runs from is the one updated. Dependencies are only upgraded when the new release needs it (`--upgrade-strategy only-if-needed`); if pip keeps the old files, svkit alone is force-reinstalled. The installed version is checked afterwards.
+- **Errno 11 fix:** before pip runs, the `bin/svkit` launcher is renamed aside within its directory. On NFS homes pip cannot remove a launcher a running svkit holds open (this process, or `svkit serve` on another host). A rename always works, pip writes a fresh launcher, and leftovers are deleted on the next update. If pip fails, the launcher is put back. Tested with real pip while the launcher is held open.
+- The repository is `$SVKIT_REPO`, else the one svkit was installed from, else `Mercury1565/sv-kit`, so forks update from themselves. Requests to GitHub carry a generic User-Agent and nothing about the user or host.
+- Version numbering: the first release is `v0.9.0` (iteration 9); minor for features, patch for fixes.
+**Known gaps / risks:**
+- Running servers on other hosts are not detected (only this machine's `/proc`); the message says to restart them.
+- Unauthenticated GitHub API calls are limited to 60 an hour per IP; shared CAEN hosts could hit that. Set `GITHUB_TOKEN` if it happens.
+- If the repository is private, the API and archive downloads need a token; `svkit update` reports GitHub's error.
+**Next iteration plan:**
+- Same as iteration 7.
+**How to see it:**
+```
+svkit --version
+svkit update --check
+.venv/bin/pytest tests/test_update.py
 ```

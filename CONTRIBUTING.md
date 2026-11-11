@@ -41,3 +41,25 @@ python3.11 -m venv .venv && .venv/bin/pip install -e '.[dev]'
 - **DC library setup** for the fixtures: see `fixtures/synopsys_common/README.md`.
 - **Web UI:** React + TypeScript in `web/`. Rebuild with `cd web && npm ci && npm run build`, which
   needs a modern Node and writes to `src/svkit/server/static/`. Commit the built assets.
+
+## Releasing
+
+Users update with `svkit update`, which installs the latest GitHub release. Cut one for every change
+users should get:
+
+```
+python3 scripts/release.py minor        # or patch / major, or an exact version like 0.9.0
+git push origin main --follow-tags
+```
+
+`scripts/release.py` checks that you are on `main` with nothing uncommitted. It then sets
+`svkit.__version__` (the only place the version is written; `pyproject.toml` reads it), commits
+`Release vX.Y.Z`, and tags `vX.Y.Z` with the commits since the previous release as the message.
+Pushing the tag runs `.github/workflows/release.yml`. That workflow checks that the tag matches the
+version and that the package installs with its web assets, then publishes the GitHub release with
+those notes.
+
+Use `patch` for fixes, `minor` for new features, `major` for changes that break `svkit.toml` or the
+Run DB. The web assets in `src/svkit/server/static/` must be rebuilt (`cd web && npm run build`) and
+committed before releasing a UI change.
+
