@@ -227,7 +227,7 @@ All JSON. Base `/api`. Errors: `{"detail": "..."}` with 4xx/5xx.
 | Method & path | Returns |
 |---|---|
 | `GET /api/project` | `{name, root, top, git_sha, git_dirty, flows:{sim:[..], synth:[..], sta:[..]}, knobs:[..], experiments:[..], tests:[..], adapters:{name: available}, backends, suites:[{id, label, flow, flows, tests, unit, golden, default}]}` (`tests` = the default suite's) |
-| `GET /api/runs?kind=&group=&status=&test=&tag=&limit=&offset=` | `[RunSummary]` (Run without metrics); header `X-Total-Count` = matching runs before limit/offset |
+| `GET /api/runs?kind=&group=&status=&test=&tag=&limit=&offset=` | `[RunSummary]` (Run without metrics; synth / sweep-point runs with results add `qor: {period, wns, hold_wns, area_total, area_unit, cell_count, power_total}`); header `X-Total-Count` = matching runs before limit/offset |
 | `GET /api/runs/{id}` | `Run` with `metrics` |
 | `GET /api/runs/{id}/artifacts/{name}` | the file (text/binary) |
 | `GET /api/runs/{id}/log?tail=N` | `{lines:[...]}` |

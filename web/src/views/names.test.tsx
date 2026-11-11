@@ -111,3 +111,28 @@ describe("TestPicker", () => {
     expect(screen.getByText("Run 1 test")).toBeTruthy();
   });
 });
+
+describe("synthesis list", () => {
+  it("shows headline QoR and sorts by it; default is the order runs were made", async () => {
+    const { QOR_COLUMNS } = await import("./Synth");
+    const base = { kind: "synth", adapter: "dc", status: "done", knobs: {}, artifacts: {}, tags: [] };
+    const runs = [
+      { ...base, id: "r_0003", created_at: 3, name: "c", qor: { period: 4000, wns: 50, area_total: 900, cell_count: 30, power_total: 1.5 } },
+      { ...base, id: "r_0002", created_at: 2, name: "a", qor: { period: 3000, wns: -20, area_total: 1200, cell_count: 40, power_total: 2.5 } },
+      { ...base, id: "r_0001", created_at: 1, status: "running" },
+    ] as RunSummary[];
+    const { container } = render(<RunsTable runs={runs} selected={new Set()} onToggle={() => {}} extraColumns={QOR_COLUMNS} hide={["git", "dur"]} />);
+    const ids = () => Array.from(container.querySelectorAll(".vt-row")).map((r) => r.textContent!.slice(0, 6));
+    expect(ids()).toEqual(["r_0003", "r_0002", "r_0001"]);
+    expect(container.textContent).toContain("−20 ps");
+    expect(container.textContent).not.toMatch(/Duration|Git/);
+    const header = (text: string) => Array.from(container.querySelectorAll(".vt-cell.sortable")).find((h) => h.textContent!.includes(text))!;
+    fireEvent.click(header("Worst slack"));
+    expect(ids()).toEqual(["r_0002", "r_0003", "r_0001"]); // ascending; no result last
+    fireEvent.click(header("Cells"));
+    fireEvent.click(header("Cells"));
+    expect(ids()).toEqual(["r_0002", "r_0003", "r_0001"]); // descending
+    fireEvent.click(header("Name"));
+    expect(ids()[0]).toBe("r_0002");
+  });
+});

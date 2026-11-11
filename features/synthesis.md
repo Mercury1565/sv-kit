@@ -15,6 +15,13 @@ one shared format and shown as a dashboard instead of report files.
 - **Slowest paths**: the worst timing paths, each expandable to every point (instance, pin, cell,
   incremental delay, arrival). *Show gates* draws the path as a schematic (see [design.md](design.md)).
 
+## The list of runs
+
+The Synthesis page lists every synthesis run (and sweep point) with its headline numbers: clock
+period, worst setup slack (red when negative; hover for the hold slack), area, total power and cell
+count. Click a column header to sort by it, again to reverse, a third time to go back to the order the
+runs were made (newest first). Runs without results yet sort last. The name column sorts by name.
+
 ## Names
 
 Give a run a name you will remember (`retimed ALU, ss corner`): type it in *Name (optional)* before

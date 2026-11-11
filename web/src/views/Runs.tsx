@@ -36,7 +36,23 @@ export function filterRuns(runs: RunSummary[], f: { kind: string; status: string
   );
 }
 
-export function RunsTable({ runs, selected, onToggle, height }: { runs: RunSummary[]; selected: Set<string>; onToggle: (id: string) => void; height?: number | string }) {
+export function RunsTable({
+  runs,
+  selected,
+  onToggle,
+  height,
+  extraColumns,
+  hide,
+}: {
+  runs: RunSummary[];
+  selected: Set<string>;
+  onToggle: (id: string) => void;
+  height?: number | string;
+  /** shown after Status (e.g. synthesis QoR on the Synthesis page) */
+  extraColumns?: Column<RunSummary>[];
+  /** column keys to leave out */
+  hide?: string[];
+}) {
   const cols: Column<RunSummary>[] = useMemo(
     () => [
       {
@@ -54,7 +70,7 @@ export function RunsTable({ runs, selected, onToggle, height }: { runs: RunSumma
             />
           ) : null,
       },
-      { key: "id", header: "Run", width: "84px", render: (r) => <span className="mono">{r.id}</span>, sortValue: (r) => r.id },
+      { key: "id", header: "Run", width: "84px", render: (r) => <span className="mono">{r.id}</span>, sortValue: (r) => r.created_at },
       { key: "kind", header: "Kind", width: "92px", render: (r) => r.kind, sortValue: (r) => r.kind },
       { key: "adapter", header: "Tool", width: "minmax(80px, 120px)", render: (r) => r.adapter, title: (r) => r.adapter, sortValue: (r) => r.adapter },
       {
@@ -71,9 +87,10 @@ export function RunsTable({ runs, selected, onToggle, height }: { runs: RunSumma
           </span>
         ),
         title: (r) => [r.name, runLabel(r), r.message].filter(Boolean).join("\n") || undefined,
-        sortValue: (r) => r.name ?? runLabel(r),
+        sortValue: (r) => (r.name ?? runLabel(r)) || null, // unnamed, unlabelled runs sort last
       },
       { key: "status", header: "Status", width: "104px", render: (r) => <StatusChip status={r.status} />, sortValue: (r) => r.status },
+      ...(extraColumns ?? []),
       { key: "dur", header: "Duration", width: "84px", align: "right", render: (r) => fmtDuration(r.duration_s), sortValue: (r) => r.duration_s },
       {
         key: "git",
@@ -105,12 +122,13 @@ export function RunsTable({ runs, selected, onToggle, height }: { runs: RunSumma
       },
       { key: "time", header: "Created", width: "100px", align: "right", render: (r) => fmtAgo(r.created_at), title: (r) => fmtDate(r.created_at), sortValue: (r) => r.created_at },
     ],
-    [selected, onToggle],
+    [selected, onToggle, extraColumns],
   );
+  const shown = useMemo(() => (hide?.length ? cols.filter((c) => !hide.includes(c.key)) : cols), [cols, hide]);
   return (
     <VirtualTable
       rows={runs}
-      columns={cols}
+      columns={shown}
       rowKey={(r) => r.id}
       selected={selected}
       onRowClick={(r) => navigate(runHref(r))}

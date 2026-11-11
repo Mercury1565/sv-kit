@@ -191,6 +191,19 @@ export interface RunSummary {
   /** The user's own name for the run (svkit 0.1, DB v4); null when unnamed. */
   name?: string | null;
   tags: string[];
+  /** Headline synthesis numbers (synth / sweep-point runs with results); absent otherwise. */
+  qor?: QorSummary | null;
+}
+
+export interface QorSummary {
+  period?: number | null;
+  wns?: number | null;
+  hold_wns?: number | null;
+  area_total?: number | null;
+  area_unit?: string | null;
+  cell_count?: number | null;
+  /** mW */
+  power_total?: number | null;
 }
 
 export interface Run extends RunSummary {

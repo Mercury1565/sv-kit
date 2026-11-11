@@ -173,9 +173,23 @@ def _error_text(e: BaseException) -> str:
     return str(e) if isinstance(e, (RuntimeError, ConfigError)) and str(e) else f"{type(e).__name__}: {e}"
 
 
+QOR_KEYS = ("period", "wns", "hold_wns", "area_total", "area_unit", "cell_count")
+
+
+def qor_summary(kind: str, metrics: Optional[dict[str, Any]]) -> Optional[dict[str, Any]]:
+    """Headline synthesis numbers for run lists (the full SynthResult stays in Run.metrics)."""
+    if kind not in ("synth", "sweep-point") or not isinstance(metrics, dict):
+        return None
+    q = {k: metrics.get(k) for k in QOR_KEYS}
+    q["power_total"] = (metrics.get("power") or {}).get("total")
+    return q
+
+
 def run_summary(r: Run) -> dict[str, Any]:
     d = r.to_dict()
-    d.pop("metrics", None)
+    m = d.pop("metrics", None)
+    if (q := qor_summary(r.kind, m)) is not None:
+        d["qor"] = q
     return d
 
 

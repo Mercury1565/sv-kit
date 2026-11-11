@@ -173,3 +173,20 @@ def test_job_runs_chosen_tests_with_a_name(project):
     assert job["status"] == "done", job
     g = c.get(f"/api/groups/{job['group_id']}").json()
     assert g["name"] == "from the ui" and sorted(x["test"] for x in g["runs"]) == ["b", "d"]
+
+
+def test_run_lists_carry_headline_qor(tmp_path):
+    (tmp_path / "svkit.toml").write_text('[project]\nname="demo"\ntop="core"\n')
+    db = RunDB.for_project(tmp_path)
+    s = db.create_run("synth", "dc", status="done")
+    db.update_run(s.id, metrics={"period": 4000.0, "wns": -12.5, "hold_wns": 3.0, "area_total": 9100.5,
+                                 "area_unit": "um^2", "cell_count": 4100, "power": {"total": 3.2},
+                                 "paths": [{"big": "x"}]})
+    pending = db.create_run("synth", "dc", status="running")
+    sim = db.create_run("sim", "verilator", test="t", status="passed")
+    db.update_run(sim.id, metrics={"passed": True})
+    rows = {r["id"]: r for r in TestClient(create_app(C.load(tmp_path))).get("/api/runs").json()}
+    assert rows[s.id]["qor"] == {"period": 4000.0, "wns": -12.5, "hold_wns": 3.0, "area_total": 9100.5,
+                                 "area_unit": "um^2", "cell_count": 4100, "power_total": 3.2}
+    assert "paths" not in str(rows[s.id]) and "metrics" not in rows[s.id]
+    assert "qor" not in rows[pending.id] and "qor" not in rows[sim.id]

@@ -386,7 +386,11 @@ function cleanName(v: unknown): string | null {
 }
 
 function summary(r: Run): RunSummary {
-  const { metrics: _m, ...rest } = r;
+  const { metrics: m, ...rest } = r;
+  if ((r.kind === "synth" || r.kind === "sweep-point") && m && typeof m === "object") {
+    const s = m as Partial<SynthResult>;
+    return { ...rest, qor: { period: s.period, wns: s.wns, hold_wns: s.hold_wns, area_total: s.area_total, area_unit: s.area_unit, cell_count: s.cell_count, power_total: s.power?.total } };
+  }
   return rest;
 }
 

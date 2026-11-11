@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Fragment, useCallback, useMemo, useState } from "react";
 import { api } from "../api/client";
-import { isSynthResult, type Msg, type SynthResult, type TimingPath } from "../api/types";
+import { isSynthResult, type Msg, type Run, type RunSummary, type SynthResult, type TimingPath } from "../api/types";
 import { baseOption, EChart, type ChartTheme } from "../components/EChart";
 import { JobButton } from "../components/JobButton";
 import { NameEditor, NAME_MAX } from "../components/NameEditor";
@@ -22,6 +22,55 @@ export default function SynthView({ id }: { id?: string }) {
 }
 
 // ------------------------------------------------------------------ index: synth runs + launchers
+const areaText = (v: number | null | undefined) => (isNum(v) && Math.abs(v) >= 1e7 ? fmtCompact(v) : fmtNum(v, 1));
+
+/** Headline QoR per run, each sortable (missing values sort last). */
+export const QOR_COLUMNS: Column<RunSummary>[] = [
+  {
+    key: "q.period",
+    header: <Term id="clock_period" />,
+    width: "120px",
+    align: "right",
+    render: (r) => fmtPs(r.qor?.period),
+    title: (r) => (isNum(r.qor?.period) && r.qor!.period! > 0 ? `${fmtNum(1e6 / r.qor!.period!, 1)} MHz` : undefined),
+    sortValue: (r) => r.qor?.period,
+  },
+  {
+    key: "q.wns",
+    header: <Term id="setup_slack">Worst slack</Term>,
+    width: "104px",
+    align: "right",
+    render: (r) => (isNum(r.qor?.wns) ? <span className={r.qor!.wns! < 0 ? "worse" : "better"}>{fmtPs(r.qor!.wns, true)}</span> : fmtPs(r.qor?.wns)),
+    title: (r) => (isNum(r.qor?.hold_wns) ? `worst hold slack ${fmtPs(r.qor!.hold_wns, true)}` : undefined),
+    sortValue: (r) => r.qor?.wns,
+  },
+  {
+    key: "q.area",
+    header: <Term id="area" />,
+    width: "96px",
+    align: "right",
+    render: (r) => areaText(r.qor?.area_total),
+    title: (r) => (isNum(r.qor?.area_total) ? `${fmtNum(r.qor!.area_total, 1)} ${(r.qor!.area_unit ?? "").replace("um^2", "µm²")}` : undefined),
+    sortValue: (r) => r.qor?.area_total,
+  },
+  {
+    key: "q.power",
+    header: <span title="total power, mW">Power (mW)</span>,
+    width: "100px",
+    align: "right",
+    render: (r) => fmtNum(r.qor?.power_total, 3),
+    sortValue: (r) => r.qor?.power_total,
+  },
+  { key: "q.cells", header: "Cells", width: "72px", align: "right", render: (r) => fmtInt(r.qor?.cell_count), sortValue: (r) => r.qor?.cell_count },
+];
+
+/** The list row of a full run: headline QoR instead of the whole result. */
+function summaryOf(r: Run): RunSummary {
+  const m = isSynthResult(r.metrics) ? r.metrics : null;
+  const { metrics: _m, ...rest } = r;
+  return m ? { ...rest, qor: { period: m.period, wns: m.wns, hold_wns: m.hold_wns, area_total: m.area_total, area_unit: m.area_unit, cell_count: m.cell_count, power_total: m.power.total } } : rest;
+}
+
 function SynthIndex() {
   const { project } = useApp();
   const runs = useAsync(async () => (await api.allRuns()).filter((r) => isSynthKind(r.kind)), []);
@@ -33,7 +82,15 @@ function SynthIndex() {
   useServerEvents((ev) => {
     if (ev.type === "run.created" && isSynthKind(ev.run.kind)) runs.setData((rs) => (rs ? [ev.run, ...rs] : rs));
     if (ev.type === "run.updated") runs.setData((rs) => rs?.map((r) => (r.id === ev.run.id ? { ...r, ...ev.run } : r)));
-    if (ev.type === "run.status") runs.setData((rs) => rs?.map((r) => (r.id === ev.run_id ? { ...r, status: ev.status } : r)));
+    if (ev.type === "run.status") {
+      runs.setData((rs) => rs?.map((r) => (r.id === ev.run_id ? { ...r, status: ev.status } : r)));
+      // a finished run now has results: fetch its headline numbers
+      if (ev.status === "done" || ev.status === "error")
+        api.run(ev.run_id).then(
+          (full) => isSynthKind(full.kind) && runs.setData((rs) => rs?.map((r) => (r.id === full.id ? { ...r, ...summaryOf(full) } : r))),
+          () => {},
+        );
+    }
   });
   const toggle = useCallback(
     (rid: string) =>
@@ -94,7 +151,7 @@ function SynthIndex() {
         <Empty title="No synthesis runs yet" cmd={["svkit synth", "svkit synth --matrix", "svkit sweep clock"]} />
       ) : (
         <div style={{ flex: "1 1 auto", minHeight: 240, display: "flex" }}>
-          <RunsTable runs={runs.data} selected={selected} onToggle={toggle} />
+          <RunsTable runs={runs.data} selected={selected} onToggle={toggle} extraColumns={QOR_COLUMNS} hide={["git", "dur"]} />
         </div>
       )}
     </div>
