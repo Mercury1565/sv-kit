@@ -267,3 +267,10 @@ svkit serve      # restart it after upgrading: new API and UI
 svkit sim fib gcd --name "after the fix" && svkit rename g_0004 "before the fix"
 .venv/bin/pytest tests/test_names.py && (cd web && npx vitest run src/views/names.test.tsx)
 ```
+
+### Fix after iteration 7 — 2026-11-11 — synthesis runs lost their names
+- `Runner.synth()` reused its `name` argument for the flow name, so every synthesis run was saved
+  with the tool's name ("dc", "yosys") instead of the one typed in. Fixed; regression test in
+  `tests/test_names.py`.
+- Run DB v5: opening a v4 database clears names equal to the tool on synth / sweep-point runs, so the
+  wrongly named runs show as unnamed again.

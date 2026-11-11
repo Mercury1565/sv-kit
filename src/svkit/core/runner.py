@@ -424,6 +424,7 @@ class Runner:
     def synth(self, *, flow: str | None = None, experiment: str | None = None,
               sets: dict[str, Any] | None = None, group_id: str | None = None,
               kind: str = "synth", use_cache: bool = True, name: str | None = None) -> Run:
+        run_name = name                     # `name` is reused below for the flow name
         rs = resolve_synth(self.cfg, flow)
         name, fl, adapter = rs.name, rs.flow, rs.adapter
         rcfg = rs.cfg or self.cfg
@@ -435,7 +436,7 @@ class Runner:
         src = P.source_hash(self.cfg, P.flow_files(self.cfg, fl.script))
         key = P.cache_key("synth", name if rs.cfg is None else f"{name}~{rcfg.library.liberty}", src, values)
         common = dict(knobs=values, experiment=experiment, group_id=group_id, git_sha=sha, git_dirty=dirty,
-                      source_hash=src, name=name)
+                      source_hash=src, name=run_name)
         if use_cache and (hit := self._cached(key, kind, name, **common)):
             return hit
         run = self.db.create_run(kind, name, cache_key=key, **common)

@@ -211,7 +211,8 @@ Third-party adapters: `[project.entry-points."svkit.adapters"] myname = "pkg.mod
   (`queued|running|passed|failed|done|error|cancelled`), timestamps, duration_s, git_sha, git_dirty,
   source_hash, knobs (JSON), experiment, cache_key, cached_from, exit_code, metrics (JSON of the
   normalized result), artifacts (JSON name→path relative to the run dir), group_id, message, flow
-  (v2), owner (v3), name (v4: the user's own name, one line, ≤ 80 chars, NULL when unnamed).
+  (v2), owner (v3), name (v4: the user's own name, one line, ≤ 80 chars, NULL when unnamed; v5 clears the tool names that
+  v4 builds stored on synthesis runs by mistake).
 * `groups`: id (`g_0001`), kind (`sim-all|matrix|sweep`), status, params, result (e.g. SweepResult),
   name (v4). A `sim-all` batch's params hold `tests` (the ones it ran) and `subset` (true when that
   is not every test of the flow).

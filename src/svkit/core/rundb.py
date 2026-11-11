@@ -17,7 +17,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterator, Optional
 
-DB_VERSION = 4
+DB_VERSION = 5
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT);
@@ -189,6 +189,11 @@ class RunDB:
                         except sqlite3.OperationalError as e:   # another process migrated it first
                             if "duplicate column" not in str(e):
                                 raise
+            # v4 -> v5: synthesis runs made by builds at v4 stored the tool name ("dc", "yosys") as the
+            # run's name instead of the user's; clear those so the runs show as unnamed again
+            row = c.execute("SELECT value FROM meta WHERE key = 'version'").fetchone()
+            if row is not None and int(row[0]) == 4:
+                c.execute("UPDATE runs SET name = NULL WHERE name = adapter AND kind IN ('synth', 'sweep-point')")
             c.execute("INSERT OR IGNORE INTO meta VALUES ('version', ?)", (str(DB_VERSION),))
             c.execute("UPDATE meta SET value = ? WHERE key = 'version' AND CAST(value AS INTEGER) < ?",
                       (str(DB_VERSION), DB_VERSION))

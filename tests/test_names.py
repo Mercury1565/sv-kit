@@ -1,4 +1,4 @@
-"""Run and batch names (DB v4) and running a chosen subset of tests as one batch."""
+"""Run and batch names (DB v4, v5) and running a chosen subset of tests as one batch."""
 import shutil
 import sqlite3
 import time
@@ -53,7 +53,7 @@ def test_v3_database_gains_name_columns(tmp_path):
     with pytest.raises(KeyError):
         db.set_name("r_0099", "x")
     with sqlite3.connect(state / "runs.sqlite") as c2:
-        assert c2.execute("SELECT value FROM meta WHERE key = 'version'").fetchone()[0] == "4"
+        assert c2.execute("SELECT value FROM meta WHERE key = 'version'").fetchone()[0] == "5"
 
 
 def test_rename_routes(tmp_path):
@@ -190,3 +190,49 @@ def test_run_lists_carry_headline_qor(tmp_path):
                                  "area_unit": "um^2", "cell_count": 4100, "power_total": 3.2}
     assert "paths" not in str(rows[s.id]) and "metrics" not in rows[s.id]
     assert "qor" not in rows[pending.id] and "qor" not in rows[sim.id]
+
+
+def _stub_synth():
+    """A synthesis adapter that needs no tools."""
+    from svkit.adapters.base import SynthAdapter
+    from svkit.schemas import SynthResult
+
+    class StubSynth(SynthAdapter):
+        name = "stubsynth"
+
+        def run(self, ctx, flow):
+            return SynthResult(tool="stub", top=self.cfg.project.top, period=2000.0, wns=1.0, area_total=10.0)
+
+        def parse(self, files, *, top):
+            raise NotImplementedError
+    return StubSynth
+
+
+def test_synth_keeps_the_users_name_not_the_tool_name(tmp_path, monkeypatch):
+    """Regression: synth() reused `name` for the flow, so every synth run was named after its tool."""
+    from svkit.adapters import registry
+    globals()["_StubSynth"] = _stub_synth()
+    monkeypatch.setitem(registry.BUILTIN, "stubsynth", f"{__name__}:_StubSynth")
+    (tmp_path / "svkit.toml").write_text('[project]\nname="demo"\ntop="core"\n'
+                                         '[flows.synth.stubsynth]\nmode="builtin"\n')
+    r = Runner(C.load(tmp_path))
+    first = r.synth(name="  my baseline ")
+    assert first.status == "done" and first.adapter == "stubsynth" and first.name == "my baseline"
+    again = r.synth(name="second look")            # a cache hit keeps the name it was given
+    assert again.cached_from == first.id and again.name == "second look"
+    assert r.synth().name is None
+
+
+def test_v4_database_drops_tool_names_given_by_mistake(tmp_path):
+    db = RunDB(tmp_path / ".svkit")
+    bad = db.create_run("synth", "dc", status="done", name="dc")
+    point = db.create_run("sweep-point", "yosys", status="done", name="yosys")
+    mine = db.create_run("synth", "dc", status="done", name="retimed")
+    sim = db.create_run("sim", "vcs", test="t", status="passed", name="vcs")
+    with sqlite3.connect(tmp_path / ".svkit" / "runs.sqlite") as c:
+        c.execute("UPDATE meta SET value = '4' WHERE key = 'version'")
+    db = RunDB(tmp_path / ".svkit")
+    assert db.get_run(bad.id).name is None and db.get_run(point.id).name is None
+    assert db.get_run(mine.id).name == "retimed" and db.get_run(sim.id).name == "vcs"
+    db.set_name(bad.id, "dc")                        # once at v5 the user may choose that name on purpose
+    assert RunDB(tmp_path / ".svkit").get_run(bad.id).name == "dc"
