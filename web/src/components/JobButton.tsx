@@ -1,15 +1,40 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { api, ApiError } from "../api/client";
-import type { JobKind } from "../api/types";
+import type { Job, JobKind } from "../api/types";
 import { useApp } from "../lib/appState";
 
 /** Launches a job via POST /api/jobs and shows its live status (from job.updated events). */
-export function JobButton({ kind, args, children, primary, disabled }: { kind: JobKind; args?: Record<string, unknown>; children: ReactNode; primary?: boolean; disabled?: boolean }) {
+export function JobButton({
+  kind,
+  args,
+  children,
+  primary,
+  disabled,
+  onSubmitted,
+  onDone,
+}: {
+  kind: JobKind;
+  args?: Record<string, unknown>;
+  children: ReactNode;
+  primary?: boolean;
+  disabled?: boolean;
+  /** called once the server accepted the job */
+  onSubmitted?: () => void;
+  /** called once when the job finishes without an error */
+  onDone?: (job: Job) => void;
+}) {
   const { jobs } = useApp();
   const [jobId, setJobId] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const job = jobs.find((j) => j.job_id === jobId);
+  const reported = useRef<string | null>(null);
+  useEffect(() => {
+    if (job && job.status === "done" && reported.current !== job.job_id) {
+      reported.current = job.job_id;
+      onDone?.(job);
+    }
+  }, [job, onDone]);
 
   const go = async () => {
     setErr(null);
@@ -17,6 +42,7 @@ export function JobButton({ kind, args, children, primary, disabled }: { kind: J
     try {
       const r = await api.submitJob(kind, args ?? {});
       setJobId(r.job_id);
+      onSubmitted?.();
     } catch (e) {
       setErr(e instanceof ApiError ? e.detail : String(e));
     } finally {

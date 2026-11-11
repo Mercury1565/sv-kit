@@ -188,6 +188,8 @@ export interface RunSummary {
   message?: string | null;
   /** [flows.<kind>.<name>] key that ran it; null on runs recorded before v0.2 (= default flow). */
   flow?: string | null;
+  /** The user's own name for the run (svkit 0.1, DB v4); null when unnamed. */
+  name?: string | null;
   tags: string[];
 }
 
@@ -203,6 +205,8 @@ export interface Group {
   status: string;
   params: Record<string, unknown>;
   result?: Record<string, unknown> | null;
+  /** The user's own name for the batch; null when unnamed. */
+  name?: string | null;
   runs?: RunSummary[];
 }
 
@@ -410,6 +414,7 @@ export interface SourceSlice {
 export type ServerEvent =
   | { type: "run.created"; run: RunSummary }
   | { type: "run.status"; run_id: string; status: string; message?: string | null }
+  | { type: "run.updated"; run: RunSummary }
   | { type: "run.log"; run_id: string; line: string }
   | { type: "group.updated"; group_id: string; status: string; result?: Record<string, unknown> | null }
   | { type: "job.updated"; job: Job };

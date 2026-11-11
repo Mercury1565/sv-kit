@@ -123,6 +123,15 @@ def create_app(cfg: Config) -> FastAPI:
         st.db.add_tag(rid, tag)
         return _run(rid).to_dict()
 
+    @api.patch("/runs/{rid}")
+    def rename_run(rid: str, body: dict = Body(...)) -> dict[str, Any]:
+        """Body {"name": "..."}; an empty or null name removes it."""
+        _run(rid)
+        st.db.set_name(rid, _name_arg(body))
+        r = _run(rid)
+        st.bus.publish({"type": "run.updated", "run": run_summary(r)})
+        return r.to_dict()
+
     @api.delete("/runs/{rid}/tags/{tag}")
     def del_tag(rid: str, tag: str) -> dict[str, Any]:
         _run(rid)
@@ -143,22 +152,46 @@ def create_app(cfg: Config) -> FastAPI:
         g["runs"] = [run_summary(r) for r in st.db.list_runs(group_id=gid, limit=5000)]
         return g
 
+    @api.patch("/groups/{gid}")
+    def rename_group(gid: str, body: dict = Body(...)) -> dict[str, Any]:
+        """Body {"name": "..."}; an empty or null name removes it."""
+        try:
+            st.db.set_name(gid, _name_arg(body))
+            g = st.db.get_group(gid)
+        except KeyError:
+            raise HTTPException(404, f"no group {gid}")
+        st.bus.publish({"type": "group.updated", "group_id": gid, "status": g.status, "name": g.name})
+        return g.to_dict()
+
+    def _name_arg(body: dict) -> Optional[str]:
+        if "name" not in body:
+            raise HTTPException(400, "name required (empty or null removes it)")
+        v = body["name"]
+        if v is not None and not isinstance(v, str):
+            raise HTTPException(400, "name must be a string")
+        return v
+
     # ------------------------------------------------------------ jobs
     def _job_target(kind: str, args: dict[str, Any]):
         r = st.runner
         if kind == "sim":
-            return lambda: {"run_ids": [r.sim(args["test"], flow=args.get("flow")).id]}
+            return lambda: {"run_ids": [r.sim(args["test"], flow=args.get("flow"), name=args.get("name")).id]}
         if kind == "sim-all":
+            tests = args.get("tests")
+            if tests is not None and (not isinstance(tests, list) or not all(isinstance(x, str) for x in tests)):
+                raise HTTPException(400, "tests must be a list of test names")
             def f():
-                gid, runs = r.sim_all(flow=args.get("flow"), jobs=int(args.get("jobs", 4)))
+                gid, runs = r.sim_all(flow=args.get("flow"), jobs=int(args.get("jobs", 4)), tests=tests or None,
+                                      name=args.get("name"))
                 return {"group_id": gid, "run_ids": [x.id for x in runs]}
             return f
         if kind == "synth":
             sets = K.parse_set(args.get("set", [])) if isinstance(args.get("set"), list) else args.get("set")
-            return lambda: {"run_ids": [r.synth(flow=args.get("flow"), experiment=args.get("exp"), sets=sets).id]}
+            return lambda: {"run_ids": [r.synth(flow=args.get("flow"), experiment=args.get("exp"), sets=sets,
+                                                name=args.get("name")).id]}
         if kind == "matrix":
             def f():
-                gid, runs = r.matrix(flow=args.get("flow"), jobs=int(args.get("jobs", 2)))
+                gid, runs = r.matrix(flow=args.get("flow"), jobs=int(args.get("jobs", 2)), name=args.get("name"))
                 return {"group_id": gid, "run_ids": [x.id for x in runs]}
             return f
         if kind == "sweep":

@@ -17,7 +17,7 @@ export function parseEvent(raw: unknown): ServerEvent | null {
   }
   if (!v || typeof v !== "object" || typeof (v as { type?: unknown }).type !== "string") return null;
   const t = (v as { type: string }).type;
-  if (t === "run.created" || t === "run.status" || t === "run.log" || t === "group.updated" || t === "job.updated") {
+  if (t === "run.created" || t === "run.status" || t === "run.updated" || t === "run.log" || t === "group.updated" || t === "job.updated") {
     return v as ServerEvent;
   }
   return null;

@@ -210,8 +210,12 @@ Third-party adapters: `[project.entry-points."svkit.adapters"] myname = "pkg.mod
 * `runs`: id (`r_0001`), kind (`sim`|`synth`|`sweep-point`), adapter, test, status
   (`queued|running|passed|failed|done|error|cancelled`), timestamps, duration_s, git_sha, git_dirty,
   source_hash, knobs (JSON), experiment, cache_key, cached_from, exit_code, metrics (JSON of the
-  normalized result), artifacts (JSON name→path relative to the run dir), group_id, message.
-* `groups`: id (`g_0001`), kind (`sim-all|matrix|sweep`), status, params, result (e.g. SweepResult).
+  normalized result), artifacts (JSON name→path relative to the run dir), group_id, message, flow
+  (v2), owner (v3), name (v4: the user's own name, one line, ≤ 80 chars, NULL when unnamed).
+* `groups`: id (`g_0001`), kind (`sim-all|matrix|sweep`), status, params, result (e.g. SweepResult),
+  name (v4). A `sim-all` batch's params hold `tests` (the ones it ran) and `subset` (true when that
+  is not every test of the flow).
+* Older databases are upgraded in place on open (`ALTER TABLE … ADD COLUMN`).
 * Cache key = sha256(kind, adapter, source hash, knob values, test). Source hash covers design + tb
   sources, include-dir headers, `svkit.toml`, Makefile, and the flow script. A cache hit creates a
   new Run with `cached_from` and artifacts pointing at the original run.
@@ -228,10 +232,12 @@ All JSON. Base `/api`. Errors: `{"detail": "..."}` with 4xx/5xx.
 | `GET /api/runs/{id}/artifacts/{name}` | the file (text/binary) |
 | `GET /api/runs/{id}/log?tail=N` | `{lines:[...]}` |
 | `POST /api/runs/{id}/tags` `{tag}` / `DELETE /api/runs/{id}/tags/{tag}` | `Run` |
+| `PATCH /api/runs/{id}` `{name}` | `Run`; empty or null name removes it; emits `run.updated` |
 | `GET /api/groups?kind=` / `GET /api/groups/{id}` | `[Group]` / `Group` (+ `runs: [RunSummary]`) |
+| `PATCH /api/groups/{id}` `{name}` | `Group`; empty or null name removes it; emits `group.updated` |
 | `GET /api/compare?ids=r_1,r_2,...` | `CompareResult` (first id = baseline) |
 | `GET /api/sweeps/{group_id}` | `SweepResult` |
-| `POST /api/jobs` `{kind: "sim"\|"sim-all"\|"synth"\|"matrix"\|"sweep", args:{...}}` | `{job_id}`; progress via WS |
+| `POST /api/jobs` `{kind: "sim"\|"sim-all"\|"synth"\|"matrix"\|"sweep", args:{...}}` | `{job_id}`; progress via WS. `args.name` names the run (sim, synth) or the batch (sim-all, matrix); `sim-all` takes `args.tests: [name]` to run only those (400 if not a list of strings; an unknown name fails the job) |
 | `GET /api/jobs` | `[{job_id, kind, status, run_ids, group_id}]` |
 | `GET /api/perf?group=` | `[PerfResult]` (TPI from latest sweep T_min, else latest synth period) |
 | `GET /api/waves/{run_id}/meta` | `{file, format, timescale:{factor, unit}, t_start, t_end}` |
@@ -251,7 +257,7 @@ All JSON. Base `/api`. Errors: `{"detail": "..."}` with 4xx/5xx.
 | ↳ `Schematic` | `netlist` = one Yosys-JSON module (`{modules:{name:{attributes:{top:1}, ports, cells}}}`) drawn by netlistsvg in the browser; `cells` = per drawn cell/port key `{kind: instance\|logic\|port\|cell, name, module?, type?, symbol?, on_path?, delay?}`; `path_nets` = netlistsvg wire classes (`net_<bits>`) on the critical path. Cell types are Yosys gate names (`$_NAND_`, ...) and `$svkit_*` (`$svkit_nand3`, `$svkit_dffr`, `$svkit_box_<width>`), one template each in `web/src/lib/schematic-skin.svg` |
 | `GET /api/xtrace?run=&signal=&time=&depth=` | `XTraceNode` |
 | `GET /api/source?file=&line=&context=` | `{file, start, lines:[...]}` (only files inside the project root) |
-| `WS /ws/events` | stream of events (`run.created`, `run.status`, `run.log`, `group.updated`, `job.updated`) |
+| `WS /ws/events` | stream of events (`run.created`, `run.status`, `run.updated`, `run.log`, `group.updated`, `job.updated`); `group.updated` is also sent when a batch starts |
 
 Static UI is served from `/` (SPA fallback to `index.html`). The server binds `127.0.0.1` by default;
 use `ssh -L 3572:localhost:3572 host`.
@@ -269,8 +275,9 @@ styles it from the theme tokens and adds tooltips, click targets and the critica
 
 ```
 svkit init [--force]
-svkit sim <test> | --all [--flow NAME] [--jobs N] [--no-cache]
-svkit synth [--flow NAME] [--set k=v ...] [--exp NAME | --matrix] [--jobs N] [--no-cache]
+svkit sim <test>... | --all [--flow NAME] [--jobs N] [--no-cache] [--name TEXT]   # 2+ tests = one batch
+svkit synth [--flow NAME] [--set k=v ...] [--exp NAME | --matrix] [--jobs N] [--no-cache] [--name TEXT]
+svkit rename <r_id|g_id> [NAME]
 svkit sweep clock [--tol 50] [--jobs N] [--start PS]
 svkit xtrace <hier.signal> @<time> [--run ID] [--depth N] [--json]
 svkit runs ls|show <id>|diff <a> <b>|tag <id> <tag>

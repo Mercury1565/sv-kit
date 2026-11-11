@@ -4,7 +4,7 @@
 - **Phase:** Phases 0–3 implemented. **Both flows now run on real tools** (VCS + DC on CAEN; Verilator + Yosys + OpenSTA on the dev host). **~85 % to MVP.** Remaining: a frontend rebuild (sweep note, new API endpoints; needs Node), browser click-through of every view, web proposal 5, the Icarus decision, and the OSS flow on CAEN (blocked on OpenSTA).
 - **Dogfood checkpoint (EECS 470 copy in `~/svkit-work/dogfood`):** `svkit init` needs **no hand edits**. 21/21 tests pass on VCS, the DC matrix runs (TT/SS/FF), and the clock sweep finds **T_min = 4708 ps** (14 DC runs). TPI uses it, and the dashboard API works on the real CPU.
 - **Demoable on CAEN:** `cd ~/svkit-work/dogfood && svkit serve`, then `ssh -L 3572:localhost:3572 <caen host>` from your laptop.
-- **New (iter 4–6):** runs on a laptop without Synopsys (automatic Verilator/Yosys/OpenSTA fallback), plain-language dashboard with (i) explanations, **unit tests as their own suite** (Tests → Unit tests, waves at the first error), FST waveform archive, and **schematic Blocks/Gates diagrams** (netlistsvg, gate symbols from Liberty).
+- **New (iter 4–7):** runs on a laptop without Synopsys (automatic Verilator/Yosys/OpenSTA fallback), plain-language dashboard with (i) explanations, **unit tests as their own suite** (Tests → Unit tests, waves at the first error), FST waveform archive, and **schematic Blocks/Gates diagrams** (netlistsvg, gate symbols from Liberty); **choose which tests to run** (Perf → Run tests…, `svkit sim a b c`) and **name runs and batches** (iter 7).
 - **Needs owner:**
   1. **OpenSTA on CAEN:** installing it (micromamba + `litex-hub::openroad` into `~/tools`) was blocked by the permission classifier as running downloaded code. Approve it, or install it yourself, to run the OSS flow and its tests on CAEN.
   2. **X-trace parity on the OSS flow:** Verilator is 2-state, so it never shows X. Recommend pulling an Icarus sim adapter into the MVP (scope change vs decision #18).
@@ -240,4 +240,29 @@ svkit waves archive --to fst              # shrink it (a running svkit serve pic
 svkit serve                          # restart it: new API endpoints and UI
 # Design -> Blocks (click an instance); Synthesis -> a run -> a timing path -> "Show gates"
 .venv/bin/pytest tests/test_schematic.py && (cd web && npx vitest run src/lib/schematic.test.ts)
+```
+
+## Iteration 7 — 2026-11-10 — Choose which tests to run; name runs and batches
+**Status:** done
+**What works now:**
+- **Perf → Run tests…** opens a checklist of the tests (filter, select all / none). Run the chosen ones as one batch, optionally named. The page switches to the new batch when it finishes, and the choice of tests is remembered per browser.
+- **Names for runs and batches.** Name a batch on the Perf page (pencil or *+ Add a name*); the batch dropdown shows names first. Name a synthesis run before launching it (*Name (optional)* on the Synthesis page, also for an experiment run or the matrix batch) or later from its page; any run can be named from its run page. Names show in bold in the runs tables, the Runs filter searches them, and they label compare columns (UI and `svkit synth --matrix` table).
+- CLI: `svkit sim a b c [--name TEXT]` runs those tests as one batch; `svkit sim --all --name TEXT`; `svkit synth --name TEXT`; `svkit rename <r_…|g_…> [NAME]`; `svkit runs ls` prints names.
+- A run page's *Batch* field links a simulation run to its batch on the Perf page.
+**Decisions made (and why):**
+- Names live in a new `name` column on `runs` and `groups` (Run DB v4, added in place on open). One line, trimmed, ≤ 80 chars; an empty name removes it. A batch's name belongs to the batch, not to each run in it.
+- A subset batch is still a `sim-all` group (params `tests` + `subset`), so the Perf batch filter, the API and older dashboards keep working unchanged. Unknown test names fail the job with the list of available tests.
+- Renames go through `PATCH /api/runs/{id}` and `PATCH /api/groups/{id}`, which emit `run.updated` / `group.updated` so other open tabs update. `group.updated` is now also sent when a batch starts, so it appears in the dropdown while it runs.
+- The picker lives on the Perf page (where batches are viewed). The Tests page keeps *Run all tests*; adding the same picker there is easy if wanted.
+**Known gaps / risks:**
+- Sweeps can be renamed through the API and `svkit rename`, but the Sweep page has no name field yet.
+- The picker lists the default suite's tests (system tests). Unit tests are run from the Tests page or `svkit sim --flow unit a b`.
+**Next iteration plan:**
+- Name field on the Sweep page; the test picker on the Tests page if useful.
+**How to see it:**
+```
+svkit serve      # restart it after upgrading: new API and UI
+# Perf -> "Run tests…" -> untick some tests, name the batch, run; Synthesis -> "Name (optional)" -> Run synthesis
+svkit sim fib gcd --name "after the fix" && svkit rename g_0004 "before the fix"
+.venv/bin/pytest tests/test_names.py && (cd web && npx vitest run src/views/names.test.tsx)
 ```

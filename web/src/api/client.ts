@@ -131,10 +131,14 @@ export const api = {
   log: (id: string, tail = 500) => req<{ lines: string[] }>("GET", `/api/runs/${enc(id)}/log`, { tail }),
   addTag: (id: string, tag: string) => req<Run>("POST", `/api/runs/${enc(id)}/tags`, undefined, { tag }),
   removeTag: (id: string, tag: string) => req<Run>("DELETE", `/api/runs/${enc(id)}/tags/${enc(tag)}`),
+  /** Name a run; an empty name removes it. */
+  renameRun: (id: string, name: string) => req<Run>("PATCH", `/api/runs/${enc(id)}`, undefined, { name }),
   divergence: (id: string) => req<Divergence>("GET", `/api/runs/${enc(id)}/divergence`),
 
   groups: (kind?: string) => req<Group[]>("GET", "/api/groups", { kind }),
   group: (id: string) => req<Group>("GET", `/api/groups/${enc(id)}`),
+  /** Name a batch (sim --all, matrix, sweep); an empty name removes it. */
+  renameGroup: (id: string, name: string) => req<Group>("PATCH", `/api/groups/${enc(id)}`, undefined, { name }),
 
   compare: (ids: string[]) => req<CompareResult>("GET", "/api/compare", { ids: ids.join(",") }),
   sweep: (gid: string) => req<SweepResult>("GET", `/api/sweeps/${enc(gid)}`),

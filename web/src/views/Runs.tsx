@@ -27,6 +27,7 @@ export function filterRuns(runs: RunSummary[], f: { kind: string; status: string
       (!f.tag || r.tags.some((t) => t.toLowerCase().includes(f.tag.toLowerCase()))) &&
       (!text ||
         r.id.toLowerCase().includes(text) ||
+        (r.name ?? "").toLowerCase().includes(text) ||
         r.adapter.toLowerCase().includes(text) ||
         (r.test ?? "").toLowerCase().includes(text) ||
         (r.experiment ?? "").toLowerCase().includes(text) ||
@@ -58,16 +59,19 @@ export function RunsTable({ runs, selected, onToggle, height }: { runs: RunSumma
       { key: "adapter", header: "Tool", width: "minmax(80px, 120px)", render: (r) => r.adapter, title: (r) => r.adapter, sortValue: (r) => r.adapter },
       {
         key: "label",
-        header: "Test / experiment",
+        header: "Name / test / experiment",
         width: "minmax(180px, 3fr)",
         render: (r) => (
           <span className="row" style={{ gap: 6 }}>
-            <span className="ellipsis mono">{runLabel(r) || <span className="faint">—</span>}</span>
+            {r.name && <span className="run-name ellipsis" style={{ flexShrink: 1 }}>{r.name}</span>}
+            <span className={`ellipsis mono ${r.name ? "muted" : ""}`} style={r.name ? { flexShrink: 2 } : undefined}>
+              {runLabel(r) || (r.name ? null : <span className="faint">—</span>)}
+            </span>
             {r.cached_from && <span className="chip" title={`identical inputs: reused the result of ${r.cached_from}`}>reused</span>}
           </span>
         ),
-        title: (r) => [runLabel(r), r.message].filter(Boolean).join("\n") || undefined,
-        sortValue: (r) => runLabel(r),
+        title: (r) => [r.name, runLabel(r), r.message].filter(Boolean).join("\n") || undefined,
+        sortValue: (r) => r.name ?? runLabel(r),
       },
       { key: "status", header: "Status", width: "104px", render: (r) => <StatusChip status={r.status} />, sortValue: (r) => r.status },
       { key: "dur", header: "Duration", width: "84px", align: "right", render: (r) => fmtDuration(r.duration_s), sortValue: (r) => r.duration_s },
@@ -128,6 +132,7 @@ export function RunsView() {
 
   useServerEvents((ev) => {
     if (ev.type === "run.created") runs.setData((rs) => (rs ? [ev.run, ...rs.filter((r) => r.id !== ev.run.id)] : rs));
+    else if (ev.type === "run.updated") runs.setData((rs) => rs?.map((r) => (r.id === ev.run.id ? { ...r, ...ev.run } : r)));
     else if (ev.type === "run.status")
       runs.setData((rs) => rs?.map((r) => (r.id === ev.run_id ? { ...r, status: ev.status, message: ev.message ?? r.message } : r)));
   });
@@ -167,7 +172,7 @@ export function RunsView() {
           {fmtInt(rows.length)} of {fmtInt(all.length)}
         </span>
         <span className="spacer" />
-        <input placeholder="Filter: id, test, sha, message" value={textRaw} onChange={(e) => setText(e.target.value)} aria-label="Filter runs" style={{ width: 220 }} />
+        <input placeholder="Filter: id, name, test, sha, message" value={textRaw} onChange={(e) => setText(e.target.value)} aria-label="Filter runs" style={{ width: 220 }} />
         <select value={kind} onChange={(e) => setKind(e.target.value)} aria-label="Kind">
           <option value="">All kinds</option>
           {kinds.map((k) => (

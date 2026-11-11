@@ -270,7 +270,8 @@ class Runner:
 
     # ------------------------------------------------------------- sim
     def sim(self, test: str, *, flow: str | None = None, group_id: str | None = None,
-            sets: dict[str, Any] | None = None, use_cache: bool = True) -> Run:
+            sets: dict[str, Any] | None = None, use_cache: bool = True, name: str | None = None) -> Run:
+        run_name = name
         rs = resolve_sim(self.cfg, flow)
         name, fl, adapter, label = rs.name, rs.flow, rs.adapter, rs.label
         assert isinstance(adapter, SimAdapter)
@@ -290,7 +291,7 @@ class Runner:
         src = P.source_hash(self.cfg, extra)
         key = P.cache_key("sim", label if label == name else f"{name}~{label}", src, values, test)
         common = dict(test=test, knobs=values, group_id=group_id, git_sha=sha, git_dirty=dirty, source_hash=src,
-                      flow=name)
+                      flow=name, name=run_name)
         if use_cache and (hit := self._cached(key, "sim", label, **common)):
             return hit
         run = self.db.create_run("sim", label, cache_key=key, **common)
@@ -350,8 +351,19 @@ class Runner:
         return out
 
     def sim_all(self, *, flow: str | None = None, jobs: int = 4, tests: list[str] | None = None,
-                use_cache: bool = True) -> tuple[str, list[Run]]:
-        tests = tests or self.tests(flow)
+                use_cache: bool = True, name: str | None = None) -> tuple[str, list[Run]]:
+        """Run a batch: every test of the flow, or only `tests` (in that order). `name` labels the batch."""
+        batch_name = name
+        known = self.tests(flow)
+        if tests:
+            tests = list(dict.fromkeys(tests))
+            unknown = [x for x in tests if x not in known]
+            if unknown:
+                raise ConfigError(f"unknown test(s): {', '.join(unknown)}"
+                                  + (f" (available: {', '.join(known[:20])}{' …' if len(known) > 20 else ''})"
+                                     if known else ""))
+        else:
+            tests = known
         if not tests:
             raise ConfigError("no tests found (set [flows.sim.<x>].tests)")
         rs = resolve_sim(self.cfg, flow)
@@ -360,7 +372,9 @@ class Runner:
         flow = name           # every test runs the flow resolved here
         if not fl.parallel:
             jobs = 1
-        g = self.db.create_group("sim-all", {"flow": flow, "tests": tests, "backend": rs.label, "note": rs.note})
+        g = self.db.create_group("sim-all", {"flow": flow, "tests": tests, "backend": rs.label, "note": rs.note,
+                                             "subset": len(tests) < len(known)}, name=batch_name)
+        self.bus.publish({"type": "group.updated", "group_id": g.id, "status": g.status})
         if fl.build_cmd and fl.mode == "wrap":
             from svkit.adapters.base import RunContext
             ctx = RunContext(cfg=self.cfg, root=self.cfg.root, workdir=self.cfg.root,
@@ -395,7 +409,7 @@ class Runner:
     # ------------------------------------------------------------- synth
     def synth(self, *, flow: str | None = None, experiment: str | None = None,
               sets: dict[str, Any] | None = None, group_id: str | None = None,
-              kind: str = "synth", use_cache: bool = True) -> Run:
+              kind: str = "synth", use_cache: bool = True, name: str | None = None) -> Run:
         rs = resolve_synth(self.cfg, flow)
         name, fl, adapter = rs.name, rs.flow, rs.adapter
         rcfg = rs.cfg or self.cfg
@@ -407,7 +421,7 @@ class Runner:
         src = P.source_hash(self.cfg, P.flow_files(self.cfg, fl.script))
         key = P.cache_key("synth", name if rs.cfg is None else f"{name}~{rcfg.library.liberty}", src, values)
         common = dict(knobs=values, experiment=experiment, group_id=group_id, git_sha=sha, git_dirty=dirty,
-                      source_hash=src)
+                      source_hash=src, name=name)
         if use_cache and (hit := self._cached(key, kind, name, **common)):
             return hit
         run = self.db.create_run(kind, name, cache_key=key, **common)
@@ -452,11 +466,12 @@ class Runner:
             shutil.rmtree(workdir, ignore_errors=True)
 
     def matrix(self, *, flow: str | None = None, jobs: int = 2, experiments: list[str] | None = None,
-               use_cache: bool = True) -> tuple[str, list[Run]]:
+               use_cache: bool = True, name: str | None = None) -> tuple[str, list[Run]]:
         exps = experiments or list(self.cfg.experiments)
         if not exps:
             raise ConfigError("no [experiments] defined in svkit.toml")
-        g = self.db.create_group("matrix", {"flow": flow, "experiments": exps})
+        g = self.db.create_group("matrix", {"flow": flow, "experiments": exps}, name=name)
+        self.bus.publish({"type": "group.updated", "group_id": g.id, "status": g.status})
         with ThreadPoolExecutor(max_workers=max(1, jobs)) as ex:
             runs = list(ex.map(lambda e: self.synth(flow=flow, experiment=e, group_id=g.id, use_cache=use_cache),
                                exps))

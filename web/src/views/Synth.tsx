@@ -4,6 +4,7 @@ import { api } from "../api/client";
 import { isSynthResult, type Msg, type SynthResult, type TimingPath } from "../api/types";
 import { baseOption, EChart, type ChartTheme } from "../components/EChart";
 import { JobButton } from "../components/JobButton";
+import { NameEditor, NAME_MAX } from "../components/NameEditor";
 import { SlackChip, StatusChip } from "../components/StatusChip";
 import { Empty, ErrorState, Loading } from "../components/States";
 import { VirtualTable, type Column } from "../components/VirtualTable";
@@ -26,8 +27,12 @@ function SynthIndex() {
   const runs = useAsync(async () => (await api.allRuns()).filter((r) => isSynthKind(r.kind)), []);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [exp, setExp] = useState("");
+  const [name, setName] = useState("");
+  const named = name.trim() ? { name: name.trim() } : {};
+  const clearName = () => setName("");
   useServerEvents((ev) => {
     if (ev.type === "run.created" && isSynthKind(ev.run.kind)) runs.setData((rs) => (rs ? [ev.run, ...rs] : rs));
+    if (ev.type === "run.updated") runs.setData((rs) => rs?.map((r) => (r.id === ev.run.id ? { ...r, ...ev.run } : r)));
     if (ev.type === "run.status") runs.setData((rs) => rs?.map((r) => (r.id === ev.run_id ? { ...r, status: ev.status } : r)));
   });
   const toggle = useCallback(
@@ -47,7 +52,16 @@ function SynthIndex() {
       <div className="view-head">
         <h1>Synthesis</h1>
         <span className="spacer" />
-        <JobButton kind="synth" primary disabled={noSynth}>
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Name (optional)"
+          aria-label="Name for the next synthesis run"
+          title="Your own name for the next run, so you can find it later (rename any run from its page)"
+          maxLength={NAME_MAX}
+          style={{ width: 180 }}
+        />
+        <JobButton kind="synth" args={named} primary disabled={noSynth} onSubmitted={clearName}>
           Run synthesis
         </JobButton>
         {project && project.experiments.length > 0 && (
@@ -60,10 +74,10 @@ function SynthIndex() {
                 </option>
               ))}
             </select>
-            <JobButton kind="synth" args={{ exp }} disabled={!exp || noSynth}>
+            <JobButton kind="synth" args={{ exp, ...named }} disabled={!exp || noSynth} onSubmitted={clearName}>
               Run
             </JobButton>
-            <JobButton kind="matrix" disabled={noSynth}>
+            <JobButton kind="matrix" args={named} disabled={noSynth} onSubmitted={clearName}>
               Run matrix ({project.experiments.length})
             </JobButton>
           </span>
@@ -360,6 +374,7 @@ function SynthDashboard({ id }: { id: string }) {
   const run = useAsync(() => api.run(id), [id]);
   useServerEvents((ev) => {
     if (ev.type === "run.status" && ev.run_id === id) run.reload();
+    if (ev.type === "run.updated" && ev.run.id === id) run.setData((cur) => (cur ? { ...cur, name: ev.run.name } : cur));
   });
   if (run.error) return <div className="view"><ErrorState error={run.error} onRetry={run.reload} /></div>;
   if (!run.data) return <div className="view"><Loading what={`Loading ${id}`} /></div>;
@@ -371,6 +386,10 @@ function SynthDashboard({ id }: { id: string }) {
         <h1>
           Synthesis <span className="mono">{r.id}</span>
         </h1>
+        <NameEditor name={r.name} onSave={async (n) => {
+          const nr = await api.renameRun(r.id, n);
+          run.setData(() => ({ ...r, ...nr }));
+        }} />
         <StatusChip status={r.status} />
         {m && <SlackChip wns={m.wns} hold={m.hold_wns} />}
         <span className="muted small anywhere">

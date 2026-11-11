@@ -17,7 +17,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterator, Optional
 
-DB_VERSION = 3
+DB_VERSION = 4
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT);
@@ -44,7 +44,8 @@ CREATE TABLE IF NOT EXISTS runs (
     group_id    TEXT,
     message     TEXT,                          -- short status / error text
     flow        TEXT,                          -- [flows.<kind>.<name>] key that ran it (v2; NULL = default)
-    owner       TEXT                           -- 'host:pid' of the svkit process running it (v3)
+    owner       TEXT,                          -- 'host:pid' of the svkit process running it (v3)
+    name        TEXT                           -- the user's own name for the run (v4)
 );
 CREATE INDEX IF NOT EXISTS runs_kind ON runs(kind, created_at);
 CREATE INDEX IF NOT EXISTS runs_cache ON runs(cache_key);
@@ -60,11 +61,21 @@ CREATE TABLE IF NOT EXISTS groups (
     created_at REAL NOT NULL,
     status     TEXT NOT NULL,              -- running|done|failed|cancelled
     params     TEXT NOT NULL DEFAULT '{}', -- JSON
-    result     TEXT                        -- JSON (e.g. SweepResult)
+    result     TEXT,                       -- JSON (e.g. SweepResult)
+    name       TEXT                        -- the user's own name for the batch (v4)
 );
 """
 
 TERMINAL = {"passed", "failed", "done", "error", "cancelled"}
+NAME_MAX = 80
+
+
+def clean_name(name: Optional[str]) -> Optional[str]:
+    """A user-given run/batch name: one line, trimmed, at most NAME_MAX chars; empty means no name."""
+    if name is None:
+        return None
+    s = " ".join(str(name).split())[:NAME_MAX].strip()
+    return s or None
 
 
 @dataclass
@@ -92,6 +103,7 @@ class Run:
     message: Optional[str] = None
     flow: Optional[str] = None
     owner: Optional[str] = None
+    name: Optional[str] = None
     tags: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
@@ -106,6 +118,7 @@ class Group:
     status: str
     params: dict[str, Any] = field(default_factory=dict)
     result: Optional[dict[str, Any]] = None
+    name: Optional[str] = None
 
     def to_dict(self) -> dict[str, Any]:
         return dict(self.__dict__)
@@ -165,15 +178,17 @@ class RunDB:
         self._id_lock = threading.Lock()
         with self._conn() as c:
             c.executescript(SCHEMA)
-            cols = {r["name"] for r in c.execute("PRAGMA table_info(runs)")}
-            # v1 -> v2: which flow (suite) a run belongs to; v2 -> v3: which process runs it
-            for col in ("flow", "owner"):
-                if col not in cols:
-                    try:
-                        c.execute(f"ALTER TABLE runs ADD COLUMN {col} TEXT")
-                    except sqlite3.OperationalError as e:   # another process migrated it first
-                        if "duplicate column" not in str(e):
-                            raise
+            # v1 -> v2: which flow (suite) a run belongs to; v2 -> v3: which process runs it;
+            # v3 -> v4: the user's own name for a run or a batch
+            for table, added in (("runs", ("flow", "owner", "name")), ("groups", ("name",))):
+                cols = {r["name"] for r in c.execute(f"PRAGMA table_info({table})")}
+                for col in added:
+                    if col not in cols:
+                        try:
+                            c.execute(f"ALTER TABLE {table} ADD COLUMN {col} TEXT")
+                        except sqlite3.OperationalError as e:   # another process migrated it first
+                            if "duplicate column" not in str(e):
+                                raise
             c.execute("INSERT OR IGNORE INTO meta VALUES ('version', ?)", (str(DB_VERSION),))
             c.execute("UPDATE meta SET value = ? WHERE key = 'version' AND CAST(value AS INTEGER) < ?",
                       (str(DB_VERSION), DB_VERSION))
@@ -219,18 +234,19 @@ class RunDB:
                    knobs: dict | None = None, experiment: str | None = None,
                    group_id: str | None = None, git_sha: str | None = None,
                    git_dirty: bool | None = None, source_hash: str | None = None,
-                   cache_key: str | None = None, status: str = "queued", flow: str | None = None) -> Run:
+                   cache_key: str | None = None, status: str = "queued", flow: str | None = None,
+                   name: str | None = None) -> Run:
         with self._id_lock, self._conn() as c:
             c.execute("BEGIN IMMEDIATE")
             try:
                 rid = self._next_id(c, "runs", "r")
                 c.execute(
                     "INSERT INTO runs (id, kind, adapter, test, status, created_at, git_sha, git_dirty,"
-                    " source_hash, knobs, experiment, cache_key, group_id, flow, owner)"
-                    " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    " source_hash, knobs, experiment, cache_key, group_id, flow, owner, name)"
+                    " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                     (rid, kind, adapter, test, status, time.time(), git_sha,
                      None if git_dirty is None else int(git_dirty), source_hash,
-                     json.dumps(knobs or {}, sort_keys=True), experiment, cache_key, group_id, flow, _owner()))
+                     json.dumps(knobs or {}, sort_keys=True), experiment, cache_key, group_id, flow, _owner(), clean_name(name)))
                 c.execute("COMMIT")
             except BaseException:
                 c.execute("ROLLBACK")
@@ -337,12 +353,20 @@ class RunDB:
         with self._conn() as c:
             c.execute("DELETE FROM tags WHERE run_id = ? AND tag = ?", (run_id, tag))
 
+    def set_name(self, item_id: str, name: Optional[str]) -> None:
+        """Name (or, with an empty name, unname) a run `r_…` or a batch `g_…`."""
+        table = "groups" if item_id.startswith("g_") else "runs"
+        with self._conn() as c:
+            n = c.execute(f"UPDATE {table} SET name = ? WHERE id = ?", (clean_name(name), item_id)).rowcount
+        if not n:
+            raise KeyError(item_id)
+
     # -------------------------------------------------------------- groups
-    def create_group(self, kind: str, params: dict | None = None) -> Group:
+    def create_group(self, kind: str, params: dict | None = None, name: str | None = None) -> Group:
         with self._id_lock, self._conn() as c:
             gid = self._next_id(c, "groups", "g")
-            c.execute("INSERT INTO groups (id, kind, created_at, status, params) VALUES (?,?,?,?,?)",
-                      (gid, kind, time.time(), "running", json.dumps(params or {}, sort_keys=True)))
+            c.execute("INSERT INTO groups (id, kind, created_at, status, params, name) VALUES (?,?,?,?,?,?)",
+                      (gid, kind, time.time(), "running", json.dumps(params or {}, sort_keys=True), clean_name(name)))
         return self.get_group(gid)
 
     def update_group(self, gid: str, **fields: Any) -> None:

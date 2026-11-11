@@ -48,6 +48,7 @@ And the follow-up:
 | 21 | Missing tools on the host | Automatic open-source fallback (other configured flow → `vcs` stand-in on Verilator → builtin Yosys + OpenSTA), labelled on every run; `[flows].fallback = false` turns it off | Decided (lead, iter 3) |
 | 22 | Unit tests | Separate suite per `[flows.sim.<name>].testbench` (one testbench file per test), listed apart from system tests with the same waves / logs / run pages; jump to the first failed check in the log | Decided (lead, iter 3) |
 | 23 | Archived waveform format | FST by default (`[waves].archive`); `"vcd"` + `svkit waves archive --to vcd` reverts | Decided (lead, iter 5) |
+| 24 | Naming runs and choosing tests | User-given names on runs and batches (`--name`, `svkit rename`, UI); a batch can be any subset of the tests (`svkit sim a b c`, Perf → *Run tests…*) | Decided (owner request, iter 7) |
 
 ## 3. Development environment findings (CAEN Linux, RHEL 9)
 

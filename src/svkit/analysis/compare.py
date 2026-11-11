@@ -74,7 +74,7 @@ def _row(metric: str, unit: Optional[str], better, metrics: list[Optional[dict]]
 
 
 def _labels(runs: list[Run]) -> list[str]:
-    base = [r.experiment or r.id for r in runs]
+    base = [getattr(r, "name", None) or r.experiment or r.id for r in runs]
     out = []
     for r, b in zip(runs, base):
         out.append(f"{b} ({r.id})" if base.count(b) > 1 and b != r.id else b)

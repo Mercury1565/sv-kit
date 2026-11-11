@@ -15,6 +15,17 @@ one shared format and shown as a dashboard instead of report files.
 - **Slowest paths**: the worst timing paths, each expandable to every point (instance, pin, cell,
   incremental delay, arrival). *Show gates* draws the path as a schematic (see [design.md](design.md)).
 
+## Names
+
+Give a run a name you will remember (`retimed ALU, ss corner`): type it in *Name (optional)* before
+you click *Run synthesis*, or add or change it later with the pencil on the run's page. Names show in
+the runs table, are searchable on the Runs page, and label the columns of the compare table.
+
+```
+svkit synth --exp ss_corner --name "retimed ALU, ss corner"
+svkit rename r_0012 "retimed ALU, ss corner"
+```
+
 ## Experiments
 
 Name variants of your synthesis settings in `svkit.toml` (another corner, a dont-use list, a different

@@ -379,6 +379,12 @@ function buildState(dataset: Dataset): MockState {
   return st;
 }
 
+/** Same rules as the server: one line, trimmed, at most 80 characters; empty means no name. */
+function cleanName(v: unknown): string | null {
+  const s = typeof v === "string" ? v.split(/\s+/).filter(Boolean).join(" ").slice(0, 80).trim() : "";
+  return s || null;
+}
+
 function summary(r: Run): RunSummary {
   const { metrics: _m, ...rest } = r;
   return rest;
@@ -412,7 +418,7 @@ function compareOf(st: MockState, ids: string[]): CompareResult {
   const vtClasses = Array.from(new Set(ms.flatMap((m) => Object.keys(m.vt_mix ?? {})))).sort();
   return {
     run_ids: ids,
-    labels: runs.map((r) => r.experiment ?? r.id),
+    labels: runs.map((r) => r.name ?? r.experiment ?? r.id),
     metrics: [
       computeDelta("wns", "higher", get((m) => m.wns), "ps"),
       computeDelta("tns", "higher", get((m) => m.tns), "ps"),
@@ -847,11 +853,23 @@ export class MockBackend implements Transport {
       }
       return r;
     }
-    if ((m = /^\/api\/runs\/([^/]+)$/.exec(path))) return this.run(decodeURIComponent(m[1]));
+    if ((m = /^\/api\/runs\/([^/]+)$/.exec(path))) {
+      const r = this.run(decodeURIComponent(m[1]));
+      if (method === "PATCH") {
+        r.name = cleanName(body.name);
+        this.emit({ type: "run.updated", run: summary(r) });
+      }
+      return r;
+    }
     if (path === "/api/groups") return st.groups.filter((g) => !s("kind") || g.kind === s("kind"));
     if ((m = /^\/api\/groups\/([^/]+)$/.exec(path))) {
       const g = st.groups.find((x) => x.id === m![1]);
       if (!g) throw new ApiError(404, `no group ${m[1]}`, path);
+      if (method === "PATCH") {
+        g.name = cleanName(body.name);
+        this.emit({ type: "group.updated", group_id: g.id, status: g.status });
+        return g;
+      }
       return { ...g, runs: st.runs.filter((r) => r.group_id === g.id).map(summary) };
     }
     if (path === "/api/compare") return compareOf(st, (s("ids") ?? "").split(",").filter(Boolean));
@@ -927,6 +945,7 @@ export class MockBackend implements Transport {
     const job: Job = { job_id: `j_${(hash(kind + Date.now()) % 1e8).toString(16)}`, kind, status: "running", run_ids: [], group_id: null, args };
     st.jobs.push(job);
     this.emit({ type: "job.updated", job: { ...job } });
+    if (kind === "sim-all") return this.submitBatch(job, args);
     const run = baseRun(st.nextRun++, {
       kind: kind === "sim" || kind === "sim-all" ? "sim" : "synth",
       adapter: kind.startsWith("sim") ? "verilator" : "yosys",
@@ -935,6 +954,7 @@ export class MockBackend implements Transport {
       created_at: Date.now() / 1000,
       experiment: (args.exp as string) ?? null,
       duration_s: null,
+      name: kind === "matrix" ? null : cleanName(args.name),
     });
     st.runs.push(run);
     job.run_ids = [run.id];
@@ -955,6 +975,46 @@ export class MockBackend implements Transport {
         this.emit({ type: "job.updated", job: { ...job } });
       }
     }, 400);
+    return { job_id: job.job_id };
+  }
+
+  /** sim-all: one batch with one run per chosen test (all tests when none are chosen). */
+  private submitBatch(job: Job, args: Record<string, unknown>) {
+    const st = this.st;
+    const all = st.project.tests;
+    const tests = Array.isArray(args.tests) && args.tests.length ? (args.tests as string[]) : all;
+    const unknown = tests.filter((t) => !all.includes(t));
+    if (unknown.length) {
+      job.status = "error";
+      job.error = `ConfigError: unknown test(s): ${unknown.join(", ")}`;
+      setTimeout(() => this.emit({ type: "job.updated", job: { ...job } }), 50);
+      return { job_id: job.job_id };
+    }
+    const g: Group = { id: `g_${pad4(st.nextGroup++)}`, kind: "sim-all", created_at: Date.now() / 1000, status: "running", params: { flow: "verilator", tests, subset: tests.length < all.length }, result: null, name: cleanName(args.name) };
+    st.groups.push(g);
+    job.group_id = g.id;
+    this.emit({ type: "group.updated", group_id: g.id, status: g.status });
+    const runs = tests.map((test) => {
+      const r = baseRun(st.nextRun++, { kind: "sim", adapter: "verilator", test, status: "running", created_at: Date.now() / 1000, duration_s: null, group_id: g.id });
+      st.runs.push(r);
+      return r;
+    });
+    job.run_ids = runs.map((r) => r.id);
+    setTimeout(() => runs.forEach((r) => this.emit({ type: "run.created", run: summary(r) })), 50);
+    setTimeout(() => {
+      runs.forEach((r, i) => {
+        r.status = "passed";
+        r.duration_s = 2 + i;
+        const m = simMetrics(r.test!, true, rng(hash(r.id)));
+        if (m.perf) m.perf.cpi = m.perf.cycles! / m.perf.instrs!;
+        r.metrics = m;
+        this.emit({ type: "run.status", run_id: r.id, status: r.status });
+      });
+      g.status = "done";
+      job.status = "done";
+      this.emit({ type: "group.updated", group_id: g.id, status: g.status });
+      this.emit({ type: "job.updated", job: { ...job } });
+    }, 1200);
     return { job_id: job.job_id };
   }
 }

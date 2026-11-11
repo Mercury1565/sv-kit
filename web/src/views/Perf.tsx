@@ -1,6 +1,10 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { api } from "../api/client";
-import type { Group, PerfResult } from "../api/types";
+import type { Group, Job, PerfResult, Suite } from "../api/types";
+import { JobButton } from "../components/JobButton";
+import { NameEditor, NAME_MAX } from "../components/NameEditor";
+import { useApp } from "../lib/appState";
+import { projectSuites } from "./Tests";
 import { axisStyle, baseOption, EChart, type ChartTheme } from "../components/EChart";
 import { Empty, ErrorState, Loading } from "../components/States";
 import { VirtualTable, type Column } from "../components/VirtualTable";
@@ -22,16 +26,119 @@ function PeriodSource({ src }: { src?: string | null }) {
   );
 }
 
-function batchLabel(g: Group): string {
+export function batchLabel(g: Group): string {
   const n = Array.isArray(g.params?.tests) ? (g.params.tests as unknown[]).length : null;
-  const parts = [g.id, fmtDate(g.created_at)];
+  const parts = [...(g.name ? [g.name] : []), g.id, fmtDate(g.created_at)];
   if (n !== null) parts.push(`${n} ${n === 1 ? "test" : "tests"}`);
   if (g.status !== "done") parts.push(g.status);
   return parts.join(" · ");
 }
 
+const PICK_KEY = "svkit.perf.tests";
+
+function loadPick(project: string, tests: string[]): Set<string> {
+  try {
+    const v = JSON.parse(localStorage.getItem(`${PICK_KEY}.${project}`) ?? "null");
+    if (Array.isArray(v)) return new Set(v.filter((x) => tests.includes(x)));
+  } catch {
+    /* storage unavailable: start with every test */
+  }
+  return new Set(tests);
+}
+
+function savePick(project: string, pick: Set<string>) {
+  try {
+    localStorage.setItem(`${PICK_KEY}.${project}`, JSON.stringify(Array.from(pick)));
+  } catch {
+    /* not remembered; fine */
+  }
+}
+
+/** Choose which tests to run as one batch, name it, and run it. */
+export function TestPicker({ suite, project, onClose, onDone }: { suite: Suite; project: string; onClose: () => void; onDone: (job: Job) => void }) {
+  const tests = suite.tests;
+  const [pick, setPick] = useState<Set<string>>(() => loadPick(project, tests));
+  const [filter, setFilter] = useState("");
+  const [name, setName] = useState("");
+  const f = filter.trim().toLowerCase();
+  const shown = f ? tests.filter((t) => t.toLowerCase().includes(f)) : tests;
+  const update = (next: Set<string>) => {
+    setPick(next);
+    savePick(project, next);
+  };
+  const toggle = (t: string) => {
+    const n = new Set(pick);
+    if (n.has(t)) n.delete(t);
+    else n.add(t);
+    update(n);
+  };
+  const chosen = tests.filter((t) => pick.has(t));
+  const all = chosen.length === tests.length;
+  return (
+    <div className="panel">
+      <div className="panel-head">
+        <h3>Run tests</h3>
+        <span className="muted small">
+          {chosen.length} of {tests.length} chosen{suite.label && ` · ${suite.label.toLowerCase()}`} · runs as one batch you can pick above
+        </span>
+        <span className="spacer" />
+        <button className="ghost" onClick={onClose} aria-label="Close test picker">
+          Close
+        </button>
+      </div>
+      <div className="panel-body test-picker">
+        <div className="row wrap" style={{ gap: 6 }}>
+          <input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Filter tests" aria-label="Filter tests" style={{ width: 180 }} />
+          <button onClick={() => update(new Set([...pick, ...shown]))} disabled={shown.every((t) => pick.has(t))}>
+            {f ? `Select ${shown.length} shown` : "Select all"}
+          </button>
+          <button onClick={() => update(new Set([...pick].filter((t) => !shown.includes(t))))} disabled={!shown.some((t) => pick.has(t))}>
+            {f ? `Clear ${shown.length} shown` : "Select none"}
+          </button>
+        </div>
+        <div className="tp-grid" role="group" aria-label="Tests to run">
+          {shown.map((t) => (
+            <label key={t} title={t}>
+              <input type="checkbox" checked={pick.has(t)} onChange={() => toggle(t)} />
+              <span>{t}</span>
+            </label>
+          ))}
+          {shown.length === 0 && <span className="muted small" style={{ padding: "2px 6px" }}>No test matches “{filter}”.</span>}
+        </div>
+        <div className="row wrap" style={{ gap: 6 }}>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Name this batch (optional)"
+            aria-label="Name for this batch"
+            maxLength={NAME_MAX}
+            style={{ width: 260 }}
+          />
+          <JobButton
+            kind="sim-all"
+            primary
+            disabled={!chosen.length}
+            args={{ flow: suite.flow, ...(all ? {} : { tests: chosen }), ...(name.trim() ? { name: name.trim() } : {}) }}
+            onSubmitted={() => setName("")}
+            onDone={onDone}
+          >
+            {all ? `Run all ${tests.length} tests` : `Run ${chosen.length} ${chosen.length === 1 ? "test" : "tests"}`}
+          </JobButton>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /** group: a `sim --all` batch id; without one, the latest result per test across every run. */
 export default function PerfView({ group }: { group?: string }) {
+  const { project } = useApp();
+  const suites = useMemo(() => projectSuites(project), [project]);
+  const suite = suites.find((s) => s.default) ?? suites[0];
+  const [picking, setPicking] = useState(false);
+  const openBatch = useCallback((job: Job) => {
+    if (job.group_id) navigate(href("/perf", { group: job.group_id }));
+  }, []);
   const perf = useAsync(() => api.perf(group), [group]);
   const batches = useAsync(() => api.groups("sim-all"), []);
   useServerEvents((ev) => {
@@ -39,6 +146,7 @@ export default function PerfView({ group }: { group?: string }) {
     if (ev.type === "group.updated" || (ev.type === "run.status" && (ev.status === "done" || ev.status === "passed"))) perf.reload();
     if (ev.type === "group.updated") batches.reload();
   });
+  const current = (batches.data ?? []).find((g) => g.id === group);
   const batchList = useMemo(() => [...(batches.data ?? [])].sort((a, b) => b.created_at - a.created_at), [batches.data]);
   const picker = (
     <select
@@ -110,6 +218,7 @@ export default function PerfView({ group }: { group?: string }) {
   const scope = group ? (
     <>
       batch <span className="mono">{group}</span>
+      {current && Array.isArray(current.params?.tests) && <> ({(current.params.tests as unknown[]).length} tests)</>}
     </>
   ) : (
     "latest result per test, across all runs"
@@ -128,13 +237,18 @@ export default function PerfView({ group }: { group?: string }) {
         </span>
         <span className="spacer" />
         {picker}
+        {group && current && <NameEditor what="batch" name={current.name} onSave={async (n) => { await api.renameGroup(group, n); batches.reload(); }} />}
+        <button className={picking ? "" : "primary"} onClick={() => setPicking((p) => !p)} disabled={!suite?.flow || !suite.tests.length} aria-expanded={picking} title="Choose which tests to run, then run them as one batch">
+          Run tests…
+        </button>
       </div>
+      {picking && suite && <TestPicker suite={suite} project={project?.name ?? ""} onClose={() => setPicking(false)} onDone={openBatch} />}
       {rows.length === 0 && group ? (
         <Empty title={`No performance data in batch ${group}`}>
           None of the runs in this batch reported cycle and instruction counts. Pick another batch above.
         </Empty>
       ) : rows.length === 0 ? (
-        <Empty title="No performance data yet" cmd="svkit sim --all">
+        <Empty title="No performance data yet" cmd={["svkit sim --all", "svkit sim <test> <test> ..."]}>
           Configure <code>[perf].source</code> in <code>svkit.toml</code> so svkit can read cycle and instruction counts from your test outputs.
         </Empty>
       ) : (

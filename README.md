@@ -88,6 +88,7 @@ Notes for shared Linux servers:
 cd my-project
 svkit init                      # scan the repo, write a best-guess svkit.toml; review every TODO
 svkit sim --all                 # run every test; pass/fail against golden output
+svkit sim fib gcd --name "after the fix"   # just these tests, as one named batch
 svkit synth --matrix            # run every [experiments] variant and print the compare table
 svkit sweep clock --jobs 2      # find T_min
 svkit xtrace tb.dut.result @35001
@@ -100,11 +101,12 @@ Over SSH, forward the port from your laptop with `ssh -L 3572:localhost:3572 <se
 | Command | Does |
 |---|---|
 | `svkit init [--force]` | Detect top / testbench, sources, Makefile targets, golden dirs, the clock-period file, DC script variables, perf files. Writes `svkit.toml`. |
-| `svkit sim <test> \| --all [--flow NAME] [--jobs N] [--no-cache]` | Run tests. Results are cached by (source hash, knobs). |
-| `svkit synth [--flow NAME] [--set k=v ...] [--exp NAME \| --matrix] [--jobs N]` | Synthesize, optionally with knob overrides or experiments. |
+| `svkit sim <test>... \| --all [--flow NAME] [--jobs N] [--no-cache] [--name TEXT]` | Run one test, several tests, or all of them. Several tests (or `--all`) form one batch, which the Perf page can show on its own. Results are cached by (source hash, knobs). |
+| `svkit synth [--flow NAME] [--set k=v ...] [--exp NAME \| --matrix] [--jobs N] [--name TEXT]` | Synthesize, optionally with knob overrides or experiments. |
 | `svkit sweep clock [--tol 50] [--jobs N] [--start PS] [--flow NAME]` | Search for the minimum clock period. |
 | `svkit xtrace <hier.signal> @<time> [--run ID] [--depth N] [--json]` | Trace an X to its root cause in the latest (or given) sim run's waves. |
 | `svkit runs ls \| show <id> \| diff <a> <b> \| tag <id> <tag>` | Browse recorded Runs. |
+| `svkit rename <run or batch id> [NAME]` | Give a run (`r_0012`) or a batch (`g_0004`) your own name; leave the name out to remove it. |
 | `svkit serve [--port 3572] [--host 127.0.0.1]` | Start the dashboard. |
 
 Exit codes: 0 ok, 1 a test failed or no passing period, 2 config error, 3 tool error.

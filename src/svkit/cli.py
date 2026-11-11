@@ -66,18 +66,28 @@ def init(force: bool = typer.Option(False, help="Overwrite an existing svkit.tom
 
 
 @app.command()
-def sim(test: Optional[str] = typer.Argument(None), all_: bool = typer.Option(False, "--all"),
+def sim(tests: Optional[List[str]] = typer.Argument(None, metavar="[TEST]...",
+                                                    help="one or more tests; several form one batch"),
+        all_: bool = typer.Option(False, "--all", help="every test, as one batch"),
         flow: Optional[str] = typer.Option(None, help="sim adapter, e.g. vcs / verilator"),
-        jobs: int = typer.Option(4), no_cache: bool = typer.Option(False, "--no-cache")):
-    """Run one test or all tests; records one Run per test."""
+        jobs: int = typer.Option(4), no_cache: bool = typer.Option(False, "--no-cache"),
+        name: Optional[str] = typer.Option(None, "--name", help="your own name for this run or batch")):
+    """Run one test, several tests, or all tests; records one Run per test.
+
+    Several tests (or --all) run as one batch, which the Perf page can show on its own."""
     cfg = _cfg()
     r = _runner(cfg)
     _fallback_note(r, "sim", flow)
+    tests = tests or []
     try:
-        if all_:
-            gid, runs = r.sim_all(flow=flow, jobs=jobs, use_cache=not no_cache)
-        elif test:
-            runs = [r.sim(test, flow=flow, use_cache=not no_cache)]
+        if all_ and tests:
+            typer.secho("give test names or --all, not both", fg="red", err=True)
+            raise typer.Exit(EXIT_CONFIG)
+        if all_ or len(tests) > 1:
+            gid, runs = r.sim_all(flow=flow, jobs=jobs, tests=tests or None, use_cache=not no_cache, name=name)
+            typer.echo(f"batch {gid}" + (f"  \"{name.strip()}\"" if name and name.strip() else ""))
+        elif tests:
+            runs = [r.sim(tests[0], flow=flow, use_cache=not no_cache, name=name)]
         else:
             typer.secho("give a test name or --all", fg="red", err=True)
             raise typer.Exit(EXIT_CONFIG)
@@ -106,7 +116,8 @@ def _fallback_note(r, kind: str, flow: Optional[str]) -> None:
 @app.command()
 def synth(flow: Optional[str] = typer.Option(None), set_: List[str] = typer.Option([], "--set"),
           exp: Optional[str] = typer.Option(None), matrix: bool = typer.Option(False),
-          jobs: int = typer.Option(2), no_cache: bool = typer.Option(False, "--no-cache")):
+          jobs: int = typer.Option(2), no_cache: bool = typer.Option(False, "--no-cache"),
+          name: Optional[str] = typer.Option(None, "--name", help="your own name for this run (or matrix batch)")):
     """Run synthesis (+ timing). --matrix runs every [experiments] entry and prints the compare table."""
     from svkit.core import knobs as K
     cfg = _cfg()
@@ -114,9 +125,9 @@ def synth(flow: Optional[str] = typer.Option(None), set_: List[str] = typer.Opti
     _fallback_note(r, "synth", flow)
     try:
         if matrix:
-            gid, runs = r.matrix(flow=flow, jobs=jobs, use_cache=not no_cache)
+            gid, runs = r.matrix(flow=flow, jobs=jobs, use_cache=not no_cache, name=name)
         else:
-            runs = [r.synth(flow=flow, experiment=exp, sets=K.parse_set(set_), use_cache=not no_cache)]
+            runs = [r.synth(flow=flow, experiment=exp, sets=K.parse_set(set_), use_cache=not no_cache, name=name)]
     except ConfigError as e:
         typer.secho(f"config error: {e}", fg="red", err=True)
         raise typer.Exit(EXIT_CONFIG)
@@ -151,6 +162,20 @@ def _print_compare(ids: list[str], db) -> None:
             mark = {"better": " ▲", "worse": " ▼"}.get(verdict, "  ")
             cells.append(f"{_n(v) + mark:>16}")
         typer.echo(f"{m.metric:<16}" + "".join(cells))
+
+
+@app.command()
+def rename(item: str = typer.Argument(..., help="a run (r_0012) or a batch (g_0004)"),
+           name: str = typer.Argument("", help="the new name; leave out to remove the name")):
+    """Give a run or a batch your own name (shown in the dashboard and in compare tables)."""
+    from svkit.core.rundb import RunDB
+    cfg = _cfg()
+    try:
+        RunDB.for_project(cfg.root).set_name(item, name)
+    except KeyError:
+        typer.secho(f"no run or batch {item}", fg="red", err=True)
+        raise typer.Exit(EXIT_CONFIG)
+    typer.echo(f"{item}: " + (f"named \"{' '.join(name.split())}\"" if name.strip() else "name removed"))
 
 
 @sweep_app.command("clock")
@@ -200,7 +225,7 @@ def runs_ls(kind: Optional[str] = None, limit: int = 30):
         label = r.test or r.experiment or ""
         typer.echo(f"{r.id}  {r.kind:<11} {r.adapter:<10} {label:<20} {_fmt_status(r.status):<8} "
                    f"{(r.duration_s or 0):7.1f}s  {(r.git_sha or '')[:8]}{'*' if r.git_dirty else ''}  "
-                   f"{' '.join('#' + t for t in r.tags)}")
+                   f"{' '.join('#' + t for t in r.tags)}" + (f'  "{r.name}"' if r.name else ""))
 
 
 @runs_app.command("show")

@@ -1,3 +1,4 @@
+import { NameEditor } from "../components/NameEditor";
 import { useEffect, useRef, useState } from "react";
 import { api, ApiError } from "../api/client";
 import { isSimResult, type Run, type SimResult } from "../api/types";
@@ -85,6 +86,7 @@ export function RunDetail({ id }: { id: string }) {
   const run = useAsync(() => api.run(id), [id]);
   useServerEvents((ev) => {
     if (ev.type === "run.status" && ev.run_id === id) run.reload();
+    if (ev.type === "run.updated" && ev.run.id === id) run.setData((cur) => (cur ? { ...cur, name: ev.run.name } : cur));
   });
   if (run.error) return <div className="view"><ErrorState error={run.error} onRetry={run.reload} /></div>;
   if (!run.data) return <div className="view"><Loading what={`Loading ${id}`} /></div>;
@@ -104,7 +106,7 @@ export function RunDetail({ id }: { id: string }) {
     ["Duration", fmtDuration(r.duration_s)],
     ["Git", r.git_sha ? `${r.git_sha}${r.git_dirty ? " (dirty)" : ""}` : DASH],
     ["Exit code", r.exit_code ?? DASH],
-    ["Group", r.group_id ? <a href={r.group_id && r.kind === "sweep-point" ? `#/sweep/${r.group_id}` : `#/runs`}>{r.group_id}</a> : DASH],
+    ["Batch", r.group_id ? <a href={r.kind === "sweep-point" ? `#/sweep/${r.group_id}` : r.kind === "sim" ? href("/perf", { group: r.group_id }) : `#/runs`}>{r.group_id}</a> : DASH],
     ["Reused", r.cached_from ? <>result of <a href={`#/runs/${r.cached_from}`}>{r.cached_from}</a></> : DASH, <Term id="cache" />],
     ["Settings", Object.keys(r.knobs).length ? <span className="mono">{Object.entries(r.knobs).map(([k, v]) => `${k}=${v}`).join("  ")}</span> : DASH, <Term id="knobs" />],
   ];
@@ -114,6 +116,10 @@ export function RunDetail({ id }: { id: string }) {
         <h1 className="mono">{r.id}</h1>
         <StatusChip status={r.status} />
         <span className="muted anywhere">{r.test ?? r.experiment ?? ""}</span>
+        <NameEditor name={r.name} onSave={async (n) => {
+          const nr = await api.renameRun(r.id, n);
+          run.setData(() => ({ ...r, ...nr }));
+        }} />
         <span className="spacer" />
         {isSynthKind(r.kind) && (
           <a className="btn" href={`#/synth/${r.id}`}>
