@@ -243,6 +243,37 @@ def runs_diff(a: str, b: str):
     _print_compare([a, b], db)
 
 
+@runs_app.command("rm")
+def runs_rm(run_ids: List[str] = typer.Argument(..., help="Run ids, e.g. r_0012 r_0013"),
+            yes: bool = typer.Option(False, "--yes", "-y", help="Do not ask for confirmation")):
+    """Remove runs and their files. Runs that reused a removed run's result keep working."""
+    from svkit.core.rundb import RunDB
+    db = RunDB.for_project(_cfg().root)
+    runs = []
+    for rid in run_ids:
+        try:
+            runs.append(db.get_run(rid))
+        except KeyError:
+            typer.secho(f"no run {rid}", fg="red", err=True)
+            raise typer.Exit(EXIT_FAIL)
+    for r in runs:
+        typer.echo(f"  {r.id}  {r.kind:<12} {r.name or r.test or r.experiment or ''}")
+    if not yes and not typer.confirm(f"Remove {len(runs)} run{'s' if len(runs) != 1 else ''} and their files?"):
+        raise typer.Exit(EXIT_FAIL)
+    failed = False
+    for r in runs:
+        try:
+            changed = db.delete_run(r.id)
+        except ValueError as e:
+            typer.secho(str(e), fg="red", err=True)
+            failed = True
+            continue
+        extra = f" (its result now lives in {changed[0]}, which reused it)" if changed and not r.cached_from else ""
+        typer.echo(f"removed {r.id}{extra}")
+    if failed:
+        raise typer.Exit(EXIT_FAIL)
+
+
 @runs_app.command("tag")
 def runs_tag(run_id: str, tag: str):
     from svkit.core.rundb import RunDB

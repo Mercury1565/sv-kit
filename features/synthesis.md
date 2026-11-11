@@ -22,6 +22,13 @@ period, worst setup slack (red when negative; hover for the hold slack), area, t
 count. Click a column header to sort by it, again to reverse, a third time to go back to the order the
 runs were made (newest first). Runs without results yet sort last. The name column sorts by name.
 
+## Remove runs
+
+Tick the runs you no longer want in the list and click **Remove**. svkit asks once, then deletes the runs
+and their files; it cannot be undone. Runs still queued or running are kept. If another run *reused* a
+removed run's result, it keeps working: it takes over the files. Removed run ids are never given to new
+runs. From the CLI: `svkit runs rm r_0012 r_0013` (add `-y` to skip the question).
+
 ## Download a run's reports
 
 **Download reports (.txt)** on a run's page (or the `.txt` link in its row of the list) saves one text

@@ -98,6 +98,20 @@ def create_app(cfg: Config) -> FastAPI:
         mt = mimetypes.guess_type(f.name)[0] or "text/plain"
         return FileResponse(f, media_type=mt)
 
+    @api.delete("/runs/{rid}")
+    def delete_run(rid: str) -> dict[str, Any]:
+        """Remove a run (row, tags, files). Runs that reused its result keep working (see RunDB.delete_run)."""
+        try:
+            changed = st.db.delete_run(rid)
+        except KeyError:
+            raise HTTPException(404, f"no run {rid}")
+        except ValueError as e:
+            raise HTTPException(409, str(e))
+        st.bus.publish({"type": "run.deleted", "run_id": rid})
+        for cid in changed:
+            st.bus.publish({"type": "run.updated", "run": run_summary(st.db.get_run(cid))})
+        return {"deleted": rid, "changed": changed}
+
     @api.get("/runs/{rid}/reports.txt")
     def synth_reports(rid: str):
         """A synthesis run's summary and text reports as one downloadable .txt file."""

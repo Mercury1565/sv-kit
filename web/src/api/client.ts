@@ -134,6 +134,8 @@ export const api = {
   addTag: (id: string, tag: string) => req<Run>("POST", `/api/runs/${enc(id)}/tags`, undefined, { tag }),
   removeTag: (id: string, tag: string) => req<Run>("DELETE", `/api/runs/${enc(id)}/tags/${enc(tag)}`),
   /** Name a run; an empty name removes it. */
+  /** remove a run and its files; runs that reused its result keep working (`changed` = those updated) */
+  deleteRun: (id: string) => req<{ deleted: string; changed: string[] }>("DELETE", `/api/runs/${enc(id)}`),
   renameRun: (id: string, name: string) => req<Run>("PATCH", `/api/runs/${enc(id)}`, undefined, { name }),
   divergence: (id: string) => req<Divergence>("GET", `/api/runs/${enc(id)}/divergence`),
 

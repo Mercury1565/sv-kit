@@ -238,8 +238,11 @@ class Runner:
         hit = self.db.find_cached(key)
         if hit is None:
             return None
-        while hit.cached_from and (orig := self.db.get_run(hit.cached_from)) is not None:
-            hit = orig                       # always point at the run that really executed
+        while hit.cached_from:               # always point at the run that really executed
+            try:
+                hit = self.db.get_run(hit.cached_from)
+            except KeyError:                 # the original was removed (delete_run hands its files over)
+                break
         r = self.db.create_run(kind, adapter, cache_key=key, status=hit.status, **create)
         # artifacts are referenced from the original run's directory
         arts = {n: f"../{hit.id}/{p}" for n, p in hit.artifacts.items()}

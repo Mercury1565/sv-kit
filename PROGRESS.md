@@ -4,7 +4,7 @@
 - **Phase:** Phases 0–3 implemented. **Both flows now run on real tools** (VCS + DC on CAEN; Verilator + Yosys + OpenSTA on the dev host). **~85 % to MVP.** Remaining: a frontend rebuild (sweep note, new API endpoints; needs Node), browser click-through of every view, web proposal 5, the Icarus decision, and the OSS flow on CAEN (blocked on OpenSTA).
 - **Dogfood checkpoint (EECS 470 copy in `~/svkit-work/dogfood`):** `svkit init` needs **no hand edits**. 21/21 tests pass on VCS, the DC matrix runs (TT/SS/FF), and the clock sweep finds **T_min = 4708 ps** (14 DC runs). TPI uses it, and the dashboard API works on the real CPU.
 - **Demoable on CAEN:** `cd ~/svkit-work/dogfood && svkit serve`, then `ssh -L 3572:localhost:3572 <caen host>` from your laptop.
-- **New (iter 4–7):** runs on a laptop without Synopsys (automatic Verilator/Yosys/OpenSTA fallback), plain-language dashboard with (i) explanations, **unit tests as their own suite** (Tests → Unit tests, waves at the first error), FST waveform archive, and **schematic Blocks/Gates diagrams** (netlistsvg, gate symbols from Liberty); **choose which tests to run** (Perf → Run tests…, `svkit sim a b c`) and **name runs and batches** (iter 7); **exports** (synth reports .txt, Perf PNG / CSV), a CPI / IPC / TPI switch and **one test across runs** (iter 8); **releases + `svkit update`** (iter 9).
+- **New (iter 4–7):** runs on a laptop without Synopsys (automatic Verilator/Yosys/OpenSTA fallback), plain-language dashboard with (i) explanations, **unit tests as their own suite** (Tests → Unit tests, waves at the first error), FST waveform archive, and **schematic Blocks/Gates diagrams** (netlistsvg, gate symbols from Liberty); **choose which tests to run** (Perf → Run tests…, `svkit sim a b c`) and **name runs and batches** (iter 7); **exports** (synth reports .txt, Perf PNG / CSV), a CPI / IPC / TPI switch and **one test across runs** (iter 8); **releases + `svkit update`** (iter 9); **remove runs** (iter 10).
 - **Needs owner:**
   1. **OpenSTA on CAEN:** installing it (micromamba + `litex-hub::openroad` into `~/tools`) was blocked by the permission classifier as running downloaded code. Approve it, or install it yourself, to run the OSS flow and its tests on CAEN.
   2. **X-trace parity on the OSS flow:** Verilator is 2-state, so it never shows X. Recommend pulling an Icarus sim adapter into the MVP (scope change vs decision #18).
@@ -327,3 +327,23 @@ svkit --version
 svkit update --check
 .venv/bin/pytest tests/test_update.py
 ```
+
+## Iteration 10 — 2026-11-11 — Remove runs
+**Status:** done
+**What works now:**
+- **Synthesis → tick runs → Remove (N)** asks once (inline, naming the run or the count), then deletes the runs and their files. Queued / running runs are kept and said so; refusals are listed. The Runs and Synthesis lists drop removed runs live (`run.deleted` event).
+- **`svkit runs rm <id>... [-y]`** does the same from the CLI.
+**Decisions made (and why):**
+- Real deletion, not hiding: the owner wants the runs gone, and hidden runs would still take disk space and show up in compare / perf lookups.
+- A removed run whose result other runs reused ("reused" chip) hands its files over: the oldest reuser becomes the original (artifacts rewritten to local paths, `cached_from` cleared), the others point at it. Nothing that still exists loses its reports, log or waves, and the run cache keeps working. The cache lookup also tolerates an original missing from older databases.
+- **Ids are never reused.** Ids were "highest existing + 1", so removing the newest run would have given its id to the next run, and old links / compares would silently show a different run. A high-water mark in `meta` (`last_runs_id`, `last_groups_id`) fixes that.
+**Known gaps / risks:**
+- A matrix or sweep that included a removed run keeps its stored result (e.g. a sweep's T_min); its link to the removed point shows "not found".
+**Next iteration plan:**
+- Same as iteration 7.
+**How to see it:**
+```
+svkit runs rm r_0012
+.venv/bin/pytest tests/test_delete_runs.py && (cd web && npx vitest run src/components/RemoveRuns.test.tsx)
+```
+

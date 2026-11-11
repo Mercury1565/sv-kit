@@ -234,6 +234,7 @@ All JSON. Base `/api`. Errors: `{"detail": "..."}` with 4xx/5xx.
 | `GET /api/runs/{id}/reports.txt` | synth / sweep-point runs only (else 400): one `text/plain` attachment, svkit's summary of the run then every kept text report (`.rpt`, `.rep`, `.txt`, `sta.log`) verbatim; DC's per-section copies of a combined report are left out |
 | `GET /api/runs/{id}/log?tail=N` | `{lines:[...]}` |
 | `POST /api/runs/{id}/tags` `{tag}` / `DELETE /api/runs/{id}/tags/{tag}` | `Run` |
+| `DELETE /api/runs/{id}` | `{deleted, changed:[ids]}`; 404 unknown, 409 queued/running. Removes the row, tags and run dir; runs that reused it (`cached_from`) are re-pointed: the oldest takes over the files and becomes the original. Emits `run.deleted {run_id}` and `run.updated` for each changed run. Run / group ids are never reused (high-water mark in `meta`) |
 | `PATCH /api/runs/{id}` `{name}` | `Run`; empty or null name removes it; emits `run.updated` |
 | `GET /api/groups?kind=` / `GET /api/groups/{id}` | `[Group]` / `Group` (+ `runs: [RunSummary]`) |
 | `PATCH /api/groups/{id}` `{name}` | `Group`; empty or null name removes it; emits `group.updated` |
@@ -283,7 +284,7 @@ svkit synth [--flow NAME] [--set k=v ...] [--exp NAME | --matrix] [--jobs N] [--
 svkit rename <r_id|g_id> [NAME]
 svkit sweep clock [--tol 50] [--jobs N] [--start PS]
 svkit xtrace <hier.signal> @<time> [--run ID] [--depth N] [--json]
-svkit runs ls|show <id>|diff <a> <b>|tag <id> <tag>
+svkit runs ls|show <id>|diff <a> <b>|tag <id> <tag>|rm <id>... [-y]
 svkit serve [--port 3572] [--host 127.0.0.1]                 # notes a newer release (GitHub, at most daily)
 svkit update [--check] [--to TAG] [--force]                   # install the latest GitHub release if newer
 svkit --version                                               # "svkit X.Y.Z (release vX.Y.Z | from git ref @ sha | local checkout)"

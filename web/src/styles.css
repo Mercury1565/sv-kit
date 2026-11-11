@@ -507,3 +507,10 @@ button.link:hover { text-decoration: underline; }
 .perf-history-table { margin-top: var(--gap); }
 .perf-history-table td.nowrap, .perf-history-table .nowrap { white-space: nowrap; }
 .perf-history .panel { margin: 0; }
+
+/* removing runs: an inline confirmation under the page header */
+.remove-confirm { flex-basis: 100%; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 8px 10px;
+  border: 1px solid var(--bad); border-radius: var(--radius); background: var(--bg-raised); min-width: 0; }
+.remove-confirm > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+button.danger { color: var(--bad); border-color: var(--bad); font-weight: 600; }
+button.danger:hover:not(:disabled) { background: color-mix(in srgb, var(--bad) 12%, transparent); }

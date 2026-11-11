@@ -215,8 +215,11 @@ class RunDB:
         yield c
 
     def _next_id(self, c: sqlite3.Connection, table: str, prefix: str) -> str:
+        """Next id, never reusing one: a removed run's id stays retired (links and compares keep meaning)."""
         row = c.execute(f"SELECT id FROM {table} ORDER BY CAST(substr(id, 3) AS INTEGER) DESC LIMIT 1").fetchone()
-        n = int(row["id"][2:]) + 1 if row else 1
+        hw = c.execute("SELECT value FROM meta WHERE key = ?", (f"last_{table}_id",)).fetchone()
+        n = max(int(row["id"][2:]) if row else 0, int(hw[0]) if hw else 0) + 1
+        c.execute("INSERT OR REPLACE INTO meta VALUES (?, ?)", (f"last_{table}_id", str(n)))
         return f"{prefix}_{n:04d}"
 
     @staticmethod
@@ -365,6 +368,50 @@ class RunDB:
             n = c.execute(f"UPDATE {table} SET name = ? WHERE id = ?", (clean_name(name), item_id)).rowcount
         if not n:
             raise KeyError(item_id)
+
+    def delete_run(self, run_id: str) -> list[str]:
+        """Remove a run: its row, tags and files. Returns the ids of other runs that changed.
+
+        Runs that reused this one's result ("reused", `cached_from`) keep working: its files move to the
+        oldest of them, which becomes the original, and the rest point at that one instead.
+        Raises KeyError for an unknown run, ValueError for one still queued or running."""
+        import shutil
+        run = self.get_run(run_id)
+        if run.status in ("queued", "running"):
+            raise ValueError(f"run {run_id} is still {run.status}: cancel it first")
+        with self._conn() as c:
+            reusers = [r["id"] for r in c.execute(
+                "SELECT id FROM runs WHERE cached_from = ? ORDER BY created_at, id", (run_id,))]
+        src = self.runs_dir / run_id
+        changed: list[str] = []
+        if reusers and not run.cached_from:
+            heir, rest = reusers[0], reusers[1:]
+            dst = self.runs_dir / heir
+            if src.is_dir():
+                dst.mkdir(parents=True, exist_ok=True)
+                for f in src.iterdir():
+                    target = dst / f.name
+                    if target.exists():
+                        target = dst / f"original-{f.name}"
+                    shutil.move(str(f), str(target))
+            h = self.get_run(heir)
+            prefix = f"../{run_id}/"
+            self.update_run(heir, cached_from=None, artifacts={n: p[len(prefix):] if p.startswith(prefix) else p
+                                                               for n, p in h.artifacts.items()},
+                            message=f"result of the removed run {run_id}")
+            for rid in rest:
+                r = self.get_run(rid)
+                self.update_run(rid, cached_from=heir, artifacts={
+                    n: f"../{heir}/{p[len(prefix):]}" if p.startswith(prefix) else p for n, p in r.artifacts.items()})
+            changed = reusers
+        elif reusers:                       # a reused run that others reuse too: point them at its original
+            for rid in reusers:
+                self.update_run(rid, cached_from=run.cached_from)
+            changed = reusers
+        with self._conn() as c:
+            c.execute("DELETE FROM runs WHERE id = ?", (run_id,))
+        shutil.rmtree(src, ignore_errors=True)
+        return changed
 
     # -------------------------------------------------------------- groups
     def create_group(self, kind: str, params: dict | None = None, name: str | None = None) -> Group:

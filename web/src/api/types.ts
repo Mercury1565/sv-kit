@@ -439,6 +439,7 @@ export type ServerEvent =
   | { type: "run.created"; run: RunSummary }
   | { type: "run.status"; run_id: string; status: string; message?: string | null }
   | { type: "run.updated"; run: RunSummary }
+  | { type: "run.deleted"; run_id: string }
   | { type: "run.log"; run_id: string; line: string }
   | { type: "group.updated"; group_id: string; status: string; result?: Record<string, unknown> | null }
   | { type: "job.updated"; job: Job };

@@ -151,6 +151,7 @@ export function RunsView() {
   useServerEvents((ev) => {
     if (ev.type === "run.created") runs.setData((rs) => (rs ? [ev.run, ...rs.filter((r) => r.id !== ev.run.id)] : rs));
     else if (ev.type === "run.updated") runs.setData((rs) => rs?.map((r) => (r.id === ev.run.id ? { ...r, ...ev.run } : r)));
+    else if (ev.type === "run.deleted") runs.setData((rs) => rs?.filter((r) => r.id !== ev.run_id));
     else if (ev.type === "run.status")
       runs.setData((rs) => rs?.map((r) => (r.id === ev.run_id ? { ...r, status: ev.status, message: ev.message ?? r.message } : r)));
   });

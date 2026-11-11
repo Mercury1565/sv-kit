@@ -5,6 +5,7 @@ import { isSynthResult, type Msg, type Run, type RunSummary, type SynthResult, t
 import { baseOption, EChart, type ChartTheme } from "../components/EChart";
 import { JobButton } from "../components/JobButton";
 import { NameEditor, NAME_MAX } from "../components/NameEditor";
+import { RemoveRuns } from "../components/RemoveRuns";
 import { SlackChip, StatusChip } from "../components/StatusChip";
 import { Empty, ErrorState, Loading } from "../components/States";
 import { VirtualTable, type Column } from "../components/VirtualTable";
@@ -82,6 +83,10 @@ function SynthIndex() {
   useServerEvents((ev) => {
     if (ev.type === "run.created" && isSynthKind(ev.run.kind)) runs.setData((rs) => (rs ? [ev.run, ...rs] : rs));
     if (ev.type === "run.updated") runs.setData((rs) => rs?.map((r) => (r.id === ev.run.id ? { ...r, ...ev.run } : r)));
+    if (ev.type === "run.deleted") {
+      runs.setData((rs) => rs?.filter((r) => r.id !== ev.run_id));
+      setSelected((s) => (s.has(ev.run_id) ? new Set([...s].filter((x) => x !== ev.run_id)) : s));
+    }
     if (ev.type === "run.status") {
       runs.setData((rs) => rs?.map((r) => (r.id === ev.run_id ? { ...r, status: ev.status } : r)));
       // a finished run now has results: fetch its headline numbers
@@ -142,6 +147,15 @@ function SynthIndex() {
         <a className={`btn ${sel.length < 2 ? "disabled" : ""}`} href={sel.length >= 2 ? `#/compare?ids=${sel.join(",")}` : undefined} aria-disabled={sel.length < 2} style={sel.length < 2 ? { opacity: 0.5, pointerEvents: "none" } : undefined}>
           Compare{sel.length ? ` (${sel.length})` : ""}
         </a>
+        <RemoveRuns
+          runs={runs.data ?? []}
+          selected={selected}
+          onRemoved={(ids) => {
+            const gone = new Set(ids);
+            runs.setData((rs) => rs?.filter((r) => !gone.has(r.id)));
+            setSelected((s) => new Set([...s].filter((x) => !gone.has(x))));
+          }}
+        />
       </div>
       {runs.error ? (
         <ErrorState error={runs.error} onRetry={runs.reload} />
@@ -162,7 +176,7 @@ function SynthIndex() {
 export const REPORTS_COLUMN: Column<RunSummary> = {
   key: "reports",
   header: <span title="Download a run's reports as one .txt file">Reports</span>,
-  width: "64px",
+  width: "76px",
   render: (r) =>
     r.status === "queued" || r.status === "running" ? null : (
       <a href={api.reportsUrl(r.id)} download onClick={(e) => e.stopPropagation()} title={`Download the reports of ${r.id} as one .txt file`} aria-label={`Download the reports of ${r.id}`}>

@@ -877,6 +877,17 @@ export class MockBackend implements Transport {
     }
     if ((m = /^\/api\/runs\/([^/]+)$/.exec(path))) {
       const r = this.run(decodeURIComponent(m[1]));
+      if (method === "DELETE") {
+        if (r.status === "queued" || r.status === "running") throw new ApiError(409, `run ${r.id} is still ${r.status}: cancel it first`, path);
+        const changed = st.runs.filter((x) => x.cached_from === r.id).map((x) => x.id);
+        // the oldest reuser inherits the result; the others point at it (as the server does)
+        const heir = [...st.runs].filter((x) => changed.includes(x.id)).sort((x, y) => x.created_at - y.created_at)[0]?.id;
+        st.runs = st.runs
+          .filter((x) => x.id !== r.id)
+          .map((x) => (x.cached_from === r.id ? { ...x, cached_from: x.id === heir ? null : heir } : x));
+        this.emit({ type: "run.deleted", run_id: r.id });
+        return { deleted: r.id, changed };
+      }
       if (method === "PATCH") {
         r.name = cleanName(body.name);
         this.emit({ type: "run.updated", run: summary(r) });
