@@ -7,11 +7,22 @@ For processor designs: cycles per instruction (CPI) for every test program, and 
 
 ## What it shows
 
-- **CPI per program** as a chart, with the mean.
+- **A chart per program**, with the mean. Switch it between **cycles per instruction** (CPI),
+  **instructions per cycle** (IPC = 1 / CPI) and **time per instruction** (TPI; available once a clock
+  period is known). Bars are sorted worst first.
 - A table per program: cycles, instructions, CPI, clock period, **TPI = CPI × clock period**, and stall
   counts by cause (for example load-use stalls and branch flushes).
 - **Where the clock period comes from**: the latest clock sweep's T_min (see [sweep.md](sweep.md)) or a
   synthesis run, linked so you can check it.
+
+## Export
+
+- **Save image (PNG)** saves the chart as it is switched (CPI, IPC or TPI), with every program in it
+  even when the chart is zoomed, at twice screen resolution, titled with the batch it shows.
+- **Download CSV** saves the table: one row per program with raw numbers (cycles, instructions, CPI,
+  IPC, clock period, TPI, stall counts, where the period came from). It opens in any spreadsheet.
+
+File names say what they hold, for example `perf-g_0004-after-the-fix-tpi.png` or `perf-latest.csv`.
 
 ## Batches: run the tests you choose, under a name
 

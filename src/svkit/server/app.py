@@ -98,6 +98,17 @@ def create_app(cfg: Config) -> FastAPI:
         mt = mimetypes.guess_type(f.name)[0] or "text/plain"
         return FileResponse(f, media_type=mt)
 
+    @api.get("/runs/{rid}/reports.txt")
+    def synth_reports(rid: str):
+        """A synthesis run's summary and text reports as one downloadable .txt file."""
+        from svkit.analysis.report_export import SYNTH_KINDS, download_name, reports_text
+        r = _run(rid)
+        if r.kind not in SYNTH_KINDS:
+            raise HTTPException(400, f"run {rid} is a {r.kind} run; reports are exported for synthesis runs")
+        text = reports_text(r, st.db.runs_dir / rid, st.db.runs_dir)
+        return Response(text, media_type="text/plain; charset=utf-8",
+                        headers={"Content-Disposition": f'attachment; filename="{download_name(r)}"'})
+
     @api.get("/runs/{rid}/log")
     def run_log(rid: str, tail: int = Query(500, le=100000)) -> dict[str, Any]:
         run = _run(rid)

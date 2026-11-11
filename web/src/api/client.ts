@@ -127,6 +127,8 @@ export const api = {
     return out;
   },
   run: (id: string) => req<Run>("GET", `/api/runs/${enc(id)}`),
+  /** a synthesis run's summary and text reports as one .txt download */
+  reportsUrl: (id: string) => `/api/runs/${enc(id)}/reports.txt`,
   artifactUrl: (id: string, name: string) => `/api/runs/${enc(id)}/artifacts/${name.split("/").map(enc).join("/")}`,
   log: (id: string, tail = 500) => req<{ lines: string[] }>("GET", `/api/runs/${enc(id)}/log`, { tail }),
   addTag: (id: string, tag: string) => req<Run>("POST", `/api/runs/${enc(id)}/tags`, undefined, { tag }),

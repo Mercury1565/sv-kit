@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type MutableRefObject } from "react";
 import type { ECharts, EChartsCoreOption } from "echarts/core";
 import { onThemeChange } from "../lib/theme";
 
@@ -57,10 +57,27 @@ interface Props {
   height?: number;
   onClick?: (params: { dataIndex: number; seriesIndex: number; data: unknown; seriesName?: string }) => void;
   ariaLabel: string;
+  /** receives the live chart instance (null once disposed), e.g. to save it as an image */
+  chartRef?: MutableRefObject<ECharts | null>;
+}
+
+/**
+ * The chart as a PNG data URL: every data point (any zoom window is opened to 0–100% for the shot,
+ * then put back), no zoom slider, on the page's background color, at 2× for sharp text.
+ */
+export function chartPng(chart: ECharts): string {
+  const opt = chart.getOption() as { dataZoom?: { start?: number; end?: number }[] };
+  const zooms = (opt.dataZoom ?? []).map((z) => ({ start: z.start ?? 0, end: z.end ?? 100 }));
+  if (zooms.length) chart.dispatchAction({ type: "dataZoom", start: 0, end: 100 });
+  try {
+    return chart.getDataURL({ type: "png", pixelRatio: 2, backgroundColor: readTheme().bg, excludeComponents: ["dataZoom", "toolbox"] });
+  } finally {
+    zooms.forEach((z, i) => chart.dispatchAction({ type: "dataZoom", dataZoomIndex: i, start: z.start, end: z.end }));
+  }
 }
 
 /** Thin ECharts wrapper: lazy-loads echarts, follows the color scheme, resizes with its box. */
-export function EChart({ option, height = 300, onClick, ariaLabel }: Props) {
+export function EChart({ option, height = 300, onClick, ariaLabel, chartRef }: Props) {
   const el = useRef<HTMLDivElement>(null);
   const chart = useRef<ECharts | null>(null);
   const [ready, setReady] = useState(false);
@@ -74,6 +91,7 @@ export function EChart({ option, height = 300, onClick, ariaLabel }: Props) {
     import("./charts").then(({ echarts }) => {
       if (disposed || !el.current) return;
       chart.current = echarts.init(el.current, undefined, { renderer: "canvas" });
+      if (chartRef) chartRef.current = chart.current;
       chart.current.on("click", (p: any) => clickRef.current?.(p));
       if (typeof ResizeObserver !== "undefined") {
         ro = new ResizeObserver(() => chart.current?.resize());
@@ -88,6 +106,7 @@ export function EChart({ option, height = 300, onClick, ariaLabel }: Props) {
       offTheme();
       chart.current?.dispose();
       chart.current = null;
+      if (chartRef) chartRef.current = null;
     };
   }, []);
 

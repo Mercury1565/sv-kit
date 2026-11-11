@@ -231,6 +231,7 @@ All JSON. Base `/api`. Errors: `{"detail": "..."}` with 4xx/5xx.
 | `GET /api/runs?kind=&group=&status=&test=&tag=&limit=&offset=` | `[RunSummary]` (Run without metrics; synth / sweep-point runs with results add `qor: {period, wns, hold_wns, area_total, area_unit, cell_count, power_total}`); header `X-Total-Count` = matching runs before limit/offset |
 | `GET /api/runs/{id}` | `Run` with `metrics` |
 | `GET /api/runs/{id}/artifacts/{name}` | the file (text/binary) |
+| `GET /api/runs/{id}/reports.txt` | synth / sweep-point runs only (else 400): one `text/plain` attachment, svkit's summary of the run then every kept text report (`.rpt`, `.rep`, `.txt`, `sta.log`) verbatim; DC's per-section copies of a combined report are left out |
 | `GET /api/runs/{id}/log?tail=N` | `{lines:[...]}` |
 | `POST /api/runs/{id}/tags` `{tag}` / `DELETE /api/runs/{id}/tags/{tag}` | `Run` |
 | `PATCH /api/runs/{id}` `{name}` | `Run`; empty or null name removes it; emits `run.updated` |

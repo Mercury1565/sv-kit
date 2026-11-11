@@ -22,6 +22,19 @@ period, worst setup slack (red when negative; hover for the hold slack), area, t
 count. Click a column header to sort by it, again to reverse, a third time to go back to the order the
 runs were made (newest first). Runs without results yet sort last. The name column sorts by name.
 
+## Download a run's reports
+
+**Download reports (.txt)** on a run's page (or the `.txt` link in its row of the list) saves one text
+file holding:
+
+1. svkit's summary of the run: name, tool, knobs, clock period, setup and hold slack, area, cells,
+   power and the worst timing paths. These are the same numbers on every flow.
+2. Every text report the run kept, verbatim, each under its file name: Design Compiler's `.rpt` /
+   `.rep` reports, Yosys's `stat.txt`, OpenSTA's timing output, or the reports your own flow writes.
+
+Reused (cached) runs export the reports of the run they reuse. Netlists, scripts and logs are not
+included; open those from *Run details & log*.
+
 ## Names
 
 Give a run a name you will remember (`retimed ALU, ss corner`): type it in *Name (optional)* before

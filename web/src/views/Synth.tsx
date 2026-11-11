@@ -151,12 +151,25 @@ function SynthIndex() {
         <Empty title="No synthesis runs yet" cmd={["svkit synth", "svkit synth --matrix", "svkit sweep clock"]} />
       ) : (
         <div style={{ flex: "1 1 auto", minHeight: 240, display: "flex" }}>
-          <RunsTable runs={runs.data} selected={selected} onToggle={toggle} extraColumns={QOR_COLUMNS} hide={["git", "dur"]} />
+          <RunsTable runs={runs.data} selected={selected} onToggle={toggle} extraColumns={[...QOR_COLUMNS, REPORTS_COLUMN]} hide={["git", "dur"]} />
         </div>
       )}
     </div>
   );
 }
+
+/** A per-row link that downloads the run's reports as one text file. */
+export const REPORTS_COLUMN: Column<RunSummary> = {
+  key: "reports",
+  header: <span title="Download a run's reports as one .txt file">Reports</span>,
+  width: "64px",
+  render: (r) =>
+    r.status === "queued" || r.status === "running" ? null : (
+      <a href={api.reportsUrl(r.id)} download onClick={(e) => e.stopPropagation()} title={`Download the reports of ${r.id} as one .txt file`} aria-label={`Download the reports of ${r.id}`}>
+        .txt
+      </a>
+    ),
+};
 
 // ------------------------------------------------------------------ dashboard
 function Card({ label, value, sub, tone }: { label: ReactNode; value: string; sub?: string; tone?: "good" | "bad" }) {
@@ -453,6 +466,11 @@ function SynthDashboard({ id }: { id: string }) {
           {[r.adapter, r.experiment, fmtDate(r.created_at)].filter(Boolean).join(" · ")}
         </span>
         <span className="spacer" />
+        {r.status !== "queued" && r.status !== "running" && (
+          <a className="btn" href={api.reportsUrl(r.id)} download title="Download svkit's summary and every text report of this run as one .txt file">
+            Download reports (.txt)
+          </a>
+        )}
         <a className="btn" href={`#/runs/${r.id}`}>
           Run details & log
         </a>
