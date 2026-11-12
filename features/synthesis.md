@@ -73,3 +73,11 @@ direction that matters for that metric (less area is better, more slack is bette
 the baseline.
 
 ![Compare table of three synthesis experiments against a baseline](images/compare.png)
+
+- **Basic / Advanced.** *Basic* (the default) shows the headline rows: setup and hold slack, clock
+  period, area, power and **Cells**. *Advanced* adds everything else: cells per transistor speed class
+  (HVT / RVT / LVT) and area per top-level block. svkit remembers your choice.
+- **Save image (PNG)** saves the table as shown (Basic or Advanced) as a picture, with the
+  better / worse colors and arrows, for slides or a report.
+- **Download CSV** saves the rows shown with raw numbers: each run's value, and for every run after the
+  baseline its change, change in percent and verdict (better / worse / same).

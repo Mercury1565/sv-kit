@@ -432,12 +432,12 @@ function compareOf(st: MockState, ids: string[]): CompareResult {
       computeDelta("wns", "higher", get((m) => m.wns), "ps"),
       computeDelta("tns", "higher", get((m) => m.tns), "ps"),
       computeDelta("hold_wns", "higher", get((m) => m.hold_wns), "ps"),
+      computeDelta("period", "lower", get((m) => m.period), "ps"),   // same order and rule as the server
       computeDelta("area_total", "lower", get((m) => m.area_total), "um^2"),
       computeDelta("power.total", "lower", get((m) => m.power?.total), "mW"),
       computeDelta("power.dynamic", "lower", get((m) => m.power?.dynamic), "mW"),
       computeDelta("power.leakage", "lower", get((m) => m.power?.leakage), "mW"),
       computeDelta("cell_count", "lower", get((m) => m.cell_count), null),
-      computeDelta("period", "none", get((m) => m.period), "ps"),
       ...vtClasses.map((c) => computeDelta(`vt_mix.${c}`, "none", get((m) => m.vt_mix?.[c]), null)),
     ],
   };

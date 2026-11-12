@@ -384,3 +384,23 @@ svkit serve   # Perf → click a program → Save all charts (ZIP) / Every test 
 (cd web && npx vitest run src/lib/zip.test.ts src/views/perfHistory.test.tsx)
 ```
 
+## Iteration 13 — 2026-11-12 — Compare: Basic / Advanced, PNG and CSV
+**Status:** done
+**What works now:**
+- **Compare → Basic / Advanced.** Basic shows timing, clock period, area, power and Cells; Advanced adds speed-class cell counts and area per block ("3 more rows in Advanced"). The choice is remembered per browser.
+- **Save image (PNG)** and **Download CSV** export the rows shown.
+**Decisions made (and why):**
+- Basic is a fixed set of headline metrics (`BASIC_METRICS`), not "the first N rows", so a backend that adds rows later lands in Advanced, and Basic never changes meaning.
+- The PNG is drawn with the 2D canvas from the same cells as the table (`lib/tableImage.ts`), in the page's theme at 2×: no html-to-image dependency, no tainted-canvas failures, and the arrows and better/worse colors survive.
+- The CSV is wide (one row per metric, columns per run) with raw numbers, matching how the table reads.
+- Fixed while testing: the screen-reader "better / worse" text in compare cells was positioned against the page, so at phone width the whole page scrolled sideways by ~290 px. It is now positioned inside its cell (`.sr-only`). The demo data now lists clock period in the server's order.
+**Known gaps / risks:**
+- Very long run names are cut with "…" in the PNG at 420 px per column (the CSV has them in full).
+**Next iteration plan:**
+- Same as iteration 7.
+**How to see it:**
+```
+svkit serve   # Synthesis → tick runs → Compare → Basic / Advanced, Save image, Download CSV
+(cd web && npx vitest run src/lib/compareExport.test.ts)
+```
+

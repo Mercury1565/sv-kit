@@ -514,3 +514,7 @@ button.link:hover { text-decoration: underline; }
 .remove-confirm > span:first-child { min-width: 0; overflow-wrap: anywhere; }
 button.danger { color: var(--bad); border-color: var(--bad); font-weight: 600; }
 button.danger:hover:not(:disabled) { background: color-mix(in srgb, var(--bad) 12%, transparent); }
+
+/* text for screen readers only; positioned within its cell so it never widens the page */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+table.t td { position: relative; }

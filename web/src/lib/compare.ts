@@ -1,5 +1,6 @@
-import type { MetricDelta, Verdict } from "../api/types";
-import { DASH, fmtNum, fmtPct, fmtSigned, isNum } from "./format";
+import type { CompareResult, MetricDelta, Verdict } from "../api/types";
+import { toCsv } from "./download";
+import { DASH, fmtNum, fmtPct, fmtSigned, isNum, metricLabel } from "./format";
 
 export interface CompareCell {
   value: string;
@@ -72,4 +73,41 @@ export function computeDelta(metric: string, better: MetricDelta["better"], valu
     else verdict.push((better === "higher" ? d > 0 : d < 0) ? "better" : "worse");
   });
   return { metric, unit: unit ?? null, better, values, deltas, pct, verdict };
+}
+
+// ------------------------------------------------------------------ Basic / Advanced, exports
+export type CompareLevel = "basic" | "advanced";
+
+/**
+ * Basic = the headline rows, timing through cell count ("Cells"); Advanced adds the rest
+ * (cells per transistor speed class, area per top-level block, and anything a backend adds later).
+ */
+export const BASIC_METRICS: ReadonlySet<string> = new Set([
+  "wns", "tns", "hold_wns", "hold_tns", "period", "area_total", "power.total", "power.dynamic", "power.leakage", "cell_count",
+]);
+
+export function compareRows(cmp: CompareResult, level: CompareLevel): MetricDelta[] {
+  return level === "advanced" ? cmp.metrics : cmp.metrics.filter((m) => BASIC_METRICS.has(m.metric));
+}
+
+/**
+ * The comparison as CSV: one row per metric, raw numbers. Per run: its value; for every run after
+ * the baseline also the change, the change in percent and the verdict (better / worse / same / na).
+ */
+export function compareCsv(cmp: CompareResult, metrics: MetricDelta[]): string {
+  const header = ["metric", "name", "unit", "better"];
+  cmp.run_ids.forEach((id, i) => {
+    const tag = `${id}${cmp.labels[i] && cmp.labels[i] !== id ? ` ${cmp.labels[i]}` : ""}`;
+    header.push(i === 0 ? `${tag} (baseline)` : tag);
+    if (i > 0) header.push(`${id} change`, `${id} change %`, `${id} verdict`);
+  });
+  const rows = metrics.map((m) => {
+    const r: unknown[] = [m.metric, metricLabel(m.metric), m.unit ?? "", m.better];
+    m.values.forEach((v, i) => {
+      r.push(v);
+      if (i > 0) r.push(m.deltas[i], m.pct[i], m.verdict[i] ?? "na");
+    });
+    return r;
+  });
+  return toCsv(header, rows);
 }
