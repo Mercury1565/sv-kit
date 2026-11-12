@@ -8,6 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from svkit import config as C
+from svkit.analysis import perf as PF
 from svkit.core.rundb import RunDB
 from svkit.server.app import create_app
 
@@ -67,14 +68,16 @@ def test_sweep_route(env):
     assert c.get(f"/api/sweeps/{m.id}").status_code == 404
 
 
-def test_perf_route_updates_with_new_synth(env):
+def test_perf_route_keeps_the_period_a_run_finished_with(env):
     c, db = env
-    _sim_with_waves(db)
-    rows = c.get("/api/perf").json()
-    assert rows[0]["test"] == "t1" and rows[0]["cpi"] == 1.5 and rows[0]["tpi"] is None
     sid = _synth(db, None, period=1000.0)
+    rid = _sim_with_waves(db)
+    PF.fix_period(c.app.state.svkit.cfg, db, rid)          # what the runner does as the run finishes
     rows = c.get("/api/perf").json()
+    assert rows[0]["test"] == "t1" and rows[0]["cpi"] == 1.5
     assert rows[0]["tpi"] == 1500.0 and rows[0]["period_source"] == f"synth:{sid}"
+    _synth(db, None, period=500.0)                          # a newer synth run does not move it
+    assert c.get("/api/perf").json()[0]["tpi"] == 1500.0
 
 
 def test_divergence_route(env):

@@ -249,6 +249,8 @@ class Runner:
         self.db.update_run(r.id, metrics=hit.metrics, artifacts=arts, cached_from=hit.id, exit_code=hit.exit_code,
                            started_at=time.time(), finished_at=time.time(), duration_s=0.0,
                            message=f"cached from {hit.id}")
+        if kind == "sim":
+            self._fix_period(r.id)           # a reused result still finishes now: the period of now
         r = self.db.get_run(r.id)
         self.bus.publish({"type": "run.created", "run": run_summary(r)})
         return r
@@ -258,8 +260,18 @@ class Runner:
         self.db.update_run(run.id, status=status, metrics=metrics, artifacts=ctx.artifacts if ctx else {},
                            finished_at=time.time(), duration_s=time.time() - t0, exit_code=exit_code,
                            message=message)
+        if run.kind == "sim":
+            self._fix_period(run.id)
         self._emit_status(run.id, status, message)
         return self.db.get_run(run.id)
+
+    def _fix_period(self, run_id: str) -> None:
+        """Fix the clock period (for TPI) of a sim run that reported perf, as it finishes."""
+        from svkit.analysis import perf as PF
+        try:
+            PF.fix_period(self.cfg, self.db, run_id)
+        except Exception:                    # perf is optional; never fail a run on it
+            pass
 
     @contextmanager
     def _test_lock(self, flow: str, test: str, ctx: RunContext, poll_s: float = 0.2) -> Iterator[None]:

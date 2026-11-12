@@ -163,6 +163,10 @@ the wave file's timescale (reported by the wave API).
 * `TimingPath`: startpoint, endpoint, path_group, path_type (max/min), slack, required, arrival,
   points[TimingPoint{inst, pin, cell, incr, arrival, rise_fall, net}].
 * `SimResult`: tool, test, passed, reason, sim_time, waves (artifact name), divergence, perf, warnings.
+  A finished sim run with perf also stores `metrics.perf_clock = {period, source}` (the clock period
+  for TPI, fixed as it finishes: `toml` = clock_period knob default else latest synth; `sweep` = latest
+  sweep T_min else latest synth; `manual` = the period entered). Runs from before v0.14 get the
+  pre-v0.12 rule (sweep, else synth, in effect at `created_at`) on first read, stored then.
 * `Divergence`: line, expected, actual, time?, cycle?.
 * `PerfResult`: test, cycles, instrs, cpi, stalls, period, period_source, tpi (ps/instr).
 * `XTraceNode`: signal, time, value, driver{kind, file, line, text}, cause (XCause), note, children.
@@ -243,8 +247,10 @@ All JSON. Base `/api`. Errors: `{"detail": "..."}` with 4xx/5xx.
 | `GET /api/sweeps/{group_id}` | `SweepResult` |
 | `POST /api/jobs` `{kind: "sim"\|"sim-all"\|"synth"\|"matrix"\|"sweep", args:{...}}` | `{job_id}`; progress via WS. `args.name` names the run (sim, synth) or the batch (sim-all, matrix); `sim-all` takes `args.tests: [name]` to run only those (400 if not a list of strings; an unknown name fails the job) |
 | `GET /api/jobs` | `[{job_id, kind, status, run_ids, group_id}]` |
-| `GET /api/perf?group=&period_from=toml\|sweep\|manual&period=` | `[PerfResult]`; TPI's clock period by `period_from`: `toml` (default) = the `clock_period` knob default in svkit.toml, else latest synth period; `sweep` = latest sweep T_min, else latest synth period; `manual` = `period` (ps, > 0, required) |
-| `GET /api/perf/history?test=&limit=500&period_from=&period=` | `[PerfResult + {run_id, run_name, status, created_at, cached_from, group_id, group_name}]`, every sim run of that test with perf numbers, oldest first (the newest `limit`); `period` / `tpi` follow `period_from` as in `/api/perf`, except that `sweep` and the synth fallback use the period in effect at that run's `created_at` (the earliest known for older runs) |
+| `GET /api/perf?group=` | `[PerfResult]`, latest sim run per test; `period` / `period_source` / `tpi` use the clock period FIXED on that run when it finished (`metrics.perf_clock`) |
+| `GET /api/perf/history?test=&limit=500` | `[PerfResult + {run_id, run_name, status, created_at, cached_from, group_id, group_name}]`, every sim run of that test with perf numbers, oldest first (the newest `limit`), each with its fixed clock period |
+| `GET /api/perf/period` | `{from: toml\|sweep\|manual, ps?, period, source}`: where sim runs take their clock period from as they finish (project setting in the Run DB `meta` table; default `toml`), and what a run finishing now gets |
+| `PUT /api/perf/period` `{from, ps?}` | set it (422 for an unknown `from`, or `manual` without `ps` > 0); event `perf.period`. Finished runs keep their period |
 | `GET /api/waves/{run_id}/meta` | `{file, format, timescale:{factor, unit}, t_start, t_end}` |
 | `GET /api/waves/{run_id}/scope?path=` | `{path, scopes:[{name, path}], vars:[{name, path, width, kind, type?}]}` (`path=""` → top) |
 | `GET /api/waves/{run_id}/search?q=&limit=` | `[{path, width, kind}]` (substring / glob over full paths) |

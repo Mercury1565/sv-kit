@@ -19,6 +19,8 @@ app.add_typer(runs_app, name="runs")
 app.add_typer(sweep_app, name="sweep")
 waves_app = typer.Typer(help="Waveforms svkit keeps for each run", no_args_is_help=True)
 app.add_typer(waves_app, name="waves")
+perf_app = typer.Typer(help="Performance (CPI / TPI)", no_args_is_help=True)
+app.add_typer(perf_app, name="perf")
 
 EXIT_FAIL, EXIT_CONFIG, EXIT_TOOL = 1, 2, 3
 
@@ -177,6 +179,37 @@ def rename(item: str = typer.Argument(..., help="a run (r_0012) or a batch (g_00
         typer.secho(f"no run or batch {item}", fg="red", err=True)
         raise typer.Exit(EXIT_CONFIG)
     typer.echo(f"{item}: " + (f"named \"{' '.join(name.split())}\"" if name.strip() else "name removed"))
+
+
+@perf_app.command("period")
+def perf_period(source: Optional[str] = typer.Argument(
+        None, metavar="[toml|sweep|PS]",
+        help="toml: the clock_period knob in svkit.toml; sweep: the latest clock sweep; a number: that period in ps")):
+    """Show or set where sim runs take their clock period (for TPI) from as they finish.
+    Runs that already finished keep theirs."""
+    from svkit.analysis import perf as PF
+    from svkit.core.rundb import RunDB
+    cfg = _cfg()
+    db = RunDB.for_project(cfg.root)
+    if source is not None:
+        try:
+            if source in ("toml", "sweep"):
+                PF.set_period_choice(db, source)
+            else:
+                try:
+                    ps = float(source.removesuffix("ps"))
+                except ValueError:
+                    raise ValueError(f"expected toml, sweep or a period in ps, got {source!r}")
+                PF.set_period_choice(db, "manual", ps)
+        except ValueError as e:
+            typer.secho(str(e), fg="red", err=True)
+            raise typer.Exit(EXIT_CONFIG)
+    choice = PF.period_choice(db)
+    period, src = PF.current_period(cfg, db)
+    what = (f"entered by hand ({choice['ps']:g} ps)" if choice["from"] == "manual"
+            else {"toml": "svkit.toml (clock_period knob)", "sweep": "the latest clock sweep"}[choice["from"]])
+    typer.echo(f"clock period for runs finishing from now on: {what}")
+    typer.echo(f"  a run finishing now gets: {f'{period:g} ps from {src}' if period is not None else 'none (no TPI)'}")
 
 
 @sweep_app.command("clock")

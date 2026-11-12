@@ -12,16 +12,23 @@ For processor designs: cycles per instruction (CPI) for every test program, and 
   period is known). Bars are sorted worst first.
 - A table per program: cycles, instructions, CPI, clock period, **TPI = CPI × clock period**, and stall
   counts by cause (for example load-use stalls and branch flushes).
-- **Where the clock period comes from**, which you choose with *Clock period from* at the top:
+- **Each run keeps the clock period it finished with.** When a test run finishes, svkit stores its
+  clock period, and that run's TPI never changes after that: not when you pick another source below,
+  edit `svkit.toml`, or run a new sweep or synthesis. The table names where each run's period came
+  from (sweeps and synthesis runs are linked so you can check them).
+- **Clock period for new runs**, at the top, sets the period that runs finishing from now on get:
   - **svkit.toml** (the default): the `clock_period` knob's `default`, or, when that is not set, the
     latest synthesis run.
   - **Clock sweep**: the latest clock sweep's T_min (see [sweep.md](sweep.md)), else the latest
-    synthesis run. This is how svkit worked before v0.12, so older results read the same as they did.
+    synthesis run.
   - **Enter it…**: a period you type in (ps), applied when you press Enter. It starts from the period
-    shown at that moment.
+    a run would get at that moment.
 
-  The table names the source of each period (sweeps and synthesis runs are linked so you can check
-  them). Your browser remembers the choice for this project.
+  Next to it you see the period a run finishing now would get. The choice is saved with the project,
+  so it is the same for everyone using the dashboard and for `svkit sim` on the command line.
+- Runs recorded by svkit before v0.14 had no stored period. The first time svkit shows one, it gives
+  it the period from the rule svkit used before v0.12: the clock sweep's T_min in effect when the run
+  was made, else the synthesis period in effect then. That period is then stored and stays.
 
 ## One test across runs
 
@@ -33,10 +40,8 @@ change from the previous run (red when it got worse, green when it got better). 
 that run.
 
 - Eight runs are shown at a time; *‹ Older* and *Newer ›* page through the rest.
-- Time per instruction uses the same choice of clock period as the table. With **svkit.toml** or a
-  period you entered, every run uses that one period. With **Clock sweep** (and when svkit.toml has
-  none and the synthesis run is used), each run uses the period svkit knew **when that run was made**,
-  so a faster clock from a later design revision shows up in TPI.
+- Time per instruction uses the clock period each run finished with, so a faster clock from a later
+  design revision shows up in TPI.
 - Each chart has its own *Save image (PNG)*.
 
 ## Export
@@ -84,14 +89,22 @@ instrs = 'instrs\s*=\s*(\d+)'
 stalls = { load_use = 'load_use_stalls\s*=\s*(\d+)', branch = 'branch_flushes\s*=\s*(\d+)' }
 ```
 
-By default, time per instruction uses the clock period you set in `svkit.toml` (in ps):
+By default, runs take their clock period from `svkit.toml` (in ps) as they finish:
 
 ```toml
 [knobs]
 clock_period = { file = "clock_period.txt", unit = "ps", default = 2000 }
 ```
 
-Clock sweeps don't change it. To use a sweep's result, pick *Clock period from: Clock sweep*, or put
-the T_min into `default`.
+To have new runs use a sweep's result or a period of your own instead, pick it under *Clock period
+for new runs*, or from the CLI:
 
-The numbers update whenever you rerun the tests or edit `svkit.toml` (restart `svkit serve` to pick up the edit).
+```
+svkit perf period          # show where new runs take their clock period from
+svkit perf period sweep    # the latest clock sweep's T_min
+svkit perf period 850      # 850 ps
+svkit perf period toml     # back to svkit.toml
+```
+
+Runs that already finished keep their period either way. svkit reads `svkit.toml` when it starts, so
+restart `svkit serve` after editing it.

@@ -1,28 +1,34 @@
 """CPI / TPI table (PRODUCT.md §6.6, MVP §4.4).
 
 CPI comes from sim Runs (`metrics.perf`, filled by the sim adapter through the
-`[perf].source` adapter). TPI = CPI x clock period. Where the period comes from is
-chosen per request (`period_from`):
+`[perf].source` adapter). TPI = CPI x clock period.
+
+The clock period of a run is FIXED when the run finishes (`fix_period`, called by the
+runner): it is stored in `metrics.perf_clock = {period, source}` and never recomputed.
+Which period a finishing run gets is a project setting (`period_choice`, kept in the
+Run DB so the web UI and the CLI share it):
 
   toml   : the `default` of the `clock_period` knob in svkit.toml (ps), else the
            latest finished synth Run's `period`  (the default)
-  sweep  : the T_min of the latest finished clock sweep, else the latest synth period;
-           in the history, the one in effect when each run was made
-  manual : a period the user typed (ps), for every run
+  sweep  : the T_min of the latest finished clock sweep, else the latest synth period
+  manual : a period the user typed (ps)
 
-It is computed on request, so it follows new synth / sweep Runs automatically.
+Runs recorded before periods were fixed have no `perf_clock`; the first read fixes
+them with the rule svkit used before v0.12: the sweep T_min (else synth period) in
+effect when the run was made.
 """
 from __future__ import annotations
 
-from typing import Callable, Literal, Optional
+from typing import Optional
 
 from svkit.core.rundb import RunDB
 from svkit.schemas import PerfResult
 
-PeriodFrom = Literal["toml", "sweep", "manual"]
 PERIOD_FROM: tuple[str, ...] = ("toml", "sweep", "manual")
 CONFIG_SOURCE = "svkit.toml"
 MANUAL_SOURCE = "manual"
+SETTING = "perf_period"
+FIXED = "perf_clock"            # metrics key holding a run's fixed {period, source}
 
 Period = tuple[Optional[float], Optional[str]]
 
@@ -38,6 +44,34 @@ def config_period(cfg) -> Optional[float]:
         return None
 
 
+# ------------------------------------------------------------------ the project setting
+def check_choice(period_from: str, ps: Optional[float] = None) -> dict:
+    """A valid setting dict, or ValueError."""
+    if period_from not in PERIOD_FROM:
+        raise ValueError(f"the clock period comes from one of {', '.join(PERIOD_FROM)}, not {period_from!r}")
+    if period_from == "manual":
+        if ps is None or not float(ps) > 0:
+            raise ValueError("a manual clock period needs a value in ps greater than 0")
+        return {"from": "manual", "ps": float(ps)}
+    return {"from": period_from}
+
+
+def period_choice(db: RunDB) -> dict:
+    """Where finishing runs take their clock period from: {"from": ..., "ps"?: ...}; svkit.toml by default."""
+    v = db.get_setting(SETTING)
+    try:
+        return check_choice(v["from"], v.get("ps"))
+    except (TypeError, KeyError, ValueError, AttributeError):
+        return {"from": "toml"}
+
+
+def set_period_choice(db: RunDB, period_from: str, ps: Optional[float] = None) -> dict:
+    choice = check_choice(period_from, ps)
+    db.set_setting(SETTING, choice)
+    return choice
+
+
+# ------------------------------------------------------------------ periods known now / at a time
 def _sweep_periods(db: RunDB) -> list[tuple[float, float, str]]:
     """Every finished sweep's T_min as (created_at, period ps, source), oldest first."""
     return sorted((g.created_at, float(g.result["t_min"]), f"sweep:{g.id}")
@@ -65,35 +99,57 @@ def period_at(known_lists, t: Optional[float]) -> Period:
     return None, None
 
 
-def period_resolver(cfg, db: RunDB, period_from: str = "toml",
-                    manual: Optional[float] = None) -> Callable[[Optional[float]], Period]:
-    """A function: run time (None = now) -> (period ps, source) for the chosen `period_from`."""
-    if period_from == "manual":
-        if manual is None or not manual > 0:
-            raise ValueError("period_from=manual needs a clock period in ps greater than 0")
-        return lambda _t: (float(manual), MANUAL_SOURCE)
-    if period_from == "sweep":
-        lists = (_sweep_periods(db), _synth_periods(db))
-        return lambda t: period_at(lists, t)
-    if period_from == "toml":
-        fixed = config_period(cfg)
-        if fixed is not None:
-            return lambda _t: (fixed, CONFIG_SOURCE)
-        synths = (_synth_periods(db),)
-        return lambda t: period_at(synths, t)
-    raise ValueError(f"period_from must be one of {', '.join(PERIOD_FROM)}, got {period_from!r}")
+def current_period(cfg, db: RunDB, choice: Optional[dict] = None) -> Period:
+    """(period ps, source) a run finishing now gets — source is "svkit.toml", "sweep:<group id>",
+    "synth:<run id>" or "manual". `choice` defaults to the project setting."""
+    choice = choice or period_choice(db)
+    if choice["from"] == "manual":
+        return float(choice["ps"]), MANUAL_SOURCE
+    if choice["from"] == "toml" and (p := config_period(cfg)) is not None:
+        return p, CONFIG_SOURCE
+    lists = (_sweep_periods(db), _synth_periods(db)) if choice["from"] == "sweep" else (_synth_periods(db),)
+    return period_at(lists, None)
 
 
-def current_period(cfg, db: RunDB, period_from: str = "toml", manual: Optional[float] = None) -> Period:
-    """(period ps, source) — source is "svkit.toml", "sweep:<group id>", "synth:<run id>" or "manual"."""
-    return period_resolver(cfg, db, period_from, manual)(None)
+# ------------------------------------------------------------------ fixing a run's period
+def fix_period(cfg, db: RunDB, run_id: str) -> None:
+    """Store the clock period a sim run gets as it finishes (only runs that reported perf)."""
+    r = db.get_run(run_id)
+    m = dict(r.metrics or {})
+    if not m.get("perf"):
+        return
+    period, source = current_period(cfg, db)
+    m[FIXED] = {"period": period, "source": source}
+    db.update_run(run_id, metrics=m)
 
 
-def perf_table(cfg, db: RunDB, *, group_id: str | None = None, period_from: str = "toml",
-               period: Optional[float] = None) -> list[PerfResult]:
-    """Latest sim Run per test that reports perf (optionally within one group), sorted by test.
-    `period_from` / `period` choose the clock period (see the module docstring)."""
-    period, source = current_period(cfg, db, period_from, period)
+def _fixed(db: RunDB, r, legacy: list) -> Period:
+    """The run's fixed period; a run recorded before periods were fixed gets the pre-v0.12 rule
+    (sweep, else synth, in effect when it was made), stored now so it never moves again."""
+    m = r.metrics or {}
+    if FIXED in m:
+        return m[FIXED].get("period"), m[FIXED].get("source")
+    if not legacy:
+        legacy.extend([_sweep_periods(db), _synth_periods(db)])
+    period, source = period_at(legacy, r.created_at)
+    db.update_run(r.id, metrics={**m, FIXED: {"period": period, "source": source}})
+    return period, source
+
+
+def _result(perf: dict, test: str, period: Period) -> PerfResult:
+    p = PerfResult.model_validate({**perf, "test": test})
+    if p.cpi is None and p.cycles is not None and p.instrs:
+        p.cpi = p.cycles / p.instrs
+    p.period, p.period_source = period
+    p.tpi = p.cpi * p.period if (p.cpi is not None and p.period is not None) else None
+    return p
+
+
+# ------------------------------------------------------------------ views
+def perf_table(cfg, db: RunDB, *, group_id: str | None = None) -> list[PerfResult]:
+    """Latest sim Run per test that reports perf (optionally within one group), sorted by test,
+    each with the clock period fixed when it finished."""
+    legacy: list = []
     latest: dict[str, PerfResult] = {}
     for r in db.list_runs(kind="sim", group_id=group_id, limit=100000):   # newest first
         perf = (r.metrics or {}).get("perf")
@@ -102,32 +158,21 @@ def perf_table(cfg, db: RunDB, *, group_id: str | None = None, period_from: str 
         test = perf.get("test") or r.test or r.id
         if test in latest:
             continue
-        p = PerfResult.model_validate({**perf, "test": test})
-        if p.cpi is None and p.cycles is not None and p.instrs:
-            p.cpi = p.cycles / p.instrs
-        p.period, p.period_source = period, source
-        p.tpi = p.cpi * period if (p.cpi is not None and period is not None) else None
-        latest[test] = p
+        latest[test] = _result(perf, test, _fixed(db, r, legacy))
     return [latest[k] for k in sorted(latest)]
 
 
-def perf_history(cfg, db: RunDB, test: str, *, limit: int = 500, period_from: str = "toml",
-                 period: Optional[float] = None) -> list[dict]:
-    """Every sim Run of `test` that reported perf, oldest first, with the batch it ran in. The clock
-    period follows `period_from`: svkit.toml or a manual period is the same for every run; the sweep
-    (and the synth fallback) uses the one in effect when that run was made."""
-    resolve = period_resolver(cfg, db, period_from, period)
+def perf_history(cfg, db: RunDB, test: str, *, limit: int = 500) -> list[dict]:
+    """Every sim Run of `test` that reported perf, oldest first, with the batch it ran in and the
+    clock period fixed when that run finished."""
+    legacy: list = []
     groups: dict[str, Optional[str]] = {}
     out: list[dict] = []
     for r in db.list_runs(kind="sim", test=test, limit=100000):         # newest first
         perf = (r.metrics or {}).get("perf")
         if not perf:
             continue
-        p = PerfResult.model_validate({**perf, "test": test})
-        if p.cpi is None and p.cycles is not None and p.instrs:
-            p.cpi = p.cycles / p.instrs
-        p.period, p.period_source = resolve(r.created_at)
-        p.tpi = p.cpi * p.period if (p.cpi is not None and p.period is not None) else None
+        p = _result(perf, test, _fixed(db, r, legacy))
         if r.group_id and r.group_id not in groups:
             try:
                 groups[r.group_id] = db.get_group(r.group_id).name

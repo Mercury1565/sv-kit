@@ -61,46 +61,47 @@ export function perfCsv(rows: PerfResult[], stallKeys: string[]): string {
   );
 }
 
-// ------------------------------------------------------------------ where the clock period comes from
-const PERIOD_KEY = "svkit.perf.period";
-
+// ------------------------------------------------------------------ where new runs take their clock period from
 export const PERIOD_FROM: Record<PeriodFrom, { label: string; title: string }> = {
   toml: { label: "svkit.toml", title: "The clock_period knob's default in svkit.toml (else the latest synthesis run)" },
-  sweep: { label: "Clock sweep", title: "The latest clock sweep's fastest passing period (else the latest synthesis run); across runs, the one in effect when each run was made" },
-  manual: { label: "Enter it…", title: "A clock period you type in, used for every run" },
+  sweep: { label: "Clock sweep", title: "The latest clock sweep's fastest passing period (else the latest synthesis run)" },
+  manual: { label: "Enter it…", title: "A clock period you type in (ps)" },
 };
 
-export function loadPeriod(project: string): PeriodChoice {
-  try {
-    const v = JSON.parse(localStorage.getItem(`${PERIOD_KEY}.${project}`) ?? "null");
-    if (v && (v.from === "toml" || v.from === "sweep")) return { from: v.from };
-    if (v && v.from === "manual" && isNum(v.ps) && v.ps > 0) return { from: "manual", ps: v.ps };
-  } catch {
-    /* storage unavailable: svkit.toml */
-  }
-  return { from: "toml" };
-}
-
-function savePeriod(project: string, p: PeriodChoice) {
-  try {
-    localStorage.setItem(`${PERIOD_KEY}.${project}`, JSON.stringify(p));
-  } catch {
-    /* not remembered; fine */
-  }
-}
-
-/** Pick where TPI's clock period comes from; "Enter it…" starts from the period shown now. */
-export function PeriodPicker({ value, current, onChange }: { value: PeriodChoice; current?: number | null; onChange: (p: PeriodChoice) => void }) {
-  const [draft, setDraft] = useState(value.from === "manual" ? String(value.ps) : "");
-  const n = Number(draft);
-  const valid = draft.trim() !== "" && Number.isFinite(n) && n > 0;
-  const commit = () => {
-    if (valid && n !== value.ps) onChange({ from: "manual", ps: n });
+/**
+ * The project setting for where sim runs take their clock period from as they finish. Runs that
+ * already finished keep theirs, so changing this never moves a number already in the table.
+ */
+export function PeriodPicker() {
+  const state = useAsync(() => api.perfPeriod(), []);
+  useServerEvents((ev) => {
+    if (ev.type === "perf.period") state.reload();
+  });
+  const [draft, setDraft] = useState<string | null>(null);   // the manual period being typed
+  const [err, setErr] = useState<string | null>(null);
+  const value = state.data;
+  const save = async (p: PeriodChoice) => {
+    setErr(null);
+    try {
+      const next = await api.setPerfPeriod(p);
+      state.setData(() => next);
+      setDraft(null);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : String(e));
+    }
   };
+  if (!value || !(value.from in PERIOD_FROM)) return null;
+  const text = draft ?? (value.from === "manual" ? String(value.ps) : "");
+  const n = Number(text);
+  const valid = text.trim() !== "" && Number.isFinite(n) && n > 0;
+  const commit = () => {
+    if (draft !== null && valid && n !== value.ps) void save({ from: "manual", ps: n });
+  };
+  const gets = isNum(value.period) ? `new runs get ${fmtPs(value.period)}${value.source && value.from !== "manual" ? ` (${value.source})` : ""}` : "new runs get no clock period yet";
   return (
-    <span className="row" style={{ gap: 4 }}>
+    <span className="row" style={{ gap: 4 }} title="Each run keeps the clock period it finished with; this sets the one for runs that finish from now on">
       <label className="muted small" htmlFor="perf-period-from">
-        Clock period from
+        Clock period for new runs
       </label>
       <select
         id="perf-period-from"
@@ -108,10 +109,9 @@ export function PeriodPicker({ value, current, onChange }: { value: PeriodChoice
         title={PERIOD_FROM[value.from].title}
         onChange={(e) => {
           const from = e.target.value as PeriodFrom;
-          if (from !== "manual") return onChange({ from });
-          const start = isNum(value.ps) ? value.ps : isNum(current) && current > 0 ? current : 1000;
-          setDraft(String(start));
-          onChange({ from: "manual", ps: start });
+          // "Enter it…" starts from the period a run would get now
+          if (from === "manual") void save({ from, ps: isNum(value.period) && value.period > 0 ? value.period : 1000 });
+          else void save({ from });
         }}
       >
         {(Object.keys(PERIOD_FROM) as PeriodFrom[]).map((k) => (
@@ -126,7 +126,7 @@ export function PeriodPicker({ value, current, onChange }: { value: PeriodChoice
             type="number"
             min={0}
             step="any"
-            value={draft}
+            value={text}
             onChange={(e) => setDraft(e.target.value)}
             onBlur={commit}
             onKeyDown={(e) => e.key === "Enter" && commit()}
@@ -138,6 +138,8 @@ export function PeriodPicker({ value, current, onChange }: { value: PeriodChoice
           <span className="muted small">ps</span>
         </>
       )}
+      {value.from !== "manual" && <span className="muted small">{gets}</span>}
+      {err && <span className="small worse" role="alert">{err}</span>}
     </span>
   );
 }
@@ -248,16 +250,10 @@ export default function PerfView({ group }: { group?: string }) {
   const openBatch = useCallback((job: Job) => {
     if (job.group_id) navigate(href("/perf", { group: job.group_id }));
   }, []);
-  const projectName = project?.name ?? "";
-  const [period, setPeriodState] = useState<PeriodChoice>(() => loadPeriod(projectName));
-  const setPeriod = useCallback((p: PeriodChoice) => {
-    setPeriodState(p);
-    savePeriod(projectName, p);
-  }, [projectName]);
-  const perf = useAsync(() => api.perf(group, period), [group, period.from, period.ps]);
+  const perf = useAsync(() => api.perf(group), [group]);
   const batches = useAsync(() => api.groups("sim-all"), []);
   useServerEvents((ev) => {
-    // TPI follows the latest synth / sweep period (when it comes from them)
+    // new runs bring their own (fixed) clock period
     if (ev.type === "group.updated" || (ev.type === "run.status" && (ev.status === "done" || ev.status === "passed"))) perf.reload();
     if (ev.type === "group.updated") batches.reload();
     if (ev.type === "group.deleted") {
@@ -363,7 +359,7 @@ export default function PerfView({ group }: { group?: string }) {
       <div className="view-head">
         <h1>Performance</h1>
         <span className="muted small">
-          {scope} · cycles per instruction = cycles ÷ instructions · time per instruction = cycles per instruction × clock period
+          {scope} · cycles per instruction = cycles ÷ instructions · time per instruction = cycles per instruction × the clock period each run finished with
           {sources.length === 1 && (
             <>
               {" "}· period from <PeriodSource src={sources[0]} />
@@ -371,7 +367,7 @@ export default function PerfView({ group }: { group?: string }) {
           )}
         </span>
         <span className="spacer" />
-        <PeriodPicker value={period} current={rows.find((r) => isNum(r.period))?.period} onChange={setPeriod} />
+        <PeriodPicker />
         {picker}
         {group && current && <NameEditor what="batch" name={current.name} onSave={async (n) => { await api.renameGroup(group, n); batches.reload(); }} />}
         {group && current && (
@@ -433,7 +429,7 @@ export default function PerfView({ group }: { group?: string }) {
               <EChart option={option} height={300} chartRef={chartRef} ariaLabel={`${M.axis} for ${rows.length} programs`} />
             </div>
           </div>
-          {historyOf && <PerfHistory test={historyOf} tests={testNames} period={period} onTest={setHistoryOf} onClose={() => setHistoryOf(null)} />}
+          {historyOf && <PerfHistory test={historyOf} tests={testNames} onTest={setHistoryOf} onClose={() => setHistoryOf(null)} />}
           <div className="row" style={{ gap: 6 }}>
             <span className="muted small">
               {rows.length} {rows.length === 1 ? "program" : "programs"} · click one to see it across runs

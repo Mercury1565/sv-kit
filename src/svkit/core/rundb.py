@@ -278,6 +278,17 @@ class RunDB:
         with self._conn() as c:
             c.execute(f"UPDATE runs SET {', '.join(cols)} WHERE id = ?", (*vals, run_id))
 
+    # -------------------------------------------------------------- project settings (meta table)
+    def get_setting(self, key: str) -> Any:
+        """A project setting stored as JSON (None if never set)."""
+        with self._conn() as c:
+            row = c.execute("SELECT value FROM meta WHERE key = ?", (f"setting.{key}",)).fetchone()
+        return json.loads(row["value"]) if row else None
+
+    def set_setting(self, key: str, value: Any) -> None:
+        with self._conn() as c:
+            c.execute("INSERT OR REPLACE INTO meta VALUES (?, ?)", (f"setting.{key}", json.dumps(value, sort_keys=True)))
+
     def reap_orphans(self) -> list[str]:
         """Mark queued/running runs whose svkit process is gone (server restarted, Ctrl-C, crash) as
         cancelled, so they do not stay pending forever. Runs owned by a live process, or by a process

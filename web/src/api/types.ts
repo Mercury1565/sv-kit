@@ -82,14 +82,20 @@ export interface PerfResult {
   tpi?: number | null;
 }
 
-/** Where TPI's clock period comes from: svkit.toml's clock_period knob, the clock sweep, or a period typed in (ps). */
+/** Where sim runs take their clock period (for TPI) from as they finish: svkit.toml's clock_period knob,
+ *  the clock sweep, or a period typed in (ps). A finished run keeps its period. */
 export type PeriodFrom = "toml" | "sweep" | "manual";
 export interface PeriodChoice {
   from: PeriodFrom;
   ps?: number;   // only for "manual"
 }
+/** GET/PUT /api/perf/period: the project's choice and the period a run finishing now would get. */
+export interface PeriodState extends PeriodChoice {
+  period: number | null;
+  source: string | null;
+}
 
-/** One run of one test in GET /api/perf/history (oldest first); period = the one in effect when it ran. */
+/** One run of one test in GET /api/perf/history (oldest first); period = the one fixed when it finished. */
 export interface PerfHistoryPoint extends PerfResult {
   run_id: string;
   run_name?: string | null;
@@ -450,7 +456,8 @@ export type ServerEvent =
   | { type: "run.log"; run_id: string; line: string }
   | { type: "group.updated"; group_id: string; status: string; result?: Record<string, unknown> | null }
   | { type: "group.deleted"; group_id: string }
-  | { type: "job.updated"; job: Job };
+  | { type: "job.updated"; job: Job }
+  | { type: "perf.period"; from: PeriodFrom; ps?: number };
 
 export function isSynthResult(m: unknown): m is SynthResult {
   return !!m && typeof m === "object" && "area_by_hier" in (m as object);
