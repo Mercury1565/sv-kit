@@ -12,8 +12,8 @@ For processor designs: cycles per instruction (CPI) for every test program, and 
   period is known). Bars are sorted worst first.
 - A table per program: cycles, instructions, CPI, clock period, **TPI = CPI × clock period**, and stall
   counts by cause (for example load-use stalls and branch flushes).
-- **Where the clock period comes from**: the latest clock sweep's T_min (see [sweep.md](sweep.md)) or a
-  synthesis run, linked so you can check it.
+- **Where the clock period comes from**: the `clock_period` knob's `default` in `svkit.toml`, or, when
+  that is not set, the latest synthesis run (linked so you can check it).
 
 ## One test across runs
 
@@ -25,9 +25,9 @@ change from the previous run (red when it got worse, green when it got better). 
 that run.
 
 - Eight runs are shown at a time; *‹ Older* and *Newer ›* page through the rest.
-- Here, time per instruction uses the clock period svkit knew **when that run was made** (the latest
-  clock sweep's T_min, else the latest synthesis period, at that moment), so a faster clock from a
-  later design revision shows up in TPI. The main table uses the current period for every program.
+- Time per instruction uses the clock period from `svkit.toml` for every run. Without one, it uses the
+  synthesis period svkit knew **when that run was made**, so a faster clock from a later design
+  revision shows up in TPI.
 - Each chart has its own *Save image (PNG)*.
 
 ## Export
@@ -75,4 +75,13 @@ instrs = 'instrs\s*=\s*(\d+)'
 stalls = { load_use = 'load_use_stalls\s*=\s*(\d+)', branch = 'branch_flushes\s*=\s*(\d+)' }
 ```
 
-The numbers update whenever you rerun the tests or the sweep.
+Time per instruction uses the clock period you set in `svkit.toml` (in ps):
+
+```toml
+[knobs]
+clock_period = { file = "clock_period.txt", unit = "ps", default = 2000 }
+```
+
+Clock sweeps don't change it: after a sweep, put the T_min you want to use into `default`.
+
+The numbers update whenever you rerun the tests or edit `svkit.toml` (restart `svkit serve` to pick up the edit).

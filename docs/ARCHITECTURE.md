@@ -243,8 +243,8 @@ All JSON. Base `/api`. Errors: `{"detail": "..."}` with 4xx/5xx.
 | `GET /api/sweeps/{group_id}` | `SweepResult` |
 | `POST /api/jobs` `{kind: "sim"\|"sim-all"\|"synth"\|"matrix"\|"sweep", args:{...}}` | `{job_id}`; progress via WS. `args.name` names the run (sim, synth) or the batch (sim-all, matrix); `sim-all` takes `args.tests: [name]` to run only those (400 if not a list of strings; an unknown name fails the job) |
 | `GET /api/jobs` | `[{job_id, kind, status, run_ids, group_id}]` |
-| `GET /api/perf?group=` | `[PerfResult]` (TPI from latest sweep T_min, else latest synth period) |
-| `GET /api/perf/history?test=&limit=500` | `[PerfResult + {run_id, run_name, status, created_at, cached_from, group_id, group_name}]`, every sim run of that test with perf numbers, oldest first (the newest `limit`); `period` / `tpi` use the period in effect when that run was made (latest sweep T_min, else latest synth period, at its `created_at`; the earliest known for older runs) |
+| `GET /api/perf?group=` | `[PerfResult]` (TPI from the `clock_period` knob default in svkit.toml, else latest synth period) |
+| `GET /api/perf/history?test=&limit=500` | `[PerfResult + {run_id, run_name, status, created_at, cached_from, group_id, group_name}]`, every sim run of that test with perf numbers, oldest first (the newest `limit`); `period` / `tpi` use the `clock_period` knob default in svkit.toml; without it, the latest synth period at that run's `created_at` (the earliest known for older runs) |
 | `GET /api/waves/{run_id}/meta` | `{file, format, timescale:{factor, unit}, t_start, t_end}` |
 | `GET /api/waves/{run_id}/scope?path=` | `{path, scopes:[{name, path}], vars:[{name, path, width, kind, type?}]}` (`path=""` → top) |
 | `GET /api/waves/{run_id}/search?q=&limit=` | `[{path, width, kind}]` (substring / glob over full paths) |

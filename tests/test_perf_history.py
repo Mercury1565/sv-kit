@@ -35,7 +35,7 @@ def test_history_follows_the_period_of_its_time(tmp_path):
     _sim(db, "gcd", 9999, 1, t=600.0)                       # another test: not in fib's history
     nope = db.create_run("sim", "verilator", test="fib", status="error")   # no perf numbers: skipped
 
-    h = perf_history(db, "fib")
+    h = perf_history(C.load(tmp_path), db, "fib")
     assert [p["run_id"] for p in h] == [first.id, second.id, third.id]       # oldest first
     assert [p["cpi"] for p in h] == [2.0, 1.5, 1.2]
     assert [p["period"] for p in h] == [5000.0, 5000.0, 4000.0]
@@ -53,9 +53,22 @@ def test_history_follows_the_period_of_its_time(tmp_path):
     assert c.get("/api/perf/history").status_code == 422
 
 
+def test_history_uses_clock_period_from_svkit_toml(tmp_path):
+    (tmp_path / "svkit.toml").write_text('[project]\nname="demo"\ntop="core"\n'
+                                         '[knobs]\nclock_period = { file = "clk.txt", default = 3000 }\n')
+    db = RunDB.for_project(tmp_path)
+    _sim(db, "fib", 2000, 1000, t=100.0)
+    _synth(db, 5000.0, t=200.0)                             # ignored: svkit.toml sets the period
+    _sim(db, "fib", 1500, 1000, t=300.0)
+    h = perf_history(C.load(tmp_path), db, "fib")
+    assert [(p["period"], p["period_source"], p["tpi"]) for p in h] == \
+        [(3000.0, "svkit.toml", 6000.0), (3000.0, "svkit.toml", 4500.0)]
+
+
 def test_history_without_any_period(tmp_path):
+    (tmp_path / "svkit.toml").write_text('[project]\nname="demo"\ntop="core"\n')
     db = RunDB(tmp_path / ".svkit")
     _sim(db, "t", 10, 0, t=1.0)                             # zero instructions: no CPI, no TPI
     _sim(db, "t", 30, 10, t=2.0)
-    h = perf_history(db, "t")
+    h = perf_history(C.load(tmp_path), db, "t")
     assert [(p["cpi"], p["period"], p["tpi"]) for p in h] == [(None, None, None), (3.0, None, None)]

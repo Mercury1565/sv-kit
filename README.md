@@ -202,7 +202,7 @@ target library are marked as errors, even though DC itself exits 0.
 
 ```toml
 [knobs]
-clock_period = { file = "cpu.clock", unit = "ps", default = 40000 }   # the sweep drives this one
+clock_period = { file = "cpu.clock", unit = "ps", default = 40000 }   # the sweep drives this one; perf TPI uses default
 corner       = { tcl_var = "corner", default = "TT" }
 compile_cmd  = { tcl_replace = '^\s*compile\b.*$', with = "{value}" }   # --set compile_cmd=compile_ultra
 ```

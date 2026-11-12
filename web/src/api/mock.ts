@@ -442,15 +442,14 @@ function compareOf(st: MockState, ids: string[]): CompareResult {
 function perfOf(st: MockState, group?: string): PerfResult[] {
   if (st.dataset === "worst") {
     return [
-      { test: WORST_TESTS[0], cycles: 98765432101, instrs: 1, cpi: 98765432101, stalls: {}, period: 3250, period_source: "sweep:g_0002", tpi: 3.2e14 },
+      { test: WORST_TESTS[0], cycles: 98765432101, instrs: 1, cpi: 98765432101, stalls: {}, period: 3250, period_source: "svkit.toml", tpi: 3.2e14 },
       { test: "a", cycles: 0, instrs: 0, cpi: null, stalls: {}, period: null, period_source: null, tpi: null },
       { test: "mem_stress", cycles: 1200, instrs: 1000, cpi: 1.2, stalls: { load_use: 150, branch: 50 }, period: Number.NaN, period_source: "synth:r_0003", tpi: null },
-      ...Array.from({ length: 300 }, (_, i) => ({ test: `rv32ui-p-test_${i}`, cycles: 1000 + i * 37, instrs: 900 + i * 11, cpi: (1000 + i * 37) / (900 + i * 11), stalls: {}, period: 3250, period_source: "sweep:g_0002", tpi: ((1000 + i * 37) / (900 + i * 11)) * 3250 })),
+      ...Array.from({ length: 300 }, (_, i) => ({ test: `rv32ui-p-test_${i}`, cycles: 1000 + i * 37, instrs: 900 + i * 11, cpi: (1000 + i * 37) / (900 + i * 11), stalls: {}, period: 3250, period_source: "svkit.toml", tpi: ((1000 + i * 37) / (900 + i * 11)) * 3250 })),
     ];
   }
-  const sw = st.groups.find((g) => g.kind === "sweep");
-  const period = sw ? sweepOf(st, sw.id).t_min ?? 4000 : 4000;
-  const src = sw ? `sweep:${sw.id}` : "synth:r_0033";
+  const period = 4000;                      // the clock_period knob in svkit.toml
+  const src = "svkit.toml";
   const seen = new Map<string, PerfResult>();
   for (const r of st.runs) {
     const m = r.metrics as SimResult | null;
@@ -461,16 +460,14 @@ function perfOf(st: MockState, group?: string): PerfResult[] {
 }
 
 function perfHistoryOf(st: MockState, test: string, limit: number): PerfHistoryPoint[] {
-  const sw = st.groups.find((g) => g.kind === "sweep");
-  const period = sw ? sweepOf(st, sw.id).t_min ?? 4000 : 4000;
+  const period = 4000;                      // the clock_period knob in svkit.toml
   const out: PerfHistoryPoint[] = [];
   for (const r of [...st.runs].sort((a, b) => a.created_at - b.created_at)) {
     const m = r.metrics as SimResult | null;
     if (r.kind !== "sim" || r.test !== test || !m?.perf) continue;
-    // older runs ran at a slower clock in this demo, so TPI moves more than CPI
-    const p = period * (1 + 0.04 * (st.runs.length - st.runs.indexOf(r)) / Math.max(1, st.runs.length));
+    const p = period;
     const g = r.group_id ? st.groups.find((x) => x.id === r.group_id) : undefined;
-    out.push({ ...m.perf, period: p, period_source: sw ? `sweep:${sw.id}` : null, tpi: m.perf.cpi != null ? m.perf.cpi * p : null,
+    out.push({ ...m.perf, period: p, period_source: "svkit.toml", tpi: m.perf.cpi != null ? m.perf.cpi * p : null,
       run_id: r.id, run_name: r.name ?? null, status: r.status, created_at: r.created_at, cached_from: r.cached_from ?? null,
       group_id: r.group_id ?? null, group_name: g?.name ?? null });
   }

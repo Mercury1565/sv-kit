@@ -15,7 +15,7 @@ def _sim(db, test, cycles, instrs, group=None, cpi=None):
     return r
 
 
-def test_tpi_follows_latest_synth_then_sweep(tmp_path):
+def test_tpi_falls_back_to_latest_synth(tmp_path):
     cfg = _cfg(tmp_path)
     db = RunDB.for_project(tmp_path)
     _sim(db, "fib", 1000, 500, cpi=2.0)
@@ -26,7 +26,7 @@ def test_tpi_follows_latest_synth_then_sweep(tmp_path):
     rows = perf_table(cfg, db)
     assert [p.test for p in rows] == ["fib", "sort"]
     assert rows[1].cpi == 1.5
-    assert all(p.tpi is None and p.period is None for p in rows)       # no synth / sweep yet
+    assert all(p.tpi is None and p.period is None for p in rows)       # no clock_period knob, no synth yet
 
     s1 = db.create_run("synth", "yosys", status="done")
     db.update_run(s1.id, metrics={"tool": "yosys", "top": "core", "period": 2000.0})
@@ -39,15 +39,24 @@ def test_tpi_follows_latest_synth_then_sweep(tmp_path):
     assert perf_table(cfg, db)[0].tpi == 3200.0
     assert err.id
 
-    running = db.create_group("sweep", {"tol": 50})                       # unfinished sweep: ignored
-    db.update_group(running.id, result={"group_id": running.id, "tol": 50, "t_min": 900.0, "status": "running"})
-    assert perf_table(cfg, db)[0].period == 1600.0
-    g = db.create_group("sweep", {"tol": 50})
+    g = db.create_group("sweep", {"tol": 50})                             # a finished sweep is not used
     db.update_group(g.id, status="done", result={"group_id": g.id, "tol": 50, "t_min": 1250.0, "status": "done"})
+    assert current_period(cfg, db) == (1600.0, f"synth:{s2.id}")
+
+
+def test_tpi_uses_clock_period_from_svkit_toml(tmp_path):
+    (tmp_path / "svkit.toml").write_text('[project]\nname="demo"\ntop="core"\n'
+                                         '[knobs]\nclock_period = { file = "clk.txt", unit = "ns", default = 1250 }\n')
+    cfg = C.load(tmp_path)
+    db = RunDB.for_project(tmp_path)
+    _sim(db, "fib", 1000, 500, cpi=2.0)
+    s = db.create_run("synth", "yosys", status="done")                   # svkit.toml wins over synth and sweep
+    db.update_run(s.id, metrics={"tool": "yosys", "top": "core", "period": 2000.0})
+    g = db.create_group("sweep", {"tol": 50})
+    db.update_group(g.id, status="done", result={"group_id": g.id, "tol": 50, "t_min": 900.0, "status": "done"})
     rows = perf_table(cfg, db)
-    assert rows[0].period == 1250.0 and rows[0].period_source == f"sweep:{g.id}"
-    assert rows[0].tpi == 2500.0 and rows[1].tpi == 1875.0
-    assert current_period(db) == (1250.0, f"sweep:{g.id}")
+    assert rows[0].period == 1250.0 and rows[0].period_source == "svkit.toml" and rows[0].tpi == 2500.0
+    assert current_period(cfg, db) == (1250.0, "svkit.toml")
 
 
 def test_latest_run_per_test_and_group_filter(tmp_path):

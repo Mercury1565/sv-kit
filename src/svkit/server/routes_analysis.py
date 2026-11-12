@@ -49,7 +49,7 @@ def make_router(st) -> APIRouter:
     @r.get("/perf/history")
     def perf_history(test: str, limit: int = Query(500, ge=1, le=5000)) -> list[dict[str, Any]]:
         """One test's perf over every run of it, oldest first."""
-        return PF.perf_history(st.db, test, limit=limit)
+        return PF.perf_history(st.cfg, st.db, test, limit=limit)
 
     @r.get("/runs/{rid}/divergence")
     def divergence(rid: str) -> dict[str, Any]:
