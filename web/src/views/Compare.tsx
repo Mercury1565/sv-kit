@@ -2,7 +2,7 @@ import { useState } from "react";
 import { api } from "../api/client";
 import type { CompareResult, MetricDelta } from "../api/types";
 import { Empty, ErrorState, Loading } from "../components/States";
-import { compareCell, compareCsv, compareRows, withBaseline, type CompareLevel } from "../lib/compare";
+import { compareCell, compareCsv, compareRows, moveItem, permuteCompare, type CompareLevel } from "../lib/compare";
 import { readTheme } from "../components/EChart";
 import { downloadDataUrl, downloadText, fileSlug } from "../lib/download";
 import { tablePng, type ImgCell, type TableImage } from "../lib/tableImage";
@@ -54,32 +54,81 @@ export function compareImage(cmp: CompareResult, metrics: MetricDelta[], level: 
   };
 }
 
-export function CompareTable({ cmp, onBaseline, metrics = cmp.metrics }: { cmp: CompareResult; onBaseline?: (idx: number) => void; metrics?: MetricDelta[] }) {
+const MOVE_BTN = { height: 18, minWidth: 18, padding: "0 4px", fontSize: 11 } as const;
+
+/**
+ * onMove(from, to): put column `from` at position `to`. Drag a column header onto another, or use its
+ * ‹ › buttons. Whatever ends up first is the baseline.
+ */
+export function CompareTable({ cmp, onMove, metrics = cmp.metrics }: { cmp: CompareResult; onMove?: (from: number, to: number) => void; metrics?: MetricDelta[] }) {
+  const [drag, setDrag] = useState<number | null>(null);
+  const [over, setOver] = useState<number | null>(null);
+  const n = cmp.run_ids.length;
+  const endDrag = () => {
+    setDrag(null);
+    setOver(null);
+  };
   return (
     <div className="scroll panel">
       <table className="t" aria-label="Run comparison">
         <thead>
           <tr>
             <th>Metric</th>
-            {cmp.run_ids.map((id, i) => (
-              <th key={id} className="num" style={{ minWidth: 120, maxWidth: 240 }}>
-                <div className="ellipsis" title={cmp.labels[i]} style={{ maxWidth: 240 }}>
-                  {cmp.labels[i]}
-                </div>
-                <div className="row" style={{ justifyContent: "flex-end", gap: 6, fontWeight: 400 }}>
-                  <a className="mono" href={`#/synth/${id}`}>
-                    {id}
-                  </a>
-                  {i === 0 ? (
-                    <span className="chip">baseline</span>
-                  ) : onBaseline ? (
-                    <button className="ghost" style={{ height: 18, padding: "0 4px", fontSize: 11 }} onClick={() => onBaseline(i)}>
-                      make baseline
-                    </button>
-                  ) : null}
-                </div>
-              </th>
-            ))}
+            {cmp.run_ids.map((id, i) => {
+              const target = drag !== null && over === i && drag !== i ? (drag < i ? "drop-after" : "drop-before") : "";
+              return (
+                <th
+                  key={id}
+                  className={`num ${onMove ? "movable" : ""} ${drag === i ? "dragging" : ""} ${target}`}
+                  style={{ minWidth: 120, maxWidth: 240 }}
+                  draggable={!!onMove}
+                  onDragStart={(e) => {
+                    setDrag(i);
+                    e.dataTransfer.effectAllowed = "move";
+                    e.dataTransfer.setData("text/plain", id);
+                  }}
+                  onDragOver={(e) => {
+                    if (drag === null) return;
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = "move";
+                    if (over !== i) setOver(i);
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    if (drag !== null && drag !== i) onMove?.(drag, i);
+                    endDrag();
+                  }}
+                  onDragEnd={endDrag}
+                  title={onMove ? "Drag to reorder; the first column is the baseline" : undefined}
+                >
+                  <div className="ellipsis" title={cmp.labels[i]} style={{ maxWidth: 240 }}>
+                    {cmp.labels[i]}
+                  </div>
+                  <div className="row" style={{ justifyContent: "flex-end", gap: 4, fontWeight: 400 }}>
+                    <a className="mono" href={`#/synth/${id}`} draggable={false}>
+                      {id}
+                    </a>
+                    {i === 0 ? (
+                      <span className="chip">baseline</span>
+                    ) : onMove ? (
+                      <button className="ghost" style={MOVE_BTN} onClick={() => onMove(i, 0)}>
+                        make baseline
+                      </button>
+                    ) : null}
+                    {onMove && (
+                      <span className="col-move">
+                        <button className="ghost" style={MOVE_BTN} onClick={() => onMove(i, i - 1)} disabled={i === 0} aria-label={`Move ${id} left${i === 1 ? " (it becomes the baseline)" : ""}`} title={i === 1 ? "Move left: becomes the baseline" : "Move left"}>
+                          ‹
+                        </button>
+                        <button className="ghost" style={MOVE_BTN} onClick={() => onMove(i, i + 1)} disabled={i === n - 1} aria-label={`Move ${id} right${i === 0 ? " (the next run becomes the baseline)" : ""}`} title={i === 0 ? "Move right: the next run becomes the baseline" : "Move right"}>
+                          ›
+                        </button>
+                      </span>
+                    )}
+                  </div>
+                </th>
+              );
+            })}
           </tr>
         </thead>
         <tbody>
@@ -142,20 +191,30 @@ export default function CompareView({ ids }: { ids: string[] }) {
     <div className="view">
       <div className="view-head">
         <h1>Compare</h1>
-        <span className="muted small">{ids.length} runs · first column is the baseline · ▲ better ▼ worse</span>
+        <span className="muted small">{ids.length} runs · first column is the baseline · drag a column (or use ‹ ›) to reorder · ▲ better ▼ worse</span>
       </div>
       {cmp.error ? (
         <ErrorState error={cmp.error} feature="Run comparison" onRetry={cmp.reload} />
       ) : !cmp.data ? (
         <Loading what="Comparing" />
       ) : (
-        <CompareBody cmp={cmp.data} ids={ids} level={level} setLevel={setLevel} />
+        <CompareBody
+          cmp={cmp.data}
+          level={level}
+          setLevel={setLevel}
+          onMove={(from, to) => {
+            const order = moveItem(cmp.data!.run_ids, from, to);
+            // the baseline stays first: just move the cells; a new baseline needs new deltas from the server
+            if (from !== 0 && to !== 0) cmp.setData((d) => (d ? permuteCompare(d, from, to) : d));
+            navigate(`/compare?ids=${order.join(",")}`);
+          }}
+        />
       )}
     </div>
   );
 }
 
-function CompareBody({ cmp, ids, level, setLevel }: { cmp: CompareResult; ids: string[]; level: CompareLevel; setLevel: (l: CompareLevel) => void }) {
+function CompareBody({ cmp, level, setLevel, onMove }: { cmp: CompareResult; level: CompareLevel; setLevel: (l: CompareLevel) => void; onMove: (from: number, to: number) => void }) {
   const rows = compareRows(cmp, level);
   const hidden = cmp.metrics.length - compareRows(cmp, "basic").length;
   const base = `compare-${cmp.run_ids.map(fileSlug).join("-").slice(0, 80)}-${level}`;
@@ -204,7 +263,7 @@ function CompareBody({ cmp, ids, level, setLevel }: { cmp: CompareResult; ids: s
       </div>
       {error && <div className="small worse">Could not save the image: {error}</div>}
       {rows.length ? (
-        <CompareTable cmp={cmp} metrics={rows} onBaseline={(i) => navigate(`/compare?ids=${withBaseline(ids, i).join(",")}`)} />
+        <CompareTable cmp={cmp} metrics={rows} onMove={onMove} />
       ) : (
         <Empty title="None of these runs reported timing, area, power or cell counts">
           {hidden > 0 ? <>Switch to <b>Advanced</b> to see the other {hidden} rows.</> : "Check the runs' logs in Synthesis."}

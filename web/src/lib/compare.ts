@@ -111,3 +111,27 @@ export function compareCsv(cmp: CompareResult, metrics: MetricDelta[]): string {
   });
   return toCsv(header, rows);
 }
+
+// ------------------------------------------------------------------ reordering columns
+/** Move the item at `from` to position `to` (the others shift to make room). */
+export function moveItem<T>(xs: readonly T[], from: number, to: number): T[] {
+  const out = xs.slice();
+  if (from < 0 || from >= xs.length || to < 0 || to >= xs.length || from === to) return out;
+  const [x] = out.splice(from, 1);
+  out.splice(to, 0, x);
+  return out;
+}
+
+/**
+ * The same comparison with its columns in a new order, without asking the server. Valid only while the
+ * baseline (column 0) stays first: every change is measured against it, so the cells just move along.
+ */
+export function permuteCompare(cmp: CompareResult, from: number, to: number): CompareResult {
+  const order = moveItem(cmp.run_ids.map((_, i) => i), from, to);
+  const pick = <T,>(xs: T[]) => order.map((i) => xs[i]);
+  return {
+    run_ids: pick(cmp.run_ids),
+    labels: pick(cmp.labels),
+    metrics: cmp.metrics.map((m) => ({ ...m, values: pick(m.values), deltas: pick(m.deltas), pct: pick(m.pct), verdict: pick(m.verdict) })),
+  };
+}

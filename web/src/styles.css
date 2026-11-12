@@ -518,3 +518,11 @@ button.danger:hover:not(:disabled) { background: color-mix(in srgb, var(--bad) 1
 /* text for screen readers only; positioned within its cell so it never widens the page */
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 table.t td { position: relative; }
+
+/* compare: reorderable run columns */
+table.t th.movable { cursor: grab; user-select: none; }
+table.t th.dragging { opacity: 0.5; }
+table.t th.drop-before { box-shadow: inset 3px 0 0 var(--accent); }
+table.t th.drop-after { box-shadow: inset -3px 0 0 var(--accent); }
+.col-move { display: inline-flex; gap: 0; }
+

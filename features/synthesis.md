@@ -72,6 +72,11 @@ column is the baseline; every other cell shows the change from it, marked better
 direction that matters for that metric (less area is better, more slack is better). Any run can be made
 the baseline.
 
+**Reorder the columns** by dragging a run's header onto another column, or with its *‹ ›* buttons.
+Whatever ends up first is the baseline, and every change is measured against it again. The order is
+kept in the page address, so a bookmarked or shared compare opens the same way, and the image and CSV
+exports follow it.
+
 ![Compare table of three synthesis experiments against a baseline](images/compare.png)
 
 - **Basic / Advanced.** *Basic* (the default) shows the headline rows: setup and hold slack, clock

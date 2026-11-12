@@ -404,3 +404,21 @@ svkit serve   # Synthesis → tick runs → Compare → Basic / Advanced, Save i
 (cd web && npx vitest run src/lib/compareExport.test.ts)
 ```
 
+## Iteration 14 — 2026-11-12 — Reorder compare columns
+**Status:** done
+**What works now:**
+- **Compare: drag a run's column header onto another column** (or use its *‹ ›* buttons) to reorder. Moving a run to the first column makes it the baseline; *make baseline* still works. The PNG and CSV exports follow the order.
+**Decisions made (and why):**
+- The order lives in the URL (`?ids=`), as the baseline already did, so a reordered compare can be bookmarked or shared, and Back undoes a move.
+- Moves that keep the baseline just move the cells in the browser (`permuteCompare`), so the table updates instantly; a new baseline asks the server again, because every change must be measured against it with the server's rule for "same".
+- Buttons next to drag-and-drop: drag alone works for mouse users only.
+**Known gaps / risks:**
+- HTML drag-and-drop does not work with touch on phones; the *‹ ›* buttons do.
+**Next iteration plan:**
+- Same as iteration 7.
+**How to see it:**
+```
+svkit serve   # Synthesis → tick runs → Compare → drag a column header
+(cd web && npx vitest run src/views/compareReorder.test.tsx)
+```
+
