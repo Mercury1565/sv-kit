@@ -111,7 +111,7 @@ Over SSH, forward the port from your laptop with `ssh -L 3572:localhost:3572 <se
 | `svkit sweep clock [--tol 50] [--jobs N] [--start PS] [--flow NAME]` | Search for the minimum clock period. |
 | `svkit xtrace <hier.signal> @<time> [--run ID] [--depth N] [--json]` | Trace an X to its root cause in the latest (or given) sim run's waves. |
 | `svkit runs ls \| show <id> \| diff <a> <b> \| tag <id> <tag>` | Browse recorded Runs. |
-| `svkit runs rm <id>... [-y]` | Remove runs and their files (asks first). Runs that reused a removed run's result keep working. |
+| `svkit runs rm <id>... [-y]` | Remove runs and their files (asks first). A batch id (`g_0005`) removes the whole batch. Runs that reused a removed run's result keep working. |
 | `svkit rename <run or batch id> [NAME]` | Give a run (`r_0012`) or a batch (`g_0004`) your own name; leave the name out to remove it. |
 | `svkit serve [--port 3572] [--host 127.0.0.1]` | Start the dashboard. |
 | `svkit update [--check] [--to TAG] [--force]` | Install the latest GitHub release if it is newer than the installed svkit; otherwise do nothing. |

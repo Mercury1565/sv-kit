@@ -903,6 +903,17 @@ export class MockBackend implements Transport {
         this.emit({ type: "group.updated", group_id: g.id, status: g.status });
         return g;
       }
+      if (method === "DELETE") {
+        const mine = st.runs.filter((r) => r.group_id === g.id);
+        const busy = mine.filter((r) => r.status === "queued" || r.status === "running");
+        if (busy.length) throw new ApiError(409, `batch ${g.id} still has ${busy.length} queued or running runs: cancel them first`, path);
+        const ids = new Set(mine.map((r) => r.id));
+        st.runs = st.runs.filter((r) => !ids.has(r.id)).map((r) => (r.cached_from && ids.has(r.cached_from) ? { ...r, cached_from: null } : r));
+        st.groups = st.groups.filter((x) => x.id !== g.id);
+        for (const id of ids) this.emit({ type: "run.deleted", run_id: id });
+        this.emit({ type: "group.deleted", group_id: g.id });
+        return { deleted: g.id, runs: [...ids], changed: [] };
+      }
       return { ...g, runs: st.runs.filter((r) => r.group_id === g.id).map(summary) };
     }
     if (path === "/api/compare") return compareOf(st, (s("ids") ?? "").split(",").filter(Boolean));

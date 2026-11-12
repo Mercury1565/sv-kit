@@ -188,6 +188,22 @@ def create_app(cfg: Config) -> FastAPI:
         st.bus.publish({"type": "group.updated", "group_id": gid, "status": g.status, "name": g.name})
         return g.to_dict()
 
+    @api.delete("/groups/{gid}")
+    def delete_group(gid: str) -> dict[str, Any]:
+        """Remove a batch and all its runs (see RunDB.delete_group); 409 while any of its runs is busy."""
+        try:
+            removed, changed = st.db.delete_group(gid)
+        except KeyError:
+            raise HTTPException(404, f"no group {gid}")
+        except ValueError as e:
+            raise HTTPException(409, str(e))
+        for rid in removed:
+            st.bus.publish({"type": "run.deleted", "run_id": rid})
+        for cid in changed:
+            st.bus.publish({"type": "run.updated", "run": run_summary(st.db.get_run(cid))})
+        st.bus.publish({"type": "group.deleted", "group_id": gid})
+        return {"deleted": gid, "runs": removed, "changed": changed}
+
     def _name_arg(body: dict) -> Optional[str]:
         if "name" not in body:
             raise HTTPException(400, "name required (empty or null removes it)")

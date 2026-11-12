@@ -143,6 +143,8 @@ export const api = {
   group: (id: string) => req<Group>("GET", `/api/groups/${enc(id)}`),
   /** Name a batch (sim --all, matrix, sweep); an empty name removes it. */
   renameGroup: (id: string, name: string) => req<Group>("PATCH", `/api/groups/${enc(id)}`, undefined, { name }),
+  /** Remove a batch with all its runs and their files (409 while any of them is queued or running). */
+  deleteGroup: (id: string) => req<{ deleted: string; runs: string[]; changed: string[] }>("DELETE", `/api/groups/${enc(id)}`),
 
   compare: (ids: string[]) => req<CompareResult>("GET", "/api/compare", { ids: ids.join(",") }),
   sweep: (gid: string) => req<SweepResult>("GET", `/api/sweeps/${enc(gid)}`),

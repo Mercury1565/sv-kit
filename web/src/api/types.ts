@@ -442,6 +442,7 @@ export type ServerEvent =
   | { type: "run.deleted"; run_id: string }
   | { type: "run.log"; run_id: string; line: string }
   | { type: "group.updated"; group_id: string; status: string; result?: Record<string, unknown> | null }
+  | { type: "group.deleted"; group_id: string }
   | { type: "job.updated"; job: Job };
 
 export function isSynthResult(m: unknown): m is SynthResult {

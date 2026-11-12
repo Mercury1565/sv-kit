@@ -121,3 +121,57 @@ def test_cli_rm(tmp_path, monkeypatch):
     assert "try 1" in res.output and f"removed {a.id}" in res.output and f"removed {b.id}" in res.output
     assert db.list_runs() == []
     assert cli.invoke(app, ["runs", "rm", "r_0099", "-y"]).exit_code != 0
+
+
+def _sim(db, gid, test, status="passed"):
+    r = db.create_run("sim", "verilator", test=test, status=status, group_id=gid)
+    (db.run_dir(r.id) / "svkit.log").write_text("log\n")
+    db.update_run(r.id, metrics={"cycles": 100, "instrs": 50})
+    return db.get_run(r.id)
+
+
+def test_delete_group_removes_the_batch_and_only_its_runs(tmp_path):
+    db = RunDB(tmp_path / ".svkit")
+    g1, g2 = db.create_group("sim-all", {"tests": ["a", "b"]}), db.create_group("sim-all", {"tests": ["a"]})
+    a1, b1, a2 = _sim(db, g1.id, "a"), _sim(db, g1.id, "b"), _sim(db, g2.id, "a")
+    outside = _reuse(db, a1)                                # reused a result of the removed batch
+    removed, changed = db.delete_group(g1.id)
+    assert removed == [a1.id, b1.id] and changed == [outside.id]
+    with pytest.raises(KeyError):
+        db.get_group(g1.id)
+    assert {r.id for r in db.list_runs()} == {a2.id, outside.id}
+    assert not (db.runs_dir / a1.id).exists() and not (db.runs_dir / b1.id).exists()
+    assert db.get_run(outside.id).cached_from is None and (db.runs_dir / outside.id / "svkit.log").is_file()
+    assert db.get_group(g2.id)
+    assert db.create_group("sim-all", {}).id == "g_0003"    # batch ids are not reused either
+    with pytest.raises(KeyError):
+        db.delete_group(g1.id)
+
+
+def test_delete_group_refuses_while_running_and_removes_nothing(tmp_path):
+    db = RunDB(tmp_path / ".svkit")
+    g = db.create_group("sim-all", {})
+    done, busy = _sim(db, g.id, "a"), _sim(db, g.id, "b", status="running")
+    with pytest.raises(ValueError, match="queued or running"):
+        db.delete_group(g.id)
+    assert db.get_run(done.id) and db.get_run(busy.id) and db.get_group(g.id)
+
+
+def test_delete_group_route_and_cli(tmp_path, monkeypatch):
+    from svkit.cli import app
+    (tmp_path / "svkit.toml").write_text('[project]\nname="demo"\ntop="core"\n')
+    monkeypatch.chdir(tmp_path)
+    db = RunDB.for_project(tmp_path)
+    g1, g2, g3 = (db.create_group("sim-all", {}) for _ in range(3))
+    r1 = _sim(db, g1.id, "a")
+    _sim(db, g2.id, "a")
+    _sim(db, g3.id, "a", status="queued")
+    c = TestClient(create_app(C.load(tmp_path)))
+    res = c.delete(f"/api/groups/{g1.id}")
+    assert res.status_code == 200 and res.json() == {"deleted": g1.id, "runs": [r1.id], "changed": []}
+    assert c.get(f"/api/groups/{g1.id}").status_code == 404
+    assert c.delete(f"/api/groups/{g1.id}").status_code == 404
+    assert c.delete(f"/api/groups/{g3.id}").status_code == 409
+    res = CliRunner().invoke(app, ["runs", "rm", g2.id, "-y"])
+    assert res.exit_code == 0 and f"removed batch {g2.id} (1 run)" in res.output, res.output
+    assert [g.id for g in db.list_groups()] == [g3.id]

@@ -244,11 +244,25 @@ def runs_diff(a: str, b: str):
 
 
 @runs_app.command("rm")
-def runs_rm(run_ids: List[str] = typer.Argument(..., help="Run ids, e.g. r_0012 r_0013"),
+def runs_rm(run_ids: List[str] = typer.Argument(..., help="Run ids (r_0012) or batch ids (g_0003: the whole batch)"),
             yes: bool = typer.Option(False, "--yes", "-y", help="Do not ask for confirmation")):
-    """Remove runs and their files. Runs that reused a removed run's result keep working."""
+    """Remove runs and their files; a batch id (g_...) removes that whole batch. Runs that reused a
+    removed run's result keep working."""
     from svkit.core.rundb import RunDB
     db = RunDB.for_project(_cfg().root)
+    batches = [i for i in run_ids if i.startswith("g_")]
+    run_ids = [i for i in run_ids if not i.startswith("g_")]
+    for gid in batches:
+        try:
+            g = db.get_group(gid)
+        except KeyError:
+            typer.secho(f"no batch {gid}", fg="red", err=True)
+            raise typer.Exit(EXIT_FAIL)
+        n = db.count_runs(group_id=gid)
+        typer.echo(f"  {gid}  {g.kind:<12} {g.name or ''} ({n} run{'s' if n != 1 else ''})")
+    if batches and not run_ids:
+        if not yes and not typer.confirm(f"Remove {len(batches)} batch{'es' if len(batches) != 1 else ''} with all their runs and files?"):
+            raise typer.Exit(EXIT_FAIL)
     runs = []
     for rid in run_ids:
         try:
@@ -258,9 +272,18 @@ def runs_rm(run_ids: List[str] = typer.Argument(..., help="Run ids, e.g. r_0012 
             raise typer.Exit(EXIT_FAIL)
     for r in runs:
         typer.echo(f"  {r.id}  {r.kind:<12} {r.name or r.test or r.experiment or ''}")
-    if not yes and not typer.confirm(f"Remove {len(runs)} run{'s' if len(runs) != 1 else ''} and their files?"):
+    if runs and not yes and not typer.confirm(
+            f"Remove {len(runs)} run{'s' if len(runs) != 1 else ''}{' and the batches above' if batches else ''} and their files?"):
         raise typer.Exit(EXIT_FAIL)
     failed = False
+    for gid in batches:
+        try:
+            removed, _ = db.delete_group(gid)
+        except ValueError as e:
+            typer.secho(str(e), fg="red", err=True)
+            failed = True
+            continue
+        typer.echo(f"removed batch {gid} ({len(removed)} run{'s' if len(removed) != 1 else ''})")
     for r in runs:
         try:
             changed = db.delete_run(r.id)

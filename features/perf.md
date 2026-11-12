@@ -50,6 +50,9 @@ every test across all runs.
   and run them. The page switches to the new batch when it finishes. Your choice of tests is
   remembered for next time.
 - **Rename a batch** with the pencil next to its name (or *+ Add a name*). Names show in the dropdown.
+- **Remove a batch** you ran by mistake: pick it in the dropdown, then *Remove batch*. svkit asks once,
+  then deletes that batch's runs and their files; other batches are not touched. A batch with tests
+  still running is kept until they finish or are cancelled.
 
 From the CLI:
 
@@ -57,6 +60,7 @@ From the CLI:
 svkit sim fib gcd copy --name "after the fix"   # these tests, as one named batch
 svkit sim --all --name nightly                  # every test
 svkit rename g_0004 "before the fix"            # name (or rename) a batch later
+svkit runs rm g_0005                            # remove a batch and its runs (asks first)
 ```
 
 ## Setup

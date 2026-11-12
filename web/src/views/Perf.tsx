@@ -4,6 +4,7 @@ import { api } from "../api/client";
 import type { Group, Job, PerfResult, Suite } from "../api/types";
 import { JobButton } from "../components/JobButton";
 import { NameEditor, NAME_MAX } from "../components/NameEditor";
+import { RemoveBatchConfirm } from "../components/RemoveBatch";
 import { useApp } from "../lib/appState";
 import { projectSuites } from "./Tests";
 import { axisStyle, baseOption, chartPng, EChart, type ChartTheme } from "../components/EChart";
@@ -162,6 +163,7 @@ export default function PerfView({ group }: { group?: string }) {
   const suites = useMemo(() => projectSuites(project), [project]);
   const suite = suites.find((s) => s.default) ?? suites[0];
   const [picking, setPicking] = useState(false);
+  const [removing, setRemoving] = useState<string | null>(null);   // the batch id being confirmed
   const openBatch = useCallback((job: Job) => {
     if (job.group_id) navigate(href("/perf", { group: job.group_id }));
   }, []);
@@ -171,6 +173,11 @@ export default function PerfView({ group }: { group?: string }) {
     // TPI follows the latest synth / sweep period
     if (ev.type === "group.updated" || (ev.type === "run.status" && (ev.status === "done" || ev.status === "passed"))) perf.reload();
     if (ev.type === "group.updated") batches.reload();
+    if (ev.type === "group.deleted") {
+      batches.reload();
+      if (ev.group_id === group) navigate(href("/perf", {}));
+      else perf.reload();
+    }
   });
   const current = (batches.data ?? []).find((g) => g.id === group);
   const batchList = useMemo(() => [...(batches.data ?? [])].sort((a, b) => b.created_at - a.created_at), [batches.data]);
@@ -279,10 +286,27 @@ export default function PerfView({ group }: { group?: string }) {
         <span className="spacer" />
         {picker}
         {group && current && <NameEditor what="batch" name={current.name} onSave={async (n) => { await api.renameGroup(group, n); batches.reload(); }} />}
+        {group && current && (
+          <button onClick={() => setRemoving((r) => (r === group ? null : group))} aria-expanded={removing === group} title="Remove this batch with all its runs and their files">
+            Remove batch
+          </button>
+        )}
         <button className={picking ? "" : "primary"} onClick={() => setPicking((p) => !p)} disabled={!suite?.flow || !suite.tests.length} aria-expanded={picking} title="Choose which tests to run, then run them as one batch">
           Run tests…
         </button>
       </div>
+      {removing && removing === group && current && (
+        <RemoveBatchConfirm
+          group={current}
+          runs={Array.isArray(current.params?.tests) ? (current.params.tests as unknown[]).length : undefined}
+          onCancel={() => setRemoving(null)}
+          onRemoved={() => {
+            setRemoving(null);
+            batches.reload();
+            navigate(href("/perf", {}));
+          }}
+        />
+      )}
       {picking && suite && <TestPicker suite={suite} project={project?.name ?? ""} onClose={() => setPicking(false)} onDone={openBatch} />}
       {rows.length === 0 && group ? (
         <Empty title={`No performance data in batch ${group}`}>

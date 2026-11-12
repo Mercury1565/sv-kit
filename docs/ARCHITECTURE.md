@@ -238,6 +238,7 @@ All JSON. Base `/api`. Errors: `{"detail": "..."}` with 4xx/5xx.
 | `PATCH /api/runs/{id}` `{name}` | `Run`; empty or null name removes it; emits `run.updated` |
 | `GET /api/groups?kind=` / `GET /api/groups/{id}` | `[Group]` / `Group` (+ `runs: [RunSummary]`) |
 | `PATCH /api/groups/{id}` `{name}` | `Group`; empty or null name removes it; emits `group.updated` |
+| `DELETE /api/groups/{id}` | `{deleted, runs:[ids], changed:[ids]}`; 404 unknown, 409 when any of its runs is queued/running (then nothing is removed). Removes every run of the batch as `DELETE /api/runs/{id}` does (oldest first), then the batch; `changed` lists runs outside the batch that took over a removed result. Emits `run.deleted` per run, `run.updated` per changed run, then `group.deleted {group_id}` |
 | `GET /api/compare?ids=r_1,r_2,...` | `CompareResult` (first id = baseline) |
 | `GET /api/sweeps/{group_id}` | `SweepResult` |
 | `POST /api/jobs` `{kind: "sim"\|"sim-all"\|"synth"\|"matrix"\|"sweep", args:{...}}` | `{job_id}`; progress via WS. `args.name` names the run (sim, synth) or the batch (sim-all, matrix); `sim-all` takes `args.tests: [name]` to run only those (400 if not a list of strings; an unknown name fails the job) |
@@ -261,7 +262,7 @@ All JSON. Base `/api`. Errors: `{"detail": "..."}` with 4xx/5xx.
 | ↳ `Schematic` | `netlist` = one Yosys-JSON module (`{modules:{name:{attributes:{top:1}, ports, cells}}}`) drawn by netlistsvg in the browser; `cells` = per drawn cell/port key `{kind: instance\|logic\|port\|cell, name, module?, type?, symbol?, on_path?, delay?}`; `path_nets` = netlistsvg wire classes (`net_<bits>`) on the critical path. Cell types are Yosys gate names (`$_NAND_`, ...) and `$svkit_*` (`$svkit_nand3`, `$svkit_dffr`, `$svkit_box_<width>`), one template each in `web/src/lib/schematic-skin.svg` |
 | `GET /api/xtrace?run=&signal=&time=&depth=` | `XTraceNode` |
 | `GET /api/source?file=&line=&context=` | `{file, start, lines:[...]}` (only files inside the project root) |
-| `WS /ws/events` | stream of events (`run.created`, `run.status`, `run.updated`, `run.log`, `group.updated`, `job.updated`); `group.updated` is also sent when a batch starts |
+| `WS /ws/events` | stream of events (`run.created`, `run.status`, `run.updated`, `run.log`, `group.updated`, `group.deleted`, `job.updated`); `group.updated` is also sent when a batch starts |
 
 Static UI is served from `/` (SPA fallback to `index.html`). The server binds `127.0.0.1` by default;
 use `ssh -L 3572:localhost:3572 host`.

@@ -431,6 +431,26 @@ class RunDB:
         with self._conn() as c:
             c.execute(f"UPDATE groups SET {', '.join(cols)} WHERE id = ?", (*vals, gid))
 
+    def delete_group(self, gid: str) -> tuple[list[str], list[str]]:
+        """Remove a batch (sim --all, matrix, sweep): every run in it, their files, and the batch itself.
+        Returns (removed run ids, ids of runs outside the batch that changed; see delete_run).
+        Raises KeyError for an unknown batch, ValueError when any of its runs is still queued or running
+        (then nothing is removed)."""
+        self.get_group(gid)
+        runs = sorted(self.list_runs(group_id=gid, limit=1_000_000), key=lambda r: (r.created_at, r.id))
+        busy = [r.id for r in runs if r.status in ("queued", "running")]
+        if busy:
+            raise ValueError(f"batch {gid} still has {len(busy)} queued or running "
+                             f"run{'s' if len(busy) != 1 else ''} ({', '.join(busy[:3])}{', ...' if len(busy) > 3 else ''}): cancel them first")
+        removed: list[str] = []
+        changed: set[str] = set()
+        for r in runs:
+            changed.update(self.delete_run(r.id))
+            removed.append(r.id)
+        with self._conn() as c:
+            c.execute("DELETE FROM groups WHERE id = ?", (gid,))
+        return removed, sorted(changed - set(removed))
+
     def get_group(self, gid: str) -> Group:
         with self._conn() as c:
             row = c.execute("SELECT * FROM groups WHERE id = ?", (gid,)).fetchone()
