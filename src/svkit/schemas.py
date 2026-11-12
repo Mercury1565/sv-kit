@@ -133,7 +133,7 @@ class PerfResult(_Model):
     cpi: Optional[float] = None
     stalls: dict[str, int] = Field(default_factory=dict)
     period: Optional[float] = None        # ps used for TPI
-    period_source: Optional[str] = None   # where the period came from: "svkit.toml" or "synth:<run id>"
+    period_source: Optional[str] = None   # "svkit.toml", "sweep:<id>", "synth:<id>" or "manual"
     tpi: Optional[float] = None           # ps per instruction = cpi * period
 
 

@@ -9,7 +9,7 @@ import type {
   Group,
   Job,
   JobKind,
-  PerfHistoryPoint, PerfResult,
+  PerfHistoryPoint, PerfResult, PeriodChoice,
   Project,
   Run,
   RunSummary,
@@ -110,6 +110,12 @@ function req<T>(method: string, path: string, query?: Query, body?: unknown): Pr
 
 const enc = encodeURIComponent;
 
+/** Query params for a clock-period choice; nothing for the default (svkit.toml). */
+function periodQuery(p?: PeriodChoice): Query {
+  if (!p || p.from === "toml") return {};
+  return p.from === "manual" ? { period_from: "manual", period: p.ps } : { period_from: p.from };
+}
+
 export const api = {
   project: () => req<Project>("GET", "/api/project"),
 
@@ -148,8 +154,9 @@ export const api = {
 
   compare: (ids: string[]) => req<CompareResult>("GET", "/api/compare", { ids: ids.join(",") }),
   sweep: (gid: string) => req<SweepResult>("GET", `/api/sweeps/${enc(gid)}`),
-  perf: (group?: string) => req<PerfResult[]>("GET", "/api/perf", { group }),
-  perfHistory: (test: string, limit?: number) => req<PerfHistoryPoint[]>("GET", "/api/perf/history", { test, limit }),
+  perf: (group?: string, period?: PeriodChoice) => req<PerfResult[]>("GET", "/api/perf", { group, ...periodQuery(period) }),
+  perfHistory: (test: string, limit?: number, period?: PeriodChoice) =>
+    req<PerfHistoryPoint[]>("GET", "/api/perf/history", { test, limit, ...periodQuery(period) }),
 
   submitJob: (kind: JobKind, args: Record<string, unknown> = {}) => req<{ job_id: string }>("POST", "/api/jobs", undefined, { kind, args }),
   jobs: () => req<Job[]>("GET", "/api/jobs"),

@@ -82,6 +82,13 @@ export interface PerfResult {
   tpi?: number | null;
 }
 
+/** Where TPI's clock period comes from: svkit.toml's clock_period knob, the clock sweep, or a period typed in (ps). */
+export type PeriodFrom = "toml" | "sweep" | "manual";
+export interface PeriodChoice {
+  from: PeriodFrom;
+  ps?: number;   // only for "manual"
+}
+
 /** One run of one test in GET /api/perf/history (oldest first); period = the one in effect when it ran. */
 export interface PerfHistoryPoint extends PerfResult {
   run_id: string;

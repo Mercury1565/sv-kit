@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ECharts } from "echarts/core";
 import { api } from "../api/client";
-import type { PerfHistoryPoint } from "../api/types";
+import type { PerfHistoryPoint, PeriodChoice } from "../api/types";
 import { axisStyle, baseOption, chartPng, EChart, type ChartTheme } from "../components/EChart";
 import { ErrorState, Loading } from "../components/States";
 import { downloadDataUrl, fileSlug } from "../lib/download";
@@ -109,13 +109,20 @@ function HistoryChart({ metric, points, test }: { metric: Metric; points: PerfHi
         ) : (
           <div className="muted small" style={{ padding: 12 }}>
             {metric === "tpi"
-              ? "No clock period was known for these runs: run synthesis or a clock sweep, or set [perf].period."
+              ? "No clock period was known for these runs: set clock_period in svkit.toml, run synthesis or a clock sweep, or enter one."
               : "These runs reported no instruction count."}
           </div>
         )}
       </div>
     </div>
   );
+}
+
+/** How time per instruction gets its clock period across runs, for the chosen source. */
+export function periodNote(p?: PeriodChoice): string {
+  if (p?.from === "manual") return `Time per instruction uses the clock period you entered (${fmtPs(p.ps)}) for every run.`;
+  if (p?.from === "sweep") return "Time per instruction uses the clock sweep's period in effect when each run was made.";
+  return "Time per instruction uses the clock period from svkit.toml for every run (without one, the synthesis period when each run was made).";
 }
 
 function esc(s: string): string {
@@ -136,8 +143,8 @@ function Delta({ cur, prev }: { cur?: number | null; prev?: number | null }) {
 }
 
 /** One test's CPI and TPI across every run of it, one colored bar per run. */
-export function PerfHistory({ test, tests, onTest, onClose }: { test: string; tests: string[]; onTest: (t: string) => void; onClose: () => void }) {
-  const hist = useAsync(() => api.perfHistory(test), [test]);
+export function PerfHistory({ test, tests, period, onTest, onClose }: { test: string; tests: string[]; period?: PeriodChoice; onTest: (t: string) => void; onClose: () => void }) {
+  const hist = useAsync(() => api.perfHistory(test, undefined, period), [test, period?.from, period?.ps]);
   useServerEvents((ev) => {
     if (ev.type === "run.status" && (ev.status === "passed" || ev.status === "failed" || ev.status === "done")) hist.reload();
   });
@@ -189,7 +196,7 @@ export function PerfHistory({ test, tests, onTest, onClose }: { test: string; te
         ) : (
           <>
             <div className="muted small" style={{ marginBottom: 8 }}>
-              Oldest on the left. Each color is one run, the same in both charts. Time per instruction uses the clock period svkit knew when that run was made. Click a bar to open its run.
+              Oldest on the left. Each color is one run, the same in both charts. {periodNote(period)} Click a bar to open its run.
             </div>
             <div className="grid2">
               <HistoryChart metric="cpi" points={points} test={test} />

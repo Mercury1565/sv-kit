@@ -439,7 +439,15 @@ function compareOf(st: MockState, ids: string[]): CompareResult {
   };
 }
 
-function perfOf(st: MockState, group?: string): PerfResult[] {
+/** (period, source) for the mock's period_from: svkit.toml = 4000 ps, the sweep's T_min, or the one typed in. */
+function mockPeriod(st: MockState, from?: string, ps?: string): [number, string] {
+  if (from === "manual" && Number(ps) > 0) return [Number(ps), "manual"];
+  const sw = from === "sweep" ? st.groups.find((g) => g.kind === "sweep") : undefined;
+  if (sw) return [sweepOf(st, sw.id).t_min ?? 4000, `sweep:${sw.id}`];
+  return from === "sweep" ? [4000, "synth:r_0033"] : [4000, "svkit.toml"];
+}
+
+function perfOf(st: MockState, group?: string, from?: string, ps?: string): PerfResult[] {
   if (st.dataset === "worst") {
     return [
       { test: WORST_TESTS[0], cycles: 98765432101, instrs: 1, cpi: 98765432101, stalls: {}, period: 3250, period_source: "svkit.toml", tpi: 3.2e14 },
@@ -448,8 +456,7 @@ function perfOf(st: MockState, group?: string): PerfResult[] {
       ...Array.from({ length: 300 }, (_, i) => ({ test: `rv32ui-p-test_${i}`, cycles: 1000 + i * 37, instrs: 900 + i * 11, cpi: (1000 + i * 37) / (900 + i * 11), stalls: {}, period: 3250, period_source: "svkit.toml", tpi: ((1000 + i * 37) / (900 + i * 11)) * 3250 })),
     ];
   }
-  const period = 4000;                      // the clock_period knob in svkit.toml
-  const src = "svkit.toml";
+  const [period, src] = mockPeriod(st, from, ps);
   const seen = new Map<string, PerfResult>();
   for (const r of st.runs) {
     const m = r.metrics as SimResult | null;
@@ -459,15 +466,16 @@ function perfOf(st: MockState, group?: string): PerfResult[] {
   return Array.from(seen.values()).map((p) => ({ ...p, period, period_source: src, tpi: p.cpi != null ? p.cpi * period : null }));
 }
 
-function perfHistoryOf(st: MockState, test: string, limit: number): PerfHistoryPoint[] {
-  const period = 4000;                      // the clock_period knob in svkit.toml
+function perfHistoryOf(st: MockState, test: string, limit: number, from?: string, ps?: string): PerfHistoryPoint[] {
+  const [period, src] = mockPeriod(st, from, ps);
   const out: PerfHistoryPoint[] = [];
   for (const r of [...st.runs].sort((a, b) => a.created_at - b.created_at)) {
     const m = r.metrics as SimResult | null;
     if (r.kind !== "sim" || r.test !== test || !m?.perf) continue;
-    const p = period;
+    // with the sweep, older runs ran at a slower clock in this demo, so TPI moves more than CPI
+    const p = from === "sweep" ? period * (1 + 0.04 * (st.runs.length - st.runs.indexOf(r)) / Math.max(1, st.runs.length)) : period;
     const g = r.group_id ? st.groups.find((x) => x.id === r.group_id) : undefined;
-    out.push({ ...m.perf, period: p, period_source: "svkit.toml", tpi: m.perf.cpi != null ? m.perf.cpi * p : null,
+    out.push({ ...m.perf, period: p, period_source: src, tpi: m.perf.cpi != null ? m.perf.cpi * p : null,
       run_id: r.id, run_name: r.name ?? null, status: r.status, created_at: r.created_at, cached_from: r.cached_from ?? null,
       group_id: r.group_id ?? null, group_name: g?.name ?? null });
   }
@@ -915,8 +923,8 @@ export class MockBackend implements Transport {
     }
     if (path === "/api/compare") return compareOf(st, (s("ids") ?? "").split(",").filter(Boolean));
     if ((m = /^\/api\/sweeps\/([^/]+)$/.exec(path))) return sweepOf(st, m[1]);
-    if (path === "/api/perf") return perfOf(st, s("group"));
-    if (path === "/api/perf/history") return perfHistoryOf(st, s("test") ?? "", Number(s("limit") ?? 500));
+    if (path === "/api/perf") return perfOf(st, s("group"), s("period_from"), s("period"));
+    if (path === "/api/perf/history") return perfHistoryOf(st, s("test") ?? "", Number(s("limit") ?? 500), s("period_from"), s("period"));
     if (path === "/api/jobs" && method === "GET") return st.jobs;
     if (path === "/api/jobs" && method === "POST") return this.submit(String(body.kind), (body.args ?? {}) as Record<string, unknown>);
     if ((m = /^\/api\/waves\/([^/]+)\/(\w+)$/.exec(path))) return this.waves(m[2], q, body, path);

@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import type { ECharts } from "echarts/core";
 import { api } from "../api/client";
-import type { Group, Job, PerfResult, Suite } from "../api/types";
+import type { Group, Job, PerfResult, PeriodChoice, PeriodFrom, Suite } from "../api/types";
 import { JobButton } from "../components/JobButton";
 import { NameEditor, NAME_MAX } from "../components/NameEditor";
 import { RemoveBatchConfirm } from "../components/RemoveBatch";
@@ -58,6 +58,87 @@ export function perfCsv(rows: PerfResult[], stallKeys: string[]): string {
   return toCsv(
     header,
     rows.map((r) => [r.test, r.cycles, r.instrs, r.cpi, ipcOf(r), r.period, r.tpi, ...stallKeys.map((k) => r.stalls?.[k]), r.period_source]),
+  );
+}
+
+// ------------------------------------------------------------------ where the clock period comes from
+const PERIOD_KEY = "svkit.perf.period";
+
+export const PERIOD_FROM: Record<PeriodFrom, { label: string; title: string }> = {
+  toml: { label: "svkit.toml", title: "The clock_period knob's default in svkit.toml (else the latest synthesis run)" },
+  sweep: { label: "Clock sweep", title: "The latest clock sweep's fastest passing period (else the latest synthesis run); across runs, the one in effect when each run was made" },
+  manual: { label: "Enter it…", title: "A clock period you type in, used for every run" },
+};
+
+export function loadPeriod(project: string): PeriodChoice {
+  try {
+    const v = JSON.parse(localStorage.getItem(`${PERIOD_KEY}.${project}`) ?? "null");
+    if (v && (v.from === "toml" || v.from === "sweep")) return { from: v.from };
+    if (v && v.from === "manual" && isNum(v.ps) && v.ps > 0) return { from: "manual", ps: v.ps };
+  } catch {
+    /* storage unavailable: svkit.toml */
+  }
+  return { from: "toml" };
+}
+
+function savePeriod(project: string, p: PeriodChoice) {
+  try {
+    localStorage.setItem(`${PERIOD_KEY}.${project}`, JSON.stringify(p));
+  } catch {
+    /* not remembered; fine */
+  }
+}
+
+/** Pick where TPI's clock period comes from; "Enter it…" starts from the period shown now. */
+export function PeriodPicker({ value, current, onChange }: { value: PeriodChoice; current?: number | null; onChange: (p: PeriodChoice) => void }) {
+  const [draft, setDraft] = useState(value.from === "manual" ? String(value.ps) : "");
+  const n = Number(draft);
+  const valid = draft.trim() !== "" && Number.isFinite(n) && n > 0;
+  const commit = () => {
+    if (valid && n !== value.ps) onChange({ from: "manual", ps: n });
+  };
+  return (
+    <span className="row" style={{ gap: 4 }}>
+      <label className="muted small" htmlFor="perf-period-from">
+        Clock period from
+      </label>
+      <select
+        id="perf-period-from"
+        value={value.from}
+        title={PERIOD_FROM[value.from].title}
+        onChange={(e) => {
+          const from = e.target.value as PeriodFrom;
+          if (from !== "manual") return onChange({ from });
+          const start = isNum(value.ps) ? value.ps : isNum(current) && current > 0 ? current : 1000;
+          setDraft(String(start));
+          onChange({ from: "manual", ps: start });
+        }}
+      >
+        {(Object.keys(PERIOD_FROM) as PeriodFrom[]).map((k) => (
+          <option key={k} value={k} title={PERIOD_FROM[k].title}>
+            {PERIOD_FROM[k].label}
+          </option>
+        ))}
+      </select>
+      {value.from === "manual" && (
+        <>
+          <input
+            type="number"
+            min={0}
+            step="any"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={commit}
+            onKeyDown={(e) => e.key === "Enter" && commit()}
+            aria-label="Clock period in ps"
+            aria-invalid={!valid}
+            title="Clock period in picoseconds; press Enter to apply"
+            style={{ width: 90 }}
+          />
+          <span className="muted small">ps</span>
+        </>
+      )}
+    </span>
   );
 }
 
@@ -167,10 +248,16 @@ export default function PerfView({ group }: { group?: string }) {
   const openBatch = useCallback((job: Job) => {
     if (job.group_id) navigate(href("/perf", { group: job.group_id }));
   }, []);
-  const perf = useAsync(() => api.perf(group), [group]);
+  const projectName = project?.name ?? "";
+  const [period, setPeriodState] = useState<PeriodChoice>(() => loadPeriod(projectName));
+  const setPeriod = useCallback((p: PeriodChoice) => {
+    setPeriodState(p);
+    savePeriod(projectName, p);
+  }, [projectName]);
+  const perf = useAsync(() => api.perf(group, period), [group, period.from, period.ps]);
   const batches = useAsync(() => api.groups("sim-all"), []);
   useServerEvents((ev) => {
-    // TPI follows the latest synth / sweep period
+    // TPI follows the latest synth / sweep period (when it comes from them)
     if (ev.type === "group.updated" || (ev.type === "run.status" && (ev.status === "done" || ev.status === "passed"))) perf.reload();
     if (ev.type === "group.updated") batches.reload();
     if (ev.type === "group.deleted") {
@@ -284,6 +371,7 @@ export default function PerfView({ group }: { group?: string }) {
           )}
         </span>
         <span className="spacer" />
+        <PeriodPicker value={period} current={rows.find((r) => isNum(r.period))?.period} onChange={setPeriod} />
         {picker}
         {group && current && <NameEditor what="batch" name={current.name} onSave={async (n) => { await api.renameGroup(group, n); batches.reload(); }} />}
         {group && current && (
@@ -329,7 +417,7 @@ export default function PerfView({ group }: { group?: string }) {
                     className={shown === k ? "on" : ""}
                     onClick={() => setMetric(k)}
                     disabled={k === "tpi" && !hasTpi}
-                    title={k === "tpi" && !hasTpi ? "No clock period known yet: run synthesis or a clock sweep, or set [perf].period" : `${PERF_METRICS[k].axis} (${PERF_METRICS[k].better} is better)`}
+                    title={k === "tpi" && !hasTpi ? "No clock period known yet: set clock_period in svkit.toml, run synthesis or a clock sweep, or enter one" : `${PERF_METRICS[k].axis} (${PERF_METRICS[k].better} is better)`}
                   >
                     {PERF_METRICS[k].label}
                   </button>
@@ -345,7 +433,7 @@ export default function PerfView({ group }: { group?: string }) {
               <EChart option={option} height={300} chartRef={chartRef} ariaLabel={`${M.axis} for ${rows.length} programs`} />
             </div>
           </div>
-          {historyOf && <PerfHistory test={historyOf} tests={testNames} onTest={setHistoryOf} onClose={() => setHistoryOf(null)} />}
+          {historyOf && <PerfHistory test={historyOf} tests={testNames} period={period} onTest={setHistoryOf} onClose={() => setHistoryOf(null)} />}
           <div className="row" style={{ gap: 6 }}>
             <span className="muted small">
               {rows.length} {rows.length === 1 ? "program" : "programs"} · click one to see it across runs

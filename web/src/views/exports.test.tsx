@@ -4,6 +4,7 @@ import { httpTransport, setTransport, type Transport } from "../api/client";
 import type { PerfResult, RunSummary } from "../api/types";
 import { csvField, fileSlug, toCsv } from "../lib/download";
 import PerfView, { ipcOf, PERF_METRICS, perfCsv } from "./Perf";
+import { PerfHistory, periodNote } from "./PerfHistory";
 import { RunsTable } from "./Runs";
 import { REPORTS_COLUMN } from "./Synth";
 
@@ -112,5 +113,48 @@ describe("synthesis report download", () => {
     expect(link.getAttribute("href")).toBe("/api/runs/r_0031/reports.txt");
     expect(link.hasAttribute("download")).toBe(true);
     expect(screen.queryByLabelText("Download the reports of r_0032")).toBeNull();
+  });
+});
+
+describe("clock period source", () => {
+  function serve(rows: PerfResult[]) {
+    const seen: Array<{ path: string; q: Record<string, unknown> }> = [];
+    setTransport({
+      request: async (_m, path, q) => (seen.push({ path, q: { ...(q ?? {}) } }), path.startsWith("/api/perf") ? rows : path.startsWith("/api/groups") ? [] : {}),
+    }, true);
+    return seen;
+  }
+
+  // no rows: jsdom has no canvas, so a chart redrawn after a new fetch would crash the test
+  it("asks for svkit.toml by default, then the sweep, then a period typed in", async () => {
+    const seen = serve([]);
+    const perfQ = () => seen.filter((x) => x.path === "/api/perf").at(-1)!.q;
+    render(<PerfView />);
+    await screen.findByText("No performance data yet");
+    expect(perfQ().period_from).toBeUndefined();                       // svkit.toml is the server default
+
+    const from = screen.getByLabelText("Clock period from") as HTMLSelectElement;
+    fireEvent.change(from, { target: { value: "sweep" } });
+    await waitFor(() => expect(perfQ().period_from).toBe("sweep"));
+
+    fireEvent.change(from, { target: { value: "manual" } });
+    await waitFor(() => expect(perfQ()).toMatchObject({ period_from: "manual", period: 1000 }));
+    const ps = screen.getByLabelText("Clock period in ps");
+    fireEvent.change(ps, { target: { value: "0" } });
+    fireEvent.keyDown(ps, { key: "Enter" });                          // not a period: not applied
+    expect(ps.getAttribute("aria-invalid")).toBe("true");
+    fireEvent.change(ps, { target: { value: "1250" } });
+    fireEvent.keyDown(ps, { key: "Enter" });
+    await waitFor(() => expect(perfQ()).toMatchObject({ period_from: "manual", period: 1250 }));
+    expect(seen.filter((x) => x.path === "/api/perf").every((x) => x.q.period !== 0)).toBe(true);
+  });
+
+  it("the history asks for the same period and says where it comes from", async () => {
+    const seen = serve([]);
+    render(<PerfHistory test="fib" tests={["fib"]} period={{ from: "manual", ps: 1250 }} onTest={() => {}} onClose={() => {}} />);
+    await waitFor(() => expect(seen.find((x) => x.path === "/api/perf/history")?.q).toMatchObject({ test: "fib", period_from: "manual", period: 1250 }));
+    expect(periodNote({ from: "manual", ps: 1250 })).toContain("you entered");
+    expect(periodNote({ from: "sweep" })).toContain("when each run was made");
+    expect(periodNote()).toContain("svkit.toml");
   });
 });

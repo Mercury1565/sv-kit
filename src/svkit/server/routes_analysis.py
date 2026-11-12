@@ -42,14 +42,26 @@ def make_router(st) -> APIRouter:
             return SweepResult(group_id=gid, tol=tol, status=status).model_dump(mode="json")
         return SweepResult.model_validate(g.result).model_dump(mode="json")
 
+    PeriodFrom = Query("toml", pattern="^(toml|sweep|manual)$",
+                       description="where the clock period comes from: svkit.toml, the clock sweep, or `period`")
+    ManualPeriod = Query(None, gt=0, description="clock period in ps (period_from=manual)")
+
+    def _period_args(period_from: str, period: Optional[float]) -> dict[str, Any]:
+        if period_from == "manual" and period is None:
+            raise HTTPException(422, "period_from=manual needs period (ps)")
+        return {"period_from": period_from, "period": period}
+
     @r.get("/perf")
-    def perf(group: Optional[str] = None) -> list[dict[str, Any]]:
-        return [p.model_dump(mode="json") for p in PF.perf_table(st.cfg, st.db, group_id=group)]
+    def perf(group: Optional[str] = None, period_from: str = PeriodFrom,
+             period: Optional[float] = ManualPeriod) -> list[dict[str, Any]]:
+        kw = _period_args(period_from, period)
+        return [p.model_dump(mode="json") for p in PF.perf_table(st.cfg, st.db, group_id=group, **kw)]
 
     @r.get("/perf/history")
-    def perf_history(test: str, limit: int = Query(500, ge=1, le=5000)) -> list[dict[str, Any]]:
+    def perf_history(test: str, limit: int = Query(500, ge=1, le=5000), period_from: str = PeriodFrom,
+                     period: Optional[float] = ManualPeriod) -> list[dict[str, Any]]:
         """One test's perf over every run of it, oldest first."""
-        return PF.perf_history(st.cfg, st.db, test, limit=limit)
+        return PF.perf_history(st.cfg, st.db, test, limit=limit, **_period_args(period_from, period))
 
     @r.get("/runs/{rid}/divergence")
     def divergence(rid: str) -> dict[str, Any]:
