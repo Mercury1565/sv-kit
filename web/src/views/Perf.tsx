@@ -17,6 +17,7 @@ import { href, navigate } from "../lib/router";
 import { Term } from "../components/Info";
 import { PerfHistory } from "./PerfHistory";
 import { useAsync, useServerEvents } from "../lib/hooks";
+import { periodNote, periodShort, periodSourceText, periodsDiffer } from "../lib/perfPeriod";
 
 function PeriodSource({ src }: { src?: string | null }) {
   if (!src) return <span className="faint">{DASH}</span>;
@@ -241,6 +242,10 @@ export function TestPicker({ suite, project, onClose, onDone }: { suite: Suite; 
   );
 }
 
+function esc(s: string): string {
+  return s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
+}
+
 /** The per-program chart of one metric (on screen, or off screen for Save all). */
 export function perfChartOption(metric: PerfMetric, rows: PerfResult[], scope: string) {
   const M = PERF_METRICS[metric];
@@ -249,18 +254,48 @@ export function perfChartOption(metric: PerfMetric, rows: PerfResult[], scope: s
     // worst first: highest CPI / TPI, lowest IPC
     const data = rows.filter((r) => isNum(val(r))).sort((a, b) => (M.better === "lower" ? val(b)! - val(a)! : val(a)! - val(b)!));
     const ax = axisStyle(t);
+    // the clock period behind the numbers, on the chart itself so every saved image carries it
+    const differ = periodsDiffer(data);
     return {
       ...baseOption(t),
-      grid: { left: 64, right: 84, top: 56, bottom: data.length > 25 ? 104 : 84 },
-      tooltip: { ...(baseOption(t).tooltip as object), trigger: "axis", axisPointer: { type: "shadow" } },
+      grid: { left: 64, right: 84, top: 68, bottom: (data.length > 25 ? 104 : 84) + (differ ? 14 : 0) },
+      tooltip: {
+        ...(baseOption(t).tooltip as object),
+        trigger: "axis",
+        axisPointer: { type: "shadow" },
+        formatter: (ps: { dataIndex: number }[]) => {
+          const r = data[ps[0]?.dataIndex ?? 0];
+          if (!r) return "";
+          const src = periodSourceText(r.period_source);
+          return `<b>${esc(r.test)}</b><br/>${esc(M.axis)} <b>${fmtNum(val(r), M.digits)}</b><br/>clock period ${esc(periodShort(r))}${src ? ` (${esc(src)})` : ""}`;
+        },
+      },
       dataZoom: data.length > 25 ? [{ type: "slider", height: 12, bottom: 4, start: 0, end: (25 / data.length) * 100, showDetail: false }] : [],
       xAxis: {
         type: "category",
         data: data.map((r) => r.test),
         ...ax,
-        axisLabel: { ...ax.axisLabel, rotate: 35, interval: 0, width: 96, overflow: "truncate", fontFamily: t.mono, fontSize: 10 },
+        axisLabel: {
+          ...ax.axisLabel,
+          rotate: 35,
+          interval: 0,
+          width: 96,
+          overflow: "truncate",
+          fontFamily: t.mono,
+          fontSize: 10,
+          lineHeight: 14,
+          formatter: (v: string, i: number) => (differ && data[i] ? `${v}\n${periodShort(data[i])}` : v),
+        },
       },
-      title: { text: `${M.axis[0].toUpperCase()}${M.axis.slice(1)} · ${scope}`, left: 8, top: 0, textStyle: { color: t.fg, fontSize: 12, fontWeight: 600 } },
+      title: {
+        text: `${M.axis[0].toUpperCase()}${M.axis.slice(1)} · ${scope}`,
+        subtext: periodNote(data),
+        left: 8,
+        top: 0,
+        itemGap: 4,
+        textStyle: { color: t.fg, fontSize: 12, fontWeight: 600 },
+        subtextStyle: { color: metric === "tpi" ? t.fg : t.muted, fontSize: 11, fontWeight: metric === "tpi" ? 600 : 400 },
+      },
       yAxis: { type: "value", name: M.axis, ...ax, nameTextStyle: { ...ax.nameTextStyle, align: "left" }, axisLabel: { ...ax.axisLabel, formatter: (v: number) => fmtCompact(v) } },
       series: [
         {
@@ -448,7 +483,7 @@ export default function PerfView({ group }: { group?: string }) {
               </button>
             </div>
             <div className="panel-body">
-              <EChart option={option} height={300} chartRef={chartRef} ariaLabel={`${M.axis} for ${rows.length} programs`} />
+              <EChart option={option} height={320} chartRef={chartRef} ariaLabel={`${M.axis} for ${rows.length} programs`} />
             </div>
           </div>
           {historyOf && <PerfHistory test={historyOf} tests={testNames} onTest={setHistoryOf} onClose={() => setHistoryOf(null)} />}

@@ -422,3 +422,20 @@ svkit serve   # Synthesis → tick runs → Compare → drag a column header
 (cd web && npx vitest run src/views/compareReorder.test.tsx)
 ```
 
+## Iteration 15 — 2026-11-12 — Clock period on every perf chart
+**Status:** done
+**What works now:**
+- Every Perf chart (per-program CPI / IPC / TPI, and one test across runs) shows the clock period under its title, with its source (svkit.toml, a clock sweep, a synthesis run, or entered by hand). When bars used different periods, each bar's label carries its own period and the subtitle gives the range. Saved PNGs and ZIPs carry it, since they are drawn from the same chart options. Hovering a bar also shows its period.
+**Decisions made (and why):**
+- On the chart, not in the file name or a side note: the owner said a downloaded plot must say which period it used. Images get pasted into reports without their file names.
+- Bold on TPI charts, where the period changes the numbers; muted on CPI / IPC, where it is context.
+**Known gaps / risks:**
+- None known.
+**Next iteration plan:**
+- Same as iteration 7.
+**How to see it:**
+```
+svkit serve   # Perf → Save image / Save all charts (ZIP); the period is under each chart title
+(cd web && npx vitest run src/lib/perfPeriod.test.ts)
+```
+

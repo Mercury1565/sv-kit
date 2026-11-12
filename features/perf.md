@@ -48,6 +48,11 @@ that run.
 
 ## Export
 
+Every chart states the **clock period** behind its numbers, so a saved image is never ambiguous:
+the line under the title gives the period and where it came from (for example *Clock period 4,000 ps
+(from svkit.toml)*). When the bars used different periods, each bar's label carries its own and the
+line gives the range. On the time-per-instruction chart that line is in bold.
+
 - **Save image (PNG)** saves the chart as it is switched (CPI, IPC or TPI), with every program in it
   even when the chart is zoomed, at twice screen resolution, titled with the batch it shows.
 - **Save all charts (ZIP)** saves the CPI, IPC and TPI charts together with the table as CSV, in one

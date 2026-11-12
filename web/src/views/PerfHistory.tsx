@@ -8,6 +8,7 @@ import { downloadBytes, downloadDataUrl, fileSlug, toCsv } from "../lib/download
 import { dataUrlBytes, zipBytes, type ZipEntry } from "../lib/zip";
 import { fmtCompact, fmtDate, fmtInt, fmtNum, fmtPs, isNum } from "../lib/format";
 import { useAsync, useServerEvents } from "../lib/hooks";
+import { periodNote, periodShort, periodsDiffer } from "../lib/perfPeriod";
 import { navigate } from "../lib/router";
 
 /** Bars shown at once: one categorical hue each, in fixed order, never cycled (8 validated slots). */
@@ -33,12 +34,22 @@ const META: Record<Metric, { title: string; axis: string; digits: number }> = {
 /** The option for one history chart (on screen, or rendered off screen for Save all). */
 export function historyOption(metric: Metric, points: PerfHistoryPoint[], test: string, note = "") {
   const M = META[metric];
+  const differ = periodsDiffer(points);
   return (t: ChartTheme) => {
     const ax = axisStyle(t);
     return {
       ...baseOption(t),
-      title: { text: `${M.title} · ${test}${note}`, left: 8, top: 0, textStyle: { color: t.fg, fontSize: 12, fontWeight: 600 } },
-      grid: { left: 64, right: 16, top: 56, bottom: 64 },
+      // the clock period on the chart itself, so every saved image carries it
+      title: {
+        text: `${M.title} · ${test}${note}`,
+        subtext: periodNote(points),
+        left: 8,
+        top: 0,
+        itemGap: 4,
+        textStyle: { color: t.fg, fontSize: 12, fontWeight: 600 },
+        subtextStyle: { color: metric === "tpi" ? t.fg : t.muted, fontSize: 11, fontWeight: metric === "tpi" ? 600 : 400 },
+      },
+      grid: { left: 64, right: 16, top: 68, bottom: differ ? 78 : 64 },
       tooltip: {
         ...(baseOption(t).tooltip as object),
         trigger: "item",
@@ -65,7 +76,7 @@ export function historyOption(metric: Metric, points: PerfHistoryPoint[], test: 
           width: 104,
           overflow: "truncate",
           fontSize: 10,
-          formatter: (_v: string, i: number) => `${pointLabel(points[i])}\n${fmtDate(points[i].created_at)}`,
+          formatter: (_v: string, i: number) => `${pointLabel(points[i])}\n${fmtDate(points[i].created_at)}${differ ? `\n${periodShort(points[i])}` : ""}`,
         },
       },
       yAxis: { type: "value", name: M.axis, ...ax, nameTextStyle: { ...ax.nameTextStyle, align: "left" }, axisLabel: { ...ax.axisLabel, formatter: (v: number) => fmtCompact(v) } },
@@ -85,7 +96,7 @@ export function historyOption(metric: Metric, points: PerfHistoryPoint[], test: 
 
 // ------------------------------------------------------------------ save every chart at once
 const PNG_W = 720;
-const PNG_H = 320;
+const PNG_H = 340;
 
 /** Every chart Save all writes for one test: CPI and TPI for each page of (at most 8) runs, oldest page first. */
 export function historyExportPlan(all: PerfHistoryPoint[]): { file: string; metric: Metric; points: PerfHistoryPoint[]; note: string }[] {
@@ -153,7 +164,7 @@ function HistoryChart({ metric, points, test }: { metric: Metric; points: PerfHi
         {has ? (
           <EChart
             option={option}
-            height={280}
+            height={300}
             chartRef={ref}
             ariaLabel={`${M.axis} of ${test} over ${points.length} runs`}
             onClick={(p) => navigate(`/runs/${points[p.dataIndex].run_id}`)}
