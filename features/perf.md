@@ -42,12 +42,16 @@ that run.
 - Eight runs are shown at a time; *‹ Older* and *Newer ›* page through the rest.
 - Time per instruction uses the clock period each run finished with, so a faster clock from a later
   design revision shows up in TPI.
-- Each chart has its own *Save image (PNG)*.
+- Each chart has its own *Save image (PNG)*. **Save all charts (ZIP)** saves both charts, CPI and TPI,
+  for every page of runs (`cpi-runs-01-08.png`, …) plus `runs.csv` with every run's numbers, in one
+  `.zip`. **Every test (ZIP)** does the same for every test, one folder per test.
 
 ## Export
 
 - **Save image (PNG)** saves the chart as it is switched (CPI, IPC or TPI), with every program in it
   even when the chart is zoomed, at twice screen resolution, titled with the batch it shows.
+- **Save all charts (ZIP)** saves the CPI, IPC and TPI charts together with the table as CSV, in one
+  `.zip`.
 - **Download CSV** saves the table: one row per program with raw numbers (cycles, instructions, CPI,
   IPC, clock period, TPI, stall counts, where the period came from). It opens in any spreadsheet.
 

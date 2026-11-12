@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { httpTransport, setTransport, type Transport } from "../api/client";
 import type { PerfHistoryPoint } from "../api/types";
-import { delta, historyWindow, HISTORY_WINDOW, PerfHistory, pointLabel } from "./PerfHistory";
+import { delta, historyCsv, historyExportPlan, historyWindow, HISTORY_WINDOW, PerfHistory, pointLabel } from "./PerfHistory";
 
 afterEach(() => setTransport(httpTransport));
 
@@ -73,5 +73,24 @@ describe("PerfHistory", () => {
     render(<PerfHistory test="fib" tests={["fib"]} onTest={() => {}} onClose={() => {}} />);
     await screen.findByText(/No clock period was known/);
     expect(screen.getAllByRole("img")).toHaveLength(1);
+  });
+});
+
+describe("Save all charts plan", () => {
+  const pt = (i: number, tpi: number | null = 2) => ({ run_id: `r_${String(i).padStart(4, "0")}`, created_at: i, cpi: 1 + i / 10, tpi, cycles: 10, instrs: 5 }) as unknown as PerfHistoryPoint;
+  it("one CPI and one TPI chart when the runs fit on one page", () => {
+    expect(historyExportPlan([1, 2, 3].map((i) => pt(i))).map((c) => c.file)).toEqual(["cpi.png", "tpi.png"]);
+  });
+  it("saves the same pages as the Older / Newer buttons show, oldest first, and skips TPI where no period is known", () => {
+    const all = Array.from({ length: 19 }, (_, i) => pt(i + 1, i < 11 ? null : 2));
+    const plan = historyExportPlan(all);
+    expect(plan.map((c) => c.file)).toEqual(["cpi-runs-01-08.png", "cpi-runs-04-11.png", "cpi-runs-12-19.png", "tpi-runs-12-19.png"]);
+    expect(new Set(plan.flatMap((c) => c.points.map((p) => p.run_id)))).toEqual(new Set(all.map((p) => p.run_id)));
+    expect(plan[0].note).toBe(" · runs 1–8 of 19");
+  });
+  it("writes every run to the CSV", () => {
+    const csv = historyCsv("fib", [pt(1), pt(2)]);
+    expect(csv.split("\r\n")[0]).toContain("cycles_per_instruction");
+    expect(csv.trim().split("\r\n")).toHaveLength(3);
   });
 });

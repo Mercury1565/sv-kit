@@ -35,6 +35,13 @@ export function downloadText(name: string, text: string, mime = "text/plain") {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+/** Raw bytes as a file (e.g. a ZIP from lib/zip). */
+export function downloadBytes(name: string, bytes: Uint8Array, mime = "application/zip") {
+  const url = URL.createObjectURL(new Blob([bytes], { type: mime }));
+  clickDownload(name, url);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 export function downloadDataUrl(name: string, dataUrl: string) {
   clickDownload(name, dataUrl);
 }

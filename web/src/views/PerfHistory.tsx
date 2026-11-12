@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ECharts } from "echarts/core";
 import { api } from "../api/client";
 import type { PerfHistoryPoint } from "../api/types";
-import { axisStyle, baseOption, chartPng, EChart, type ChartTheme } from "../components/EChart";
+import { axisStyle, baseOption, chartPng, EChart, renderPng, type ChartTheme } from "../components/EChart";
 import { ErrorState, Loading } from "../components/States";
-import { downloadDataUrl, fileSlug } from "../lib/download";
+import { downloadBytes, downloadDataUrl, fileSlug, toCsv } from "../lib/download";
+import { dataUrlBytes, zipBytes, type ZipEntry } from "../lib/zip";
 import { fmtCompact, fmtDate, fmtInt, fmtNum, fmtPs, isNum } from "../lib/format";
 import { useAsync, useServerEvents } from "../lib/hooks";
 import { navigate } from "../lib/router";
@@ -29,61 +30,112 @@ const META: Record<Metric, { title: string; axis: string; digits: number }> = {
   tpi: { title: "Time per instruction", axis: "time per instruction (ps)", digits: 1 },
 };
 
+/** The option for one history chart (on screen, or rendered off screen for Save all). */
+export function historyOption(metric: Metric, points: PerfHistoryPoint[], test: string, note = "") {
+  const M = META[metric];
+  return (t: ChartTheme) => {
+    const ax = axisStyle(t);
+    return {
+      ...baseOption(t),
+      title: { text: `${M.title} · ${test}${note}`, left: 8, top: 0, textStyle: { color: t.fg, fontSize: 12, fontWeight: 600 } },
+      grid: { left: 64, right: 16, top: 56, bottom: 64 },
+      tooltip: {
+        ...(baseOption(t).tooltip as object),
+        trigger: "item",
+        formatter: (prm: { dataIndex: number }) => {
+          const p = points[prm.dataIndex];
+          const rows = [
+            `<b>${esc(pointLabel(p))}</b>`,
+            `${esc(p.run_id)}${p.group_id ? ` · batch ${esc(p.group_id)}` : ""} · ${esc(fmtDate(p.created_at))}`,
+            `cycles per instruction <b>${fmtNum(p.cpi, 3)}</b>`,
+            `time per instruction <b>${fmtNum(p.tpi, 1)} ps</b> (clock ${fmtPs(p.period)}${p.period_source ? ` from ${esc(p.period_source)}` : ""})`,
+            `${fmtInt(p.cycles)} cycles · ${fmtInt(p.instrs)} instructions`,
+          ];
+          if (p.cached_from) rows.push(`reused the result of ${esc(p.cached_from)}`);
+          return rows.join("<br/>");
+        },
+      },
+      xAxis: {
+        type: "category",
+        data: points.map((p) => p.run_id),
+        ...ax,
+        axisLabel: {
+          ...ax.axisLabel,
+          interval: 0,
+          width: 104,
+          overflow: "truncate",
+          fontSize: 10,
+          formatter: (_v: string, i: number) => `${pointLabel(points[i])}\n${fmtDate(points[i].created_at)}`,
+        },
+      },
+      yAxis: { type: "value", name: M.axis, ...ax, nameTextStyle: { ...ax.nameTextStyle, align: "left" }, axisLabel: { ...ax.axisLabel, formatter: (v: number) => fmtCompact(v) } },
+      series: [
+        {
+          type: "bar",
+          name: M.axis,
+          barMaxWidth: 40,
+          // each run its own hue, in the fixed categorical order (oldest shown = slot 1)
+          data: points.map((p, i) => ({ value: isNum(p[metric]) ? p[metric] : null, itemStyle: { color: t.series[i % t.series.length], borderRadius: [4, 4, 0, 0] } })),
+          label: { show: true, position: "top", color: t.fg, fontSize: 11, formatter: (prm: { value: number }) => fmtNum(prm.value, M.digits) },
+        },
+      ],
+    };
+  };
+}
+
+// ------------------------------------------------------------------ save every chart at once
+const PNG_W = 720;
+const PNG_H = 320;
+
+/** Every chart Save all writes for one test: CPI and TPI for each page of (at most 8) runs, oldest page first. */
+export function historyExportPlan(all: PerfHistoryPoint[]): { file: string; metric: Metric; points: PerfHistoryPoint[]; note: string }[] {
+  const windows: [number, number][] = [];
+  for (let back = 0; ; back++) {
+    const w = historyWindow(all.length, back);
+    if (w[1] <= w[0] || windows.some(([a, b]) => a === w[0] && b === w[1])) break;
+    windows.unshift(w);
+    if (w[0] === 0) break;
+  }
+  const pad = (n: number) => String(n).padStart(String(all.length).length, "0");
+  const out = [];
+  for (const [a, b] of windows) {
+    const pts = all.slice(a, b);
+    const paged = windows.length > 1;
+    for (const metric of ["cpi", "tpi"] as Metric[]) {
+      if (!pts.some((p) => isNum(p[metric]))) continue;
+      out.push({
+        file: paged ? `${metric}-runs-${pad(a + 1)}-${pad(b)}.png` : `${metric}.png`,
+        metric,
+        points: pts,
+        note: paged ? ` · runs ${a + 1}–${b} of ${all.length}` : "",
+      });
+    }
+  }
+  return out;
+}
+
+/** One row per run of the test, oldest first: raw numbers, as on screen. */
+export function historyCsv(test: string, all: PerfHistoryPoint[]): string {
+  return toCsv(
+    ["test", "run", "batch", "batch_name", "run_name", "made", "cycles", "instructions", "cycles_per_instruction", "clock_period_ps", "time_per_instruction_ps", "clock_period_from"],
+    all.map((p) => [test, p.run_id, p.group_id, p.group_name, p.run_name, new Date(p.created_at * 1000).toISOString(), p.cycles, p.instrs, p.cpi, p.period, p.tpi, p.period_source]),
+  );
+}
+
+async function historyEntries(test: string, all: PerfHistoryPoint[], folder: string): Promise<ZipEntry[]> {
+  const out: ZipEntry[] = [];
+  for (const c of historyExportPlan(all)) {
+    out.push({ name: `${folder}${c.file}`, data: dataUrlBytes(await renderPng(historyOption(c.metric, c.points, test, c.note), PNG_W, PNG_H)) });
+  }
+  if (all.length) out.push({ name: `${folder}runs.csv`, data: historyCsv(test, all) });
+  return out;
+}
+
 function HistoryChart({ metric, points, test }: { metric: Metric; points: PerfHistoryPoint[]; test: string }) {
   const ref = useRef<ECharts | null>(null);
   const M = META[metric];
   const has = points.some((p) => isNum(p[metric]));
-  const option = useCallback(
-    (t: ChartTheme) => {
-      const ax = axisStyle(t);
-      return {
-        ...baseOption(t),
-        title: { text: `${M.title} · ${test}`, left: 8, top: 0, textStyle: { color: t.fg, fontSize: 12, fontWeight: 600 } },
-        grid: { left: 64, right: 16, top: 56, bottom: 64 },
-        tooltip: {
-          ...(baseOption(t).tooltip as object),
-          trigger: "item",
-          formatter: (prm: { dataIndex: number }) => {
-            const p = points[prm.dataIndex];
-            const rows = [
-              `<b>${esc(pointLabel(p))}</b>`,
-              `${esc(p.run_id)}${p.group_id ? ` · batch ${esc(p.group_id)}` : ""} · ${esc(fmtDate(p.created_at))}`,
-              `cycles per instruction <b>${fmtNum(p.cpi, 3)}</b>`,
-              `time per instruction <b>${fmtNum(p.tpi, 1)} ps</b> (clock ${fmtPs(p.period)}${p.period_source ? ` from ${esc(p.period_source)}` : ""})`,
-              `${fmtInt(p.cycles)} cycles · ${fmtInt(p.instrs)} instructions`,
-            ];
-            if (p.cached_from) rows.push(`reused the result of ${esc(p.cached_from)}`);
-            return rows.join("<br/>");
-          },
-        },
-        xAxis: {
-          type: "category",
-          data: points.map((p) => p.run_id),
-          ...ax,
-          axisLabel: {
-            ...ax.axisLabel,
-            interval: 0,
-            width: 104,
-            overflow: "truncate",
-            fontSize: 10,
-            formatter: (_v: string, i: number) => `${pointLabel(points[i])}\n${fmtDate(points[i].created_at)}`,
-          },
-        },
-        yAxis: { type: "value", name: M.axis, ...ax, nameTextStyle: { ...ax.nameTextStyle, align: "left" }, axisLabel: { ...ax.axisLabel, formatter: (v: number) => fmtCompact(v) } },
-        series: [
-          {
-            type: "bar",
-            name: M.axis,
-            barMaxWidth: 40,
-            // each run its own hue, in the fixed categorical order (oldest shown = slot 1)
-            data: points.map((p, i) => ({ value: isNum(p[metric]) ? p[metric] : null, itemStyle: { color: t.series[i % t.series.length], borderRadius: [4, 4, 0, 0] } })),
-            label: { show: true, position: "top", color: t.fg, fontSize: 11, formatter: (prm: { value: number }) => fmtNum(prm.value, M.digits) },
-          },
-        ],
-      };
-    },
-    [points, metric, M, test],
-  );
+  const option = useMemo(() => historyOption(metric, points, test), [points, metric, test]);
   const save = () => {
     if (ref.current) downloadDataUrl(`perf-history-${fileSlug(test)}-${metric}.png`, chartPng(ref.current));
   };
@@ -148,6 +200,30 @@ export function PerfHistory({ test, tests, onTest, onClose }: { test: string; te
   const points = useMemo(() => all.slice(start, end), [all, start, end]);
   const box = useRef<HTMLDivElement>(null);
   useEffect(() => box.current?.scrollIntoView?.({ block: "nearest" }), [test]);
+  const [saving, setSaving] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const saveAll = async (every: boolean) => {
+    setSaveError(null);
+    try {
+      let entries: ZipEntry[] = [];
+      if (!every) {
+        setSaving("Saving…");
+        entries = await historyEntries(test, all, "");
+      } else {
+        for (const [i, t] of tests.entries()) {
+          setSaving(`Saving ${i + 1} of ${tests.length}…`);
+          const h = t === test ? all : await api.perfHistory(t);
+          if (h.length) entries.push(...(await historyEntries(t, h, `${fileSlug(t) || "test"}/`)));
+        }
+      }
+      if (!entries.length) throw new Error("no run reported cycle and instruction counts");
+      downloadBytes(every ? "perf-history-all-tests.zip" : `perf-history-${fileSlug(test)}.zip`, zipBytes(entries));
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSaving(null);
+    }
+  };
 
   return (
     <div className="panel perf-history" ref={box}>
@@ -175,11 +251,36 @@ export function PerfHistory({ test, tests, onTest, onClose }: { test: string; te
           </span>
         )}
         <span className="spacer" />
+        {saving ? (
+          <span className="muted small" role="status">
+            {saving}
+          </span>
+        ) : (
+          <>
+            <button
+              className="small"
+              onClick={() => saveAll(false)}
+              disabled={!all.length}
+              title={`One .zip with the cycles- and time-per-instruction charts of ${test} for all ${all.length} runs (every page), and the numbers as CSV`}
+            >
+              Save all charts (ZIP)
+            </button>
+            <button
+              className="small"
+              onClick={() => saveAll(true)}
+              disabled={!tests.length}
+              title={`The same for each of the ${tests.length} tests, one folder per test, in one .zip`}
+            >
+              Every test (ZIP)
+            </button>
+          </>
+        )}
         <button className="ghost small" onClick={onClose} aria-label="Close the test history">
           Close
         </button>
       </div>
       <div className="panel-body">
+        {saveError && <div className="small worse" style={{ marginBottom: 8 }}>Could not save the charts: {saveError}</div>}
         {hist.error ? (
           <ErrorState error={hist.error} onRetry={hist.reload} />
         ) : !hist.data ? (

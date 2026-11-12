@@ -7,8 +7,9 @@ import { NameEditor, NAME_MAX } from "../components/NameEditor";
 import { RemoveBatchConfirm } from "../components/RemoveBatch";
 import { useApp } from "../lib/appState";
 import { projectSuites } from "./Tests";
-import { axisStyle, baseOption, chartPng, EChart, type ChartTheme } from "../components/EChart";
-import { downloadDataUrl, downloadText, fileSlug, toCsv } from "../lib/download";
+import { axisStyle, baseOption, chartPng, EChart, renderPng, type ChartTheme } from "../components/EChart";
+import { downloadBytes, downloadDataUrl, downloadText, fileSlug, toCsv } from "../lib/download";
+import { dataUrlBytes, zipBytes, type ZipEntry } from "../lib/zip";
 import { Empty, ErrorState, Loading } from "../components/States";
 import { VirtualTable, type Column } from "../components/VirtualTable";
 import { DASH, fmtCompact, fmtDate, fmtInt, fmtNum, fmtPs, isNum } from "../lib/format";
@@ -240,6 +241,43 @@ export function TestPicker({ suite, project, onClose, onDone }: { suite: Suite; 
   );
 }
 
+/** The per-program chart of one metric (on screen, or off screen for Save all). */
+export function perfChartOption(metric: PerfMetric, rows: PerfResult[], scope: string) {
+  const M = PERF_METRICS[metric];
+  return (t: ChartTheme) => {
+    const val = M.value;
+    // worst first: highest CPI / TPI, lowest IPC
+    const data = rows.filter((r) => isNum(val(r))).sort((a, b) => (M.better === "lower" ? val(b)! - val(a)! : val(a)! - val(b)!));
+    const ax = axisStyle(t);
+    return {
+      ...baseOption(t),
+      grid: { left: 64, right: 84, top: 56, bottom: data.length > 25 ? 104 : 84 },
+      tooltip: { ...(baseOption(t).tooltip as object), trigger: "axis", axisPointer: { type: "shadow" } },
+      dataZoom: data.length > 25 ? [{ type: "slider", height: 12, bottom: 4, start: 0, end: (25 / data.length) * 100, showDetail: false }] : [],
+      xAxis: {
+        type: "category",
+        data: data.map((r) => r.test),
+        ...ax,
+        axisLabel: { ...ax.axisLabel, rotate: 35, interval: 0, width: 96, overflow: "truncate", fontFamily: t.mono, fontSize: 10 },
+      },
+      title: { text: `${M.axis[0].toUpperCase()}${M.axis.slice(1)} · ${scope}`, left: 8, top: 0, textStyle: { color: t.fg, fontSize: 12, fontWeight: 600 } },
+      yAxis: { type: "value", name: M.axis, ...ax, nameTextStyle: { ...ax.nameTextStyle, align: "left" }, axisLabel: { ...ax.axisLabel, formatter: (v: number) => fmtCompact(v) } },
+      series: [
+        {
+          type: "bar",
+          name: M.axis,
+          data: data.map((r) => val(r)),
+          itemStyle: { color: t.accent },
+          barMaxWidth: 28,
+          markLine: data.length
+            ? { silent: true, symbol: "none", lineStyle: { color: t.faint }, data: [{ type: "average", name: "mean" }], label: { color: t.muted, position: "end", formatter: (p: any) => `mean\n${fmtNum(p.value, M.digits)}` } }
+            : undefined,
+        },
+      ],
+    };
+  };
+}
+
 /** group: a `sim --all` batch id; without one, the latest result per test across every run. */
 export default function PerfView({ group }: { group?: string }) {
   const { project } = useApp();
@@ -296,41 +334,22 @@ export default function PerfView({ group }: { group?: string }) {
   const stallKeys = useMemo(() => Array.from(new Set(rows.flatMap((r) => Object.keys(r.stalls ?? {})))).sort(), [rows]);
   const sources = Array.from(new Set(rows.map((r) => r.period_source).filter(Boolean)));
 
-  const option = useCallback(
-    (t: ChartTheme) => {
-      const val = M.value;
-      // worst first: highest CPI / TPI, lowest IPC
-      const data = rows.filter((r) => isNum(val(r))).sort((a, b) => (M.better === "lower" ? val(b)! - val(a)! : val(a)! - val(b)!));
-      const ax = axisStyle(t);
-      return {
-        ...baseOption(t),
-        grid: { left: 64, right: 84, top: 56, bottom: data.length > 25 ? 104 : 84 },
-        tooltip: { ...(baseOption(t).tooltip as object), trigger: "axis", axisPointer: { type: "shadow" } },
-        dataZoom: data.length > 25 ? [{ type: "slider", height: 12, bottom: 4, start: 0, end: (25 / data.length) * 100, showDetail: false }] : [],
-        xAxis: {
-          type: "category",
-          data: data.map((r) => r.test),
-          ...ax,
-          axisLabel: { ...ax.axisLabel, rotate: 35, interval: 0, width: 96, overflow: "truncate", fontFamily: t.mono, fontSize: 10 },
-        },
-        title: { text: `${M.axis[0].toUpperCase()}${M.axis.slice(1)} · ${group ? (current?.name ? `${current.name} (${group})` : group) : "latest result per test"}`, left: 8, top: 0, textStyle: { color: t.fg, fontSize: 12, fontWeight: 600 } },
-        yAxis: { type: "value", name: M.axis, ...ax, nameTextStyle: { ...ax.nameTextStyle, align: "left" }, axisLabel: { ...ax.axisLabel, formatter: (v: number) => fmtCompact(v) } },
-        series: [
-          {
-            type: "bar",
-            name: M.axis,
-            data: data.map((r) => val(r)),
-            itemStyle: { color: t.accent },
-            barMaxWidth: 28,
-            markLine: data.length
-              ? { silent: true, symbol: "none", lineStyle: { color: t.faint }, data: [{ type: "average", name: "mean" }], label: { color: t.muted, position: "end", formatter: (p: any) => `mean\n${fmtNum(p.value, M.digits)}` } }
-              : undefined,
-          },
-        ],
-      };
-    },
-    [rows, M, group, current],
-  );
+  const chartScope = group ? (current?.name ? `${current.name} (${group})` : group) : "latest result per test";
+  const option = useMemo(() => perfChartOption(shown, rows, chartScope), [shown, rows, chartScope]);
+  const [savingAll, setSavingAll] = useState(false);
+  const saveAll = async () => {
+    setSavingAll(true);
+    try {
+      const metrics = (Object.keys(PERF_METRICS) as PerfMetric[]).filter((k) => rows.some((r) => isNum(PERF_METRICS[k].value(r))));
+      const width = Math.max(1200, 40 * rows.length + 160);
+      const entries: ZipEntry[] = [];
+      for (const k of metrics) entries.push({ name: `${exportBase}-${k}.png`, data: dataUrlBytes(await renderPng(perfChartOption(k, rows, chartScope), width, 380)) });
+      entries.push({ name: `${exportBase}.csv`, data: "\uFEFF" + perfCsv(rows, stallKeys) });
+      downloadBytes(`${exportBase}-charts.zip`, zipBytes(entries));
+    } finally {
+      setSavingAll(false);
+    }
+  };
 
   const cols: Column<PerfResult>[] = [
     { key: "test", header: "Program", width: "minmax(200px, 3fr)", render: (r) => <span className="mono">{r.test}</span>, title: (r) => r.test, sortValue: (r) => r.test },
@@ -423,6 +442,9 @@ export default function PerfView({ group }: { group?: string }) {
               <span className="spacer" />
               <button onClick={saveImage} title={`Save this chart (${M.axis}, every program) as a PNG image`}>
                 Save image (PNG)
+              </button>
+              <button onClick={saveAll} disabled={savingAll} title="One .zip with the cycles-per-instruction, instructions-per-cycle and time-per-instruction charts, and the table as CSV">
+                {savingAll ? "Saving…" : "Save all charts (ZIP)"}
               </button>
             </div>
             <div className="panel-body">

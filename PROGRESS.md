@@ -365,3 +365,22 @@ svkit runs rm r_0012
 svkit runs rm g_0005
 .venv/bin/pytest tests/test_delete_runs.py && (cd web && npx vitest run src/components/RemoveBatch.test.tsx)
 ```
+
+## Iteration 12 — 2026-11-12 — Save every perf chart at once
+**Status:** done
+**What works now:**
+- **One test across runs → Save all charts (ZIP):** the CPI and TPI charts for every page of runs, plus `runs.csv`, in one download. **Every test (ZIP):** the same for every test, one folder per test.
+- **Perf → Save all charts (ZIP):** the CPI, IPC and TPI charts of the shown batch plus the table as CSV.
+**Decisions made (and why):**
+- One ZIP instead of many downloads: browsers block or prompt for repeated automatic downloads, and a folder per test keeps "every test" usable. A small stored-ZIP writer (`web/src/lib/zip.ts`, CRC-32, UTF-8 names) avoids a dependency; PNGs are already compressed.
+- Charts not on screen (other pages, other tests, other metrics) are rendered off screen with the same option builders (`historyOption`, `perfChartOption`) and theme, so the files look exactly like the page. Pages match the *Older / Newer* pages on screen, so colors and run numbers agree.
+**Known gaps / risks:**
+- *Every test* fetches each test's history one after another; with hundreds of tests it takes a while (progress is shown).
+**Next iteration plan:**
+- Same as iteration 7.
+**How to see it:**
+```
+svkit serve   # Perf → click a program → Save all charts (ZIP) / Every test (ZIP)
+(cd web && npx vitest run src/lib/zip.test.ts src/views/perfHistory.test.tsx)
+```
+

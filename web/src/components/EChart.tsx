@@ -79,6 +79,26 @@ export function chartPng(chart: ECharts): string {
   }
 }
 
+/**
+ * Render a chart that is not on screen (e.g. every page of a history, or a metric not shown) and return
+ * it as a PNG data URL, styled like chartPng. The temporary chart is disposed before returning.
+ */
+export async function renderPng(option: (t: ChartTheme) => EChartsCoreOption, width: number, height: number): Promise<string> {
+  const { echarts } = await import("./charts");
+  const box = document.createElement("div");
+  box.style.cssText = `position:fixed;left:-20000px;top:0;width:${width}px;height:${height}px;`;
+  document.body.appendChild(box);
+  const chart = echarts.init(box, undefined, { renderer: "canvas", width, height });
+  try {
+    const t = readTheme();
+    chart.setOption({ ...option(t), animation: false, dataZoom: [] }, { notMerge: true });
+    return chart.getDataURL({ type: "png", pixelRatio: 2, backgroundColor: t.bg, excludeComponents: ["dataZoom", "toolbox"] });
+  } finally {
+    chart.dispose();
+    box.remove();
+  }
+}
+
 /** Thin ECharts wrapper: lazy-loads echarts, follows the color scheme, resizes with its box. */
 export function EChart({ option, height = 300, onClick, ariaLabel, chartRef }: Props) {
   const el = useRef<HTMLDivElement>(null);
