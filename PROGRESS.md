@@ -9,7 +9,7 @@
   1. **OpenSTA on CAEN:** installing it (micromamba + `litex-hub::openroad` into `~/tools`) was blocked by the permission classifier as running downloaded code. Approve it, or install it yourself, to run the OSS flow and its tests on CAEN.
   2. **X-trace parity on the OSS flow:** Verilator is 2-state, so it never shows X. Recommend pulling an Icarus sim adapter into the MVP (scope change vs decision #18).
   3. **Synopsys-generated goldens are now committed** (`fixtures/golden/synopsys/real/`, paths and banner stripped). Their redistribution needs a check before the repo goes public.
-  5. **Publish the first release:** `git push origin main --follow-tags` publishes tag `v0.9.0`; GitHub Actions (`.github/workflows/release.yml`) then creates the release. Actions must be enabled for the repo. After that, `svkit update` on CAEN works.
+  5. **Releases v0.9.0 and v0.15.0–v0.18.0 were not created:** they were pushed together with other tags, and GitHub runs no workflow for a push of more than 3 tags. Push this fix (`git push origin main`), then **Actions → release → Run workflow** with `v0.18.0` (the latest is all `svkit update` needs; older ones optional). From now on push each release tag on its own: `git push origin main vX.Y.Z`.
   4. Git hosting, remote and license (#7, #12): the repo now has a GitHub `origin` (`Mercury1565/sv-kit`), presumably yours. Nothing has been pushed by me; confirm and record the decision.
 ---
 
@@ -307,7 +307,7 @@ svkit serve      # restart it after upgrading
 - **`svkit update`** checks GitHub for the latest release. When it is newer than the installed svkit it installs it, prints the release notes, and says to restart `svkit serve` (it names the server processes still running the old version on this machine). Otherwise it says "up to date" and changes nothing. `--check` only reports; `--to v0.8.0` installs a given release (also to roll back); `--force` reinstalls.
 - **`svkit --version`** shows the version and where it came from: `svkit 0.9.0 (release v0.9.0)`, `(from git main @ c138519)` or `(local checkout)`.
 - **`svkit serve`** prints a one-line notice when a newer release exists (checked at most once a day in the background; never delays startup; off with `SVKIT_NO_UPDATE_CHECK=1`).
-- **Releases:** `python3 scripts/release.py minor|patch|major|X.Y.Z` sets the version, commits and tags; `git push origin main --follow-tags` publishes it through `.github/workflows/release.yml`.
+- **Releases:** `python3 scripts/release.py minor|patch|major|X.Y.Z` sets the version, commits and tags; `git push origin main vX.Y.Z` (one tag per push) publishes it through `.github/workflows/release.yml`.
 **Decisions made (and why):**
 - One version, in `svkit.__version__`; `pyproject.toml` reads it (`dynamic`), so the tag, the package and `--version` cannot disagree. The workflow refuses a tag that does not match it.
 - Updates install the tag's source archive (`/archive/refs/tags/vX.Y.Z.tar.gz`), not `git+https`: no git needed on the server, and the install records the tag, which is what `--version` shows.
@@ -438,4 +438,9 @@ svkit serve   # Synthesis → tick runs → Compare → drag a column header
 svkit serve   # Perf → Save image / Save all charts (ZIP); the period is under each chart title
 (cd web && npx vitest run src/lib/perfPeriod.test.ts)
 ```
+
+## Fix after iteration 15 — 2026-11-12 — Releases not created for tags pushed together
+**Status:** done
+- **Cause:** `git push origin main --follow-tags` sent v0.15.0–v0.18.0 and iter-12…15 in one push (8 tags). GitHub creates no push event, so runs no workflow, when a push carries more than 3 tags. v0.9.0 was missed the same way. v0.10.0–v0.14.0 were pushed alone and released fine.
+- **Fix:** `scripts/release.py`, CONTRIBUTING and the workflow header now say to push the one release tag (`git push origin main vX.Y.Z`). The workflow can also be run by hand for an existing tag (`workflow_dispatch`, input `tag`), and skips a tag that already has a release, so backfilling is safe.
 

@@ -49,8 +49,13 @@ users should get:
 
 ```
 python3 scripts/release.py minor        # or patch / major, or an exact version like 0.9.0
-git push origin main --follow-tags
+git push origin main vX.Y.Z             # the tag it printed, on its own
 ```
+
+Push **one release tag per push**. GitHub starts no workflow for a push that carries more than three
+tags, so `--follow-tags` or `--tags` with several new tags creates no release, silently. If a tag
+reached GitHub without a release, open **Actions → release → Run workflow** and enter the tag; the
+workflow skips tags that already have a release.
 
 `scripts/release.py` checks that you are on `main` with nothing uncommitted. It then sets
 `svkit.__version__` (the only place the version is written; `pyproject.toml` reads it), commits

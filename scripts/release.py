@@ -2,7 +2,11 @@
 """Cut a svkit release: set the version, commit, and tag `vX.Y.Z` (locally).
 
     python3 scripts/release.py 0.9.0          # or: patch | minor | major
-    git push origin main --follow-tags         # publishing the tag makes GitHub create the release
+    git push origin main v0.9.0               # publishing the tag makes GitHub create the release
+
+Push one release tag per push: GitHub starts no workflow when a push carries more than 3 tags (so
+never `--follow-tags` / `--tags` while iter-N tags are unpushed). A tag already on GitHub without a
+release: Actions -> release -> Run workflow, with the tag.
 
 Then, on any machine: `svkit update`.
 
@@ -79,8 +83,9 @@ def main() -> None:
     notes = f"svkit {tag}\n\nChanges since {prev or 'the start'}:\n{log or '- (no commits)'}\n"
     git("tag", "-a", tag, "-m", notes)
     print(notes)
-    print(f"Tagged {tag} (was {cur}). Publish it with:\n\n    git push origin main --follow-tags\n\n"
-          f"GitHub then creates the release, and `svkit update` installs it.")
+    print(f"Tagged {tag} (was {cur}). Publish it with:\n\n    git push origin main {tag}\n\n"
+          f"GitHub then creates the release, and `svkit update` installs it. Push this one tag on its own:\n"
+          f"GitHub ignores pushes of more than 3 tags (so not --follow-tags or --tags).")
 
 
 if __name__ == "__main__":
