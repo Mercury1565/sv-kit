@@ -12,7 +12,8 @@ its golden file (or by the pass/fail patterns you configure), and remembers the 
 - **Jump straight to the failure.** *Waves at first mismatch* finds the first output line that differs
   from golden, maps it to a simulation time, and opens the waveform there (see [waves.md](waves.md)).
   This needs output lines that carry a time or cycle (`golden.time_regex` in `svkit.toml`).
-- **Run tests from the dashboard**: *Run all tests*, or *Run* on a test that has not run yet.
+- **Run tests from the dashboard**: *Run all tests* for the whole suite, or *Run* / *Rerun* on any one
+  test's row to run just that test again (for example after fixing it).
 - **Unit-test suites** (for example per-module testbenches) get their own tab; for those, svkit opens the
   waveform at the first error printed in the log.
 

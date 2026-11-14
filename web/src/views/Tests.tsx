@@ -132,24 +132,22 @@ export function TestsView({ suite: suiteId }: { suite?: string }) {
     {
       key: "act",
       header: "",
-      width: "272px",
-      render: (r) =>
-        r.run ? (
-          <span className="row" style={{ gap: 6 }} onClick={(e) => e.stopPropagation()}>
-            {r.run.status === "failed" ? (
-              <DivergenceLink runId={r.run.id} run={r.run} label={suite.unit ? "Waves at first error" : "Waves at first mismatch"} unit={suite.unit} />
-            ) : (
-              <a href={href(`/waves/${r.run.id}`)}>waves</a>
-            )}
-            <a href={`#/runs/${r.run.id}`} style={{ flexShrink: 0 }}>details</a>
-          </span>
-        ) : (
-          <span onClick={(e) => e.stopPropagation()}>
-            <JobButton kind="sim" args={{ test: r.test, flow: suite.flow }}>
-              Run
-            </JobButton>
-          </span>
-        ),
+      width: "320px",
+      render: (r) => (
+        <span className="row" style={{ gap: 6, minWidth: 0 }} onClick={(e) => e.stopPropagation()}>
+          <TestRunButton test={r.test} flow={suite.flow} ran={!!r.run} />
+          {r.run && (
+            <>
+              {r.run.status === "failed" ? (
+                <DivergenceLink runId={r.run.id} run={r.run} label={suite.unit ? "Waves at first error" : "Waves at first mismatch"} unit={suite.unit} />
+              ) : (
+                <a href={href(`/waves/${r.run.id}`)}>waves</a>
+              )}
+              <a href={`#/runs/${r.run.id}`} style={{ flexShrink: 0 }}>details</a>
+            </>
+          )}
+        </span>
+      ),
     },
   ];
 
@@ -185,6 +183,15 @@ export function TestsView({ suite: suiteId }: { suite?: string }) {
         </div>
       )}
     </div>
+  );
+}
+
+/** Runs (or reruns) one test on its own, alongside the suite's "Run all". */
+export function TestRunButton({ test, flow, ran }: { test: string; flow: string; ran: boolean }) {
+  return (
+    <JobButton kind="sim" args={{ test, flow }} disabled={!flow} ariaLabel={`${ran ? "Rerun" : "Run"} ${test}`} quiet>
+      {ran ? "Rerun" : "Run"}
+    </JobButton>
   );
 }
 

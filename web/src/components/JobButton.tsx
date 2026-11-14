@@ -12,6 +12,8 @@ export function JobButton({
   disabled,
   onSubmitted,
   onDone,
+  ariaLabel,
+  quiet,
 }: {
   kind: JobKind;
   args?: Record<string, unknown>;
@@ -22,6 +24,9 @@ export function JobButton({
   onSubmitted?: () => void;
   /** called once when the job finishes without an error */
   onDone?: (job: Job) => void;
+  ariaLabel?: string;
+  /** show only errors, not "running … / done" (for rows whose own status shows progress) */
+  quiet?: boolean;
 }) {
   const { jobs } = useApp();
   const [jobId, setJobId] = useState<string | null>(null);
@@ -54,10 +59,10 @@ export function JobButton({
   const error = job?.status === "error" ? job.error ?? "error" : err;
   return (
     <span className="row job-status" style={{ gap: 6 }}>
-      <button className={primary ? "primary" : ""} onClick={go} disabled={disabled || running}>
+      <button className={primary ? "primary" : ""} onClick={go} disabled={disabled || running} aria-label={ariaLabel}>
         {children}
       </button>
-      {job && job.status !== "error" && (
+      {job && job.status !== "error" && !quiet && (
         <span className="small muted ellipsis" style={{ maxWidth: 280 }}>
           {job.status === "running" ? `running ${job.job_id}…` : `done${job.run_ids.length ? ` → ${job.run_ids.join(", ")}` : ""}`}
         </span>

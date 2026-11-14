@@ -444,3 +444,20 @@ svkit serve   # Perf → Save image / Save all charts (ZIP); the period is under
 - **Cause:** `git push origin main --follow-tags` sent v0.15.0–v0.18.0 and iter-12…15 in one push (8 tags). GitHub creates no push event, so runs no workflow, when a push carries more than 3 tags. v0.9.0 was missed the same way. v0.10.0–v0.14.0 were pushed alone and released fine.
 - **Fix:** `scripts/release.py`, CONTRIBUTING and the workflow header now say to push the one release tag (`git push origin main vX.Y.Z`). The workflow can also be run by hand for an existing tag (`workflow_dispatch`, input `tag`), and skips a tag that already has a release, so backfilling is safe.
 
+
+## Iteration 16 — 2026-11-14 — Rerun one test from the Tests view
+**Status:** done
+**What works now:**
+- **Tests: every row has a *Rerun* button** (*Run* for a test that has never run), next to the suite's *Run all*. It runs that one test in the suite's flow; the row's Latest chip shows it running and then its result.
+**Decisions made (and why):**
+- Before, only never-run tests had a button, so rerunning one failing test meant *Run all* or the CLI.
+- The row button is quiet (no "running j_… / done" text): the row's own status already shows progress, and the text crowded the actions cell. Errors still show.
+**Known gaps / risks:**
+- None known.
+**Next iteration plan:**
+- Same as iteration 7.
+**How to see it:**
+```
+svkit serve   # Tests → Rerun on any row
+(cd web && npx vitest run src/views/suites.test.tsx)
+```

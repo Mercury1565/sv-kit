@@ -1,7 +1,9 @@
-import { describe, expect, it } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { api, setTransport } from "../api/client";
+import { MockBackend } from "../api/mock";
 import type { Project, RunSummary, Suite } from "../api/types";
-import { SuiteTabs, latestPerTest, projectSuites, suiteOf } from "./Tests";
+import { SuiteTabs, TestRunButton, latestPerTest, projectSuites, suiteOf } from "./Tests";
 
 const SUITES: Suite[] = [
   { id: "system", label: "System tests", flow: "vcs", flows: ["vcs", "verilator"], tests: ["ex001", "queue"], unit: false, golden: true, default: true },
@@ -42,5 +44,16 @@ describe("test suites", () => {
     fireEvent.click(tabs[0]);
     expect(location.hash).toBe("#/tests/system");
     expect(screen.getByRole("button", { name: "What does this mean?" })).toBeTruthy();
+  });
+
+  it("runs or reruns one test on its own, in its suite's flow", async () => {
+    setTransport(new MockBackend("demo"), true);
+    const submit = vi.spyOn(api, "submitJob");
+    const { rerender } = render(<TestRunButton test="queue" flow="unit" ran={false} />);
+    expect(screen.getByRole("button", { name: "Run queue" }).textContent).toBe("Run");
+    rerender(<TestRunButton test="queue" flow="unit" ran />);
+    fireEvent.click(screen.getByRole("button", { name: "Rerun queue" }));
+    await waitFor(() => expect(submit).toHaveBeenCalledWith("sim", { test: "queue", flow: "unit" }));
+    submit.mockRestore();
   });
 });
