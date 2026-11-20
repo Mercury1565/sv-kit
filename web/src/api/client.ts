@@ -9,7 +9,7 @@ import type {
   Group,
   Job,
   JobKind,
-  PerfHistoryPoint, PerfResult, PeriodChoice, PeriodState,
+  PerfBatch, PerfHistoryPoint, PerfResult, PeriodChoice, PeriodState,
   Project,
   Run,
   RunSummary,
@@ -150,6 +150,7 @@ export const api = {
   sweep: (gid: string) => req<SweepResult>("GET", `/api/sweeps/${enc(gid)}`),
   perf: (group?: string) => req<PerfResult[]>("GET", "/api/perf", { group }),
   perfHistory: (test: string, limit?: number) => req<PerfHistoryPoint[]>("GET", "/api/perf/history", { test, limit }),
+  perfBatches: (limit?: number) => req<PerfBatch[]>("GET", "/api/perf/batches", { limit }),
   /** Where sim runs take their clock period from as they finish (finished runs keep theirs). */
   perfPeriod: () => req<PeriodState>("GET", "/api/perf/period"),
   setPerfPeriod: (p: PeriodChoice) => req<PeriodState>("PUT", "/api/perf/period", undefined, p),

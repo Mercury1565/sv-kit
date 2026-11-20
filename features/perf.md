@@ -46,6 +46,24 @@ that run.
   for every page of runs (`cpi-runs-01-08.png`, …) plus `runs.csv` with every run's numbers, in one
   `.zip`. **Every test (ZIP)** does the same for every test, one folder per test.
 
+## Batches compared (means)
+
+*Compare batches* (next to *See one test across runs…*) puts every batch side by side: four bar
+charts, **cycles per instruction** and **time per instruction**, each as the **arithmetic mean** and
+the **geometric mean** over the batch's tests. One bar per batch, oldest on the left, each batch in
+its own color (the same in all four charts), labelled with its name, date, how many tests it
+averages and its clock period. A table below repeats the numbers with the change from the previous
+batch. Click a bar to open that batch.
+
+- The arithmetic mean is the plain average. The geometric mean (the n-th root of the product) keeps
+  one long-running program from dominating, and is the usual way to summarize a benchmark suite.
+- Each batch averages the latest result of each test in it. When batches ran different tests, their
+  means cover different programs: pick **Only tests in every batch** to average only the tests every
+  batch ran, so all bars compare like with like. The chart subtitle says which.
+- Time per instruction uses the clock period each run finished with, as everywhere else on this page.
+- Eight batches are shown at a time; *‹ Older* and *Newer ›* page through the rest. **Save all charts
+  (ZIP)** saves the four charts for every page and `batches.csv` with every batch's means.
+
 ## Export
 
 Every chart states the **clock period** behind its numbers, so a saved image is never ambiguous:

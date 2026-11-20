@@ -16,6 +16,7 @@ import { DASH, fmtCompact, fmtDate, fmtInt, fmtNum, fmtPs, isNum } from "../lib/
 import { href, navigate } from "../lib/router";
 import { Term } from "../components/Info";
 import { PerfHistory } from "./PerfHistory";
+import { PerfBatches } from "./PerfBatches";
 import { useAsync, useServerEvents } from "../lib/hooks";
 import { periodNote, periodShort, periodSourceText, periodsDiffer } from "../lib/perfPeriod";
 
@@ -358,6 +359,7 @@ export default function PerfView({ group }: { group?: string }) {
   const [metric, setMetric] = useState<PerfMetric>("cpi");
   const chartRef = useRef<ECharts | null>(null);
   const [historyOf, setHistoryOf] = useState<string | null>(null);
+  const [comparing, setComparing] = useState(false);
   const testNames = useMemo(() => rows.map((r) => r.test).sort(), [rows]);
   const hasTpi = rows.some((r) => isNum(r.tpi));
   const shown: PerfMetric = metric === "tpi" && !hasTpi ? "cpi" : metric;
@@ -486,12 +488,18 @@ export default function PerfView({ group }: { group?: string }) {
               <EChart option={option} height={320} chartRef={chartRef} ariaLabel={`${M.axis} for ${rows.length} programs`} />
             </div>
           </div>
+          {comparing && <PerfBatches onClose={() => setComparing(false)} />}
           {historyOf && <PerfHistory test={historyOf} tests={testNames} onTest={setHistoryOf} onClose={() => setHistoryOf(null)} />}
           <div className="row" style={{ gap: 6 }}>
             <span className="muted small">
               {rows.length} {rows.length === 1 ? "program" : "programs"} · click one to see it across runs
             </span>
             <span className="spacer" />
+            {!comparing && (batches.data?.length ?? 0) > 0 && (
+              <button onClick={() => setComparing(true)} title="Each batch's arithmetic and geometric mean of cycles and time per instruction, side by side">
+                Compare batches
+              </button>
+            )}
             {!historyOf && (
               <select value="" onChange={(e) => e.target.value && setHistoryOf(e.target.value)} aria-label="See one test across runs" style={{ maxWidth: 260 }}>
                 <option value="">See one test across runs…</option>

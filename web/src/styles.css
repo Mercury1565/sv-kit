@@ -507,6 +507,9 @@ button.link:hover { text-decoration: underline; }
 .perf-history-table { margin-top: var(--gap); }
 .perf-history-table td.nowrap, .perf-history-table .nowrap { white-space: nowrap; }
 .perf-history .panel { margin: 0; }
+/* batches compared: CPI on the first row, TPI on the second; one column on narrow screens */
+.mean-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gap); }
+@media (max-width: 860px) { .mean-grid { grid-template-columns: minmax(0, 1fr); } }
 
 /* removing runs: an inline confirmation under the page header */
 .remove-confirm { flex-basis: 100%; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 8px 10px;

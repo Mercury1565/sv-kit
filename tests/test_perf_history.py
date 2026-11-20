@@ -108,3 +108,32 @@ def test_history_without_any_period(tmp_path):
     _sim(db, "t", 30, 10, t=2.0, cfg=cfg)
     h = perf_history(cfg, db, "t")
     assert [(p["cpi"], p["period"], p["tpi"]) for p in h] == [(None, None, None), (3.0, None, None)]
+
+
+def test_perf_batches_latest_result_per_test_in_each_batch(tmp_path):
+    cfg = _toml(tmp_path, '[knobs]\nclock_period = { file = "clk.txt", default = 2000 }\n')
+    db = RunDB.for_project(tmp_path)
+    a = db.create_group("sim-all", {"tests": ["fib", "gcd"]}, name="before")
+    b = db.create_group("sim-all", {"tests": ["fib"]})
+    _at(db, "groups", a.id, 100.0)
+    _at(db, "groups", b.id, 200.0)
+    _sim(db, "fib", 3000, 1000, t=110.0, group=a.id, cfg=cfg)
+    _sim(db, "fib", 2000, 1000, t=120.0, group=a.id, cfg=cfg)          # rerun inside the batch: the latest counts
+    _sim(db, "gcd", 4000, 1000, t=130.0, group=a.id, cfg=cfg)
+    PF.set_period_choice(db, "manual", 1000)
+    _sim(db, "fib", 1500, 1000, t=210.0, group=b.id, cfg=cfg)
+    _sim(db, "fib", 1, 1, t=300.0, cfg=cfg)                              # not in a batch: left out
+    db.create_group("sim-all", {"tests": ["x"]})                         # no perf numbers: left out
+    sw = db.create_group("sweep", {})
+    _sim(db, "fib", 1, 1, t=310.0, group=sw.id, cfg=cfg)                # not a test batch: left out
+
+    res = PF.perf_batches(cfg, db)
+    assert [x["group_id"] for x in res] == [a.id, b.id]                  # oldest first
+    assert res[0]["group_name"] == "before" and res[1]["group_name"] is None
+    assert [(r["test"], r["cpi"], r["period"], r["tpi"]) for r in res[0]["results"]] == \
+        [("fib", 2.0, 2000.0, 4000.0), ("gcd", 4.0, 2000.0, 8000.0)]
+    assert [(r["test"], r["cpi"], r["tpi"], r["period_source"]) for r in res[1]["results"]] == [("fib", 1.5, 1500.0, "manual")]
+
+    c = TestClient(create_app(cfg))
+    assert [x["group_id"] for x in c.get("/api/perf/batches").json()] == [a.id, b.id]
+    assert [x["group_id"] for x in c.get("/api/perf/batches", params={"limit": 1}).json()] == [b.id]

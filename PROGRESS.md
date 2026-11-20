@@ -4,7 +4,7 @@
 - **Phase:** Phases 0–3 implemented. **Both flows now run on real tools** (VCS + DC on CAEN; Verilator + Yosys + OpenSTA on the dev host). **~85 % to MVP.** Remaining: a frontend rebuild (sweep note, new API endpoints; needs Node), browser click-through of every view, web proposal 5, the Icarus decision, and the OSS flow on CAEN (blocked on OpenSTA).
 - **Dogfood checkpoint (EECS 470 copy in `~/svkit-work/dogfood`):** `svkit init` needs **no hand edits**. 21/21 tests pass on VCS, the DC matrix runs (TT/SS/FF), and the clock sweep finds **T_min = 4708 ps** (14 DC runs). TPI uses it, and the dashboard API works on the real CPU.
 - **Demoable on CAEN:** `cd ~/svkit-work/dogfood && svkit serve`, then `ssh -L 3572:localhost:3572 <caen host>` from your laptop.
-- **New (iter 4–7):** runs on a laptop without Synopsys (automatic Verilator/Yosys/OpenSTA fallback), plain-language dashboard with (i) explanations, **unit tests as their own suite** (Tests → Unit tests, waves at the first error), FST waveform archive, and **schematic Blocks/Gates diagrams** (netlistsvg, gate symbols from Liberty); **choose which tests to run** (Perf → Run tests…, `svkit sim a b c`) and **name runs and batches** (iter 7); **exports** (synth reports .txt, Perf PNG / CSV), a CPI / IPC / TPI switch and **one test across runs** (iter 8); **releases + `svkit update`** (iter 9); **remove runs** (iter 10) and **remove a perf batch** (iter 11).
+- **New (iter 4–7):** runs on a laptop without Synopsys (automatic Verilator/Yosys/OpenSTA fallback), plain-language dashboard with (i) explanations, **unit tests as their own suite** (Tests → Unit tests, waves at the first error), FST waveform archive, and **schematic Blocks/Gates diagrams** (netlistsvg, gate symbols from Liberty); **choose which tests to run** (Perf → Run tests…, `svkit sim a b c`) and **name runs and batches** (iter 7); **exports** (synth reports .txt, Perf PNG / CSV), a CPI / IPC / TPI switch and **one test across runs** (iter 8); **releases + `svkit update`** (iter 9); **remove runs** (iter 10), **remove a perf batch** (iter 11) and **mean CPI / TPI per batch, compared** (iter 17).
 - **Needs owner:**
   1. **OpenSTA on CAEN:** installing it (micromamba + `litex-hub::openroad` into `~/tools`) was blocked by the permission classifier as running downloaded code. Approve it, or install it yourself, to run the OSS flow and its tests on CAEN.
   2. **X-trace parity on the OSS flow:** Verilator is 2-state, so it never shows X. Recommend pulling an Icarus sim adapter into the MVP (scope change vs decision #18).
@@ -460,4 +460,25 @@ svkit serve   # Perf → Save image / Save all charts (ZIP); the period is under
 ```
 svkit serve   # Tests → Rerun on any row
 (cd web && npx vitest run src/views/suites.test.tsx)
+```
+
+## Iteration 17 — 2026-11-20 — Batches compared: mean CPI and TPI per batch
+**Status:** done
+**What works now:**
+- **Perf → Compare batches**: one bar per test batch, oldest first, in four charts: cycles per instruction and time per instruction, each as the arithmetic and the geometric mean over the batch's tests. Same look as *One test across runs*: a color per batch shared by every chart, eight batches per page, a table with the change from the previous batch, clock period on every chart, PNG per chart and a ZIP of every chart plus `batches.csv`.
+- When batches ran different tests, **Only tests in every batch** averages just the shared tests.
+- New route `GET /api/perf/batches`: each `sim-all` batch with the latest result per test in it.
+**Decisions made (and why):**
+- The server sends per-test results, not means, and the browser averages them. The common-tests option needs the per-test values anyway, and one place computes the means.
+- Geometric mean over positive values only, computed in log space, so a zero never collapses it and long suites never overflow.
+- Default is each batch's own tests (what the batch dropdown shows); the subtitle states what was averaged, so a saved image is never ambiguous.
+**Known gaps / risks:**
+- On phones the x-axis labels of 8 bars overlap, as in *One test across runs*.
+**Next iteration plan:**
+- Same as iteration 7.
+**How to see it:**
+```
+svkit serve   # Perf → Compare batches
+(cd web && npx vitest run src/lib/perfMeans.test.ts src/views/perfBatches.test.tsx)
+.venv/bin/python -m pytest tests/test_perf_history.py
 ```

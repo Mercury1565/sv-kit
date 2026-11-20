@@ -51,6 +51,11 @@ def make_router(st) -> APIRouter:
         """One test's perf over every run of it, oldest first."""
         return PF.perf_history(st.cfg, st.db, test, limit=limit)
 
+    @r.get("/perf/batches")
+    def perf_batches(limit: int = Query(500, ge=1, le=5000)) -> list[dict[str, Any]]:
+        """Every test batch with perf numbers, oldest first: the latest result per test in each."""
+        return PF.perf_batches(st.cfg, st.db, limit=limit)
+
     @r.get("/perf/period")
     def perf_period() -> dict[str, Any]:
         """Where runs take their clock period from as they finish, and the period a run would get now."""

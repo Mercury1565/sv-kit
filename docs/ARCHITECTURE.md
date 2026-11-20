@@ -249,6 +249,7 @@ All JSON. Base `/api`. Errors: `{"detail": "..."}` with 4xx/5xx.
 | `GET /api/jobs` | `[{job_id, kind, status, run_ids, group_id}]` |
 | `GET /api/perf?group=` | `[PerfResult]`, latest sim run per test; `period` / `period_source` / `tpi` use the clock period FIXED on that run when it finished (`metrics.perf_clock`) |
 | `GET /api/perf/history?test=&limit=500` | `[PerfResult + {run_id, run_name, status, created_at, cached_from, group_id, group_name}]`, every sim run of that test with perf numbers, oldest first (the newest `limit`), each with its fixed clock period |
+| `GET /api/perf/batches?limit=500` | `[{group_id, group_name, created_at, status, results: [{test, run_id, cycles, instrs, cpi, period, period_source, tpi}]}]`, every `sim-all` batch with perf numbers, oldest first (the newest `limit`), with the latest result per test inside it; the web UI averages them per batch |
 | `GET /api/perf/period` | `{from: toml\|sweep\|manual, ps?, period, source}`: where sim runs take their clock period from as they finish (project setting in the Run DB `meta` table; default `toml`), and what a run finishing now gets |
 | `PUT /api/perf/period` `{from, ps?}` | set it (422 for an unknown `from`, or `manual` without `ps` > 0); event `perf.period`. Finished runs keep their period |
 | `GET /api/waves/{run_id}/meta` | `{file, format, timescale:{factor, unit}, t_start, t_end}` |

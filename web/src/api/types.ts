@@ -106,6 +106,25 @@ export interface PerfHistoryPoint extends PerfResult {
   group_name?: string | null;
 }
 
+/** One test batch in GET /api/perf/batches (oldest first): the latest result per test inside it. */
+export interface PerfBatchResult {
+  test: string;
+  run_id: string;
+  cycles?: number | null;
+  instrs?: number | null;
+  cpi?: number | null;
+  period?: number | null;
+  period_source?: string | null;
+  tpi?: number | null;
+}
+export interface PerfBatch {
+  group_id: string;
+  group_name?: string | null;
+  created_at: number;
+  status: string;
+  results: PerfBatchResult[];
+}
+
 export interface SimResult {
   schema_version: number;
   tool: string;

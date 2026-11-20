@@ -12,6 +12,7 @@ import type {
   DesignHierarchy,
   Group,
   Job,
+  PerfBatch,
   PerfHistoryPoint,
   PerfResult,
   PeriodChoice,
@@ -492,6 +493,21 @@ function perfHistoryOf(st: MockState, test: string, limit: number): PerfHistoryP
   return out.slice(-limit);
 }
 
+function perfBatchesOf(st: MockState, limit: number): PerfBatch[] {
+  const out: PerfBatch[] = [];
+  for (const g of [...st.groups].filter((x) => x.kind === "sim-all").sort((a, b) => a.created_at - b.created_at)) {
+    const latest = new Map<string, PerfBatch["results"][number]>();
+    for (const r of [...st.runs].sort((a, b) => a.created_at - b.created_at)) {
+      const m = r.metrics as SimResult | null;
+      if (r.group_id !== g.id || r.kind !== "sim" || !m?.perf) continue;
+      const p = fixedPeriodOf(st, r);
+      latest.set(r.test!, { test: r.test!, run_id: r.id, cycles: m.perf.cycles, instrs: m.perf.instrs, cpi: m.perf.cpi, period: p, period_source: "svkit.toml", tpi: m.perf.cpi != null ? m.perf.cpi * p : null });
+    }
+    if (latest.size) out.push({ group_id: g.id, group_name: g.name ?? null, created_at: g.created_at, status: g.status, results: [...latest.values()].sort((a, b) => a.test.localeCompare(b.test)) });
+  }
+  return out.slice(-limit);
+}
+
 // ------------------------------------------------------------------ waves
 const TIMESCALE = { factor: 1, unit: "ns" };
 const T_END = 100000;
@@ -934,6 +950,7 @@ export class MockBackend implements Transport {
     if (path === "/api/compare") return compareOf(st, (s("ids") ?? "").split(",").filter(Boolean));
     if ((m = /^\/api\/sweeps\/([^/]+)$/.exec(path))) return sweepOf(st, m[1]);
     if (path === "/api/perf") return perfOf(st, s("group"));
+    if (path === "/api/perf/batches") return perfBatchesOf(st, Number(s("limit") ?? 500));
     if (path === "/api/perf/history") return perfHistoryOf(st, s("test") ?? "", Number(s("limit") ?? 500));
     if (path === "/api/perf/period") {
       if (method === "PUT") {

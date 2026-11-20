@@ -184,3 +184,32 @@ def perf_history(cfg, db: RunDB, test: str, *, limit: int = 500) -> list[dict]:
         if len(out) >= limit:
             break
     return out[::-1]
+
+
+def perf_batches(cfg, db: RunDB, *, limit: int = 500) -> list[dict]:
+    """Every test batch (`sim-all` group) that has perf numbers, oldest first, each with the latest
+    result per test inside it (as `perf_table(group_id=...)`). The web UI averages these per batch
+    (arithmetic and geometric mean of CPI and TPI) to compare batches with each other."""
+    legacy: list = []
+    groups = {g.id: g for g in db.list_groups("sim-all", limit=100000)}
+    per: dict[str, dict[str, dict]] = {}
+    for r in db.list_runs(kind="sim", limit=1000000):                     # newest first
+        if r.group_id not in groups:
+            continue
+        perf = (r.metrics or {}).get("perf")
+        if not perf:
+            continue
+        test = perf.get("test") or r.test or r.id
+        mine = per.setdefault(r.group_id, {})
+        if test in mine:
+            continue
+        p = _result(perf, test, _fixed(db, r, legacy))
+        mine[test] = {"test": test, "run_id": r.id, "cycles": p.cycles, "instrs": p.instrs, "cpi": p.cpi,
+                      "period": p.period, "period_source": p.period_source, "tpi": p.tpi}
+    out = []
+    for gid, mine in per.items():
+        g = groups[gid]
+        out.append({"group_id": gid, "group_name": g.name, "created_at": g.created_at, "status": g.status,
+                    "results": [mine[k] for k in sorted(mine)]})
+    out.sort(key=lambda b: (b["created_at"], b["group_id"]))
+    return out[-limit:]
